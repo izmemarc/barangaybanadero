@@ -78,8 +78,8 @@ export function ProjectsSection() {
     <section id="projects" className="min-h-screen bg-muted py-12 sm:py-16 lg:py-20">
       <div className="w-full max-w-[1600px] mx-auto px-0 sm:px-0.5 lg:px-1 xl:px-2">
         <div className="text-center mb-8 sm:mb-10 lg:mb-12">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 text-balance">Community Projects</h2>
-          <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 text-balance">Community Projects</h2>
+          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed">
             Discover the ongoing and completed projects that are transforming our barangay and improving the quality of
             life for all residents.
           </p>
@@ -99,12 +99,12 @@ export function ProjectsSection() {
                 </Badge>
               </div>
               <CardHeader className="pb-2 sm:pb-3">
-                <CardTitle className="text-base sm:text-lg lg:text-xl text-balance leading-tight">{project.title}</CardTitle>
+                <CardTitle className="text-lg text-balance leading-tight">{project.title}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 sm:space-y-4 flex-1 flex flex-col">
-                <p className="text-xs sm:text-sm lg:text-base text-muted-foreground text-pretty leading-relaxed flex-1">{project.description}</p>
+                <p className="text-sm text-muted-foreground text-pretty leading-relaxed flex-1">{project.description}</p>
 
-                <div className="space-y-2 text-xs sm:text-sm">
+                <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
                     <span className="truncate">{project.date}</span>
@@ -127,20 +127,6 @@ export function ProjectsSection() {
           ))}
         </div>
 
-        <div className="text-center">
-          <Card className="bg-primary text-primary-foreground max-w-4xl mx-auto">
-            <CardContent className="p-4 sm:p-6 lg:p-8">
-              <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 sm:mb-4 lg:mb-6 text-balance">Project Transparency</h3>
-              <p className="text-primary-foreground/90 mb-4 sm:mb-6 lg:mb-8 text-pretty leading-relaxed text-sm sm:text-base lg:text-lg max-w-2xl mx-auto">
-                We believe in full transparency regarding our community projects. All project details, budgets, and
-                progress reports are available for public viewing.
-              </p>
-              <Button variant="secondary" size="lg" className="text-sm sm:text-base h-10 sm:h-11 lg:h-12 px-4 sm:px-6 lg:px-8">
-                View Full Project Reports
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </section>
   )

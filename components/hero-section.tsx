@@ -7,19 +7,19 @@ export function HeroSection() {
   return (
     <section
       id="hero"
-      className="bg-white overflow-hidden relative"
+      className="bg-white overflow-hidden relative hero-section-1080p"
       style={{minHeight: '100vh', paddingTop: 'clamp(5rem, 8vh, 6rem)'}}
     >
-      <div className="w-full max-w-[1600px] mx-auto flex items-start" style={{paddingLeft: 'clamp(0px, 1vw, 1rem)', paddingRight: 'clamp(0px, 1vw, 1rem)', paddingTop: 'clamp(1rem, 2vh, 2rem)', minHeight: 'calc(100vh - 5rem)'}}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 w-full" style={{gap: 'clamp(0.75rem, 1.5vw, 1.5rem)', paddingTop: 'clamp(1rem, 2vh, 2rem)', paddingBottom: 'clamp(1rem, 2vh, 2rem)'}}>
+      <div className="w-full max-w-[1600px] mx-auto flex items-start hero-content" style={{paddingLeft: 'clamp(0px, 1vw, 1rem)', paddingRight: 'clamp(0px, 1vw, 1rem)', paddingTop: 'clamp(1rem, 2vh, 2rem)', minHeight: 'calc(100vh - 5rem)'}}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 w-full hero-grid" style={{gap: 'clamp(0.75rem, 1.5vw, 1.5rem)', paddingTop: 'clamp(1rem, 2vh, 2rem)', paddingBottom: 'clamp(1rem, 2vh, 2rem)'}}>
           {/* Left and Center Columns - Logo spanning both */}
-          <div className="lg:col-span-2 flex flex-col" style={{gap: 'clamp(0.75rem, 1.5vw, 1.5rem)'}}>
+          <div className="lg:col-span-2 flex flex-col hero-column" style={{gap: 'clamp(0.75rem, 1.5vw, 1.5rem)'}}>
             {/* Logo Card spanning left and center */}
-            <Card className="bg-white/98 backdrop-blur-xl border border-gray-200/50 shadow-xl w-full overflow-hidden">
+            <Card className="bg-white/98 backdrop-blur-xl border border-gray-200/50 shadow-xl w-full overflow-hidden hero-card">
               <CardContent className="p-0">
                 <div className="flex flex-col lg:flex-row items-center lg:items-stretch">
                   {/* Logo Section */}
-                  <div className="flex-shrink-0 flex items-center justify-center" style={{paddingLeft: 'clamp(1.5rem, 3vw, 3rem)', paddingRight: 'clamp(1rem, 2vw, 2rem)', paddingTop: 'clamp(1.5rem, 3vh, 2.5rem)', paddingBottom: 'clamp(1.5rem, 3vh, 2.5rem)'}}>
+                  <div className="flex-shrink-0 flex items-center justify-center hero-logo-section" style={{paddingLeft: 'clamp(1.5rem, 3vw, 3rem)', paddingRight: 'clamp(1rem, 2vw, 2rem)', paddingTop: 'clamp(1.5rem, 3vh, 2.5rem)', paddingBottom: 'clamp(1.5rem, 3vh, 2.5rem)'}}>
                     <img
                       src="/logo.png"
                       alt="Barangay Logo"
@@ -29,7 +29,7 @@ export function HeroSection() {
                   </div>
                   
                   {/* Title Section */}
-                  <div className="flex-1 text-center lg:text-left" style={{paddingLeft: 'clamp(0.5rem, 1vw, 1rem)', paddingRight: 'clamp(1rem, 2vw, 2rem)', paddingTop: 'clamp(1rem, 2vh, 2rem)', paddingBottom: 'clamp(1rem, 2vh, 2rem)'}}>
+                  <div className="flex-1 text-center lg:text-left hero-text-section" style={{paddingLeft: 'clamp(0.5rem, 1vw, 1rem)', paddingRight: 'clamp(1rem, 2vw, 2rem)', paddingTop: 'clamp(1rem, 2vh, 2rem)', paddingBottom: 'clamp(1rem, 2vh, 2rem)'}}>
                      <h1 className="font-black text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.125rem, 2.8vw, 2.25rem)', marginBottom: 'clamp(0.5rem, 1vh, 0.75rem)'}}>
                        Barangay 6, Bañadero
                      </h1>
@@ -105,7 +105,7 @@ export function HeroSection() {
             <div className="grid grid-cols-1 lg:grid-cols-2 flex-1" style={{gap: 'clamp(0.75rem, 1.5vw, 1.5rem)'}}>
               {/* Left Side - Mission & Vision */}
               <div className="flex flex-col" style={{gap: 'clamp(0.75rem, 1.5vw, 1.5rem)'}}>
-                <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl">
+                <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl hero-card">
                   <CardHeader className="pb-0 pt-2 px-3 sm:px-6">
                     <CardTitle className="text-primary text-sm sm:text-base lg:text-lg font-semibold">Our Mission</CardTitle>
                   </CardHeader>
@@ -116,7 +116,7 @@ export function HeroSection() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl">
+                <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl hero-card">
                   <CardHeader className="pb-0 pt-2 px-3 sm:px-6">
                     <CardTitle className="text-primary text-sm sm:text-base lg:text-lg font-semibold">Our Vision</CardTitle>
                   </CardHeader>
@@ -130,7 +130,7 @@ export function HeroSection() {
 
               {/* Right Side - Barangay Services */}
               <div className="flex flex-col order-first lg:order-none" style={{gap: 'clamp(0.75rem, 1.5vh, 1rem)'}}>
-                <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98">
+                <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98 hero-card">
                   <CardHeader className="pb-0 pt-2 px-3 sm:px-6">
                     <CardTitle className="flex items-center gap-2 sm:gap-3 text-primary text-sm sm:text-base lg:text-lg font-semibold">
                       <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
