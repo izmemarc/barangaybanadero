@@ -29,7 +29,7 @@ if (Test-Path $ConfigFile) {
 
 Write-Host "Creating archive..." -ForegroundColor Yellow
 $Archive = "deploy.zip"
-Compress-Archive -Path "app", "components", "lib", "public", "*.json", "*.mjs", "deployment/nginx.conf", "deployment/setup-ssl.sh" -DestinationPath $Archive -Force -ErrorAction SilentlyContinue
+Compress-Archive -Path "app", "components", "lib", "public", "*.json", "*.mjs", "deployment/nginx.conf", "deployment/nginx-https.conf", "deployment/setup-ssl.sh" -DestinationPath $Archive -Force -ErrorAction SilentlyContinue
 
 if (Test-Path $Archive) {
     Write-Host "Archive created: $Archive" -ForegroundColor Green

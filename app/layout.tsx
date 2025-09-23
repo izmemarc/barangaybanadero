@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Playfair_Display } from "next/font/google";
 import { Montserrat } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
 import { Suspense } from "react";
 import "./globals.css";
 
@@ -32,6 +31,10 @@ export const metadata: Metadata = {
   title: "Banadero, Legazpi City - Official Website",
   description: "Official website of Banadero, Legazpi City - Serving our community with excellence",
   generator: "v0.app",
+  other: {
+    'preconnect': 'https://fonts.googleapis.com',
+    'dns-prefetch': 'https://fonts.gstatic.com',
+  },
 };
 
 export default function RootLayout({
@@ -41,6 +44,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+      </head>
       <body className={`font-sans ${inter.variable} ${playfair.variable} ${montserrat.variable}`}>
         <script
           dangerouslySetInnerHTML={{
@@ -50,25 +59,28 @@ export default function RootLayout({
                 function getScale(h) {
                   if (h >= 735) {
                     // Segment 1: 1023px -> 735px maps 1.00 -> 0.75
-                    const m1 = 0.000868;  // slope
-                    const b1 = 0.1012;    // intercept
+                    const m1 = 0.000880;  // recomputed slope
+                    const b1 = 0.11; 
                     return m1 * h + b1;
                   } else {
                     // Segment 2: 735px -> 486px maps 0.75 -> 0.62
                     const m2 = 0.000522;  // slope
-                    const b2 = 0.366;     // intercept
+                    const b2 = 0.306;     // intercept
                     return m2 * h + b2;
                   }
                 }
 
                 function scalePage() {
                   const h = window.innerHeight;
+                  const w = window.innerWidth;
                   const scale = getScale(h);
 
                   // Apply scale transform
                   document.body.style.transform = 'scale(' + scale + ')';
                   document.body.style.transformOrigin = 'top left';
+                  // Compensate for scaling to prevent whitespace
                   document.body.style.width = (100 / scale) + '%';
+                  document.body.style.height = (100 / scale) + '%';
                 }
 
                 scalePage();
@@ -78,7 +90,6 @@ export default function RootLayout({
           }}
         />
         <Suspense fallback={null}>{children}</Suspense>
-        <Analytics />
       </body>
     </html>
   );

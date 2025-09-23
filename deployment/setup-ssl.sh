@@ -29,6 +29,10 @@ if [ -f "/etc/letsencrypt/live/banaderolegazpi.online/fullchain.pem" ]; then
     echo "🔄 Setting up automatic certificate renewal..."
     (crontab -l 2>/dev/null; echo "0 12 * * * /usr/bin/certbot renew --quiet") | crontab -
     
+    # Copy HTTPS configuration
+    echo "📋 Installing HTTPS nginx configuration..."
+    cp /root/barangay-website/nginx-https.conf /etc/nginx/sites-available/barangay-website
+    
     # Start nginx with new configuration
     echo "🚀 Starting nginx with HTTPS configuration..."
     systemctl start nginx

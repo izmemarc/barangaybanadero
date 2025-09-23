@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { FileText, Users, Calendar, MapPin, Phone, Mail } from "lucide-react"
 
 export function HeroSection() {
@@ -20,12 +19,19 @@ export function HeroSection() {
                 <div className="flex flex-col lg:flex-row items-center lg:items-stretch">
                   {/* Logo Section */}
                   <div className="flex-shrink-0 flex items-center justify-center hero-logo-section" style={{paddingLeft: 'clamp(1.5rem, 3vw, 3rem)', paddingRight: 'clamp(1rem, 2vw, 2rem)', paddingTop: 'clamp(1.5rem, 3vh, 2.5rem)', paddingBottom: 'clamp(1.5rem, 3vh, 2.5rem)'}}>
-                    <img
-                      src="/logo.png"
-                      alt="Barangay Logo"
-                      className="drop-shadow-sm"
-                      style={{width: 'clamp(5rem, 8vw, 9rem)', height: 'clamp(5rem, 8vw, 9rem)'}}
-                    />
+                    <picture>
+                      <source srcSet="/logo.webp" type="image/webp" />
+                      <img
+                        src="/logo.png"
+                        alt="Barangay Logo"
+                        className="drop-shadow-sm"
+                        style={{width: 'clamp(5rem, 8vw, 9rem)', height: 'clamp(5rem, 8vw, 9rem)'}}
+                        fetchPriority="high"
+                        loading="eager"
+                        width="144"
+                        height="144"
+                      />
+                    </picture>
                   </div>
                   
                   {/* Title Section */}
@@ -60,7 +66,7 @@ export function HeroSection() {
                           <div className="w-4 h-4 sm:w-5 sm:h-5 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
                             <Phone className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
                           </div>
-                           <span className="text-sm sm:text-sm font-medium text-gray-700">(02) 123-4567</span>
+                           <span className="text-sm sm:text-sm font-medium text-gray-700">0917 555 3323</span>
                         </div>
                         <div className="flex items-start gap-2 sm:gap-3">
                           <div className="w-4 h-4 sm:w-5 sm:h-5 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -88,7 +94,7 @@ export function HeroSection() {
                       <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mb-2">
                         <Phone className="h-4 w-4 text-primary" />
                       </div>
-                       <span className="text-sm font-medium text-gray-700">(02) 123-4567</span>
+                       <span className="text-sm font-medium text-gray-700">0917 555 3323</span>
                     </div>
                     <div className="flex flex-col items-center">
                       <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mb-2">
@@ -229,11 +235,15 @@ export function HeroSection() {
             {/* Captain Section */}
             <div className="flex flex-col items-center text-center w-full">
               <div className="relative mb-3 sm:mb-4">
-                <img
-                  src="/captain.png"
-                alt="Barangay Captain"
-                  className="w-48 h-56 xs:w-56 xs:h-64 sm:w-64 sm:h-72 md:w-72 md:h-80 lg:w-80 lg:h-88 xl:w-88 xl:h-104 object-cover rounded-2xl shadow-2xl"
-                />
+                <picture>
+                  <source srcSet="/captain.webp" type="image/webp" />
+                  <img
+                    src="/captain.png"
+                    alt="Barangay Captain"
+                    className="w-48 h-56 xs:w-56 xs:h-64 sm:w-64 sm:h-72 md:w-72 md:h-80 lg:w-80 lg:h-88 xl:w-88 xl:h-104 object-cover rounded-2xl shadow-2xl"
+                    loading="lazy"
+                  />
+                </picture>
               </div>
 
               <div className="space-y-1 sm:space-y-2 w-full">
@@ -247,11 +257,15 @@ export function HeroSection() {
             {/* Barangay Council Section */}
             <div className="w-full">
               <div className="w-full h-32 xs:h-40 sm:h-48 md:h-56 lg:h-64 xl:h-72 rounded-2xl overflow-hidden border border-gray-200/50 shadow-lg">
-                <img
-                  src="/group.jpeg"
-                  alt="Barangay Council"
-                  className="w-full h-full object-cover"
+                <picture>
+                  <source srcSet="/group.webp" type="image/webp" />
+                  <img
+                    src="/group.jpeg"
+                    alt="Barangay Council"
+                    className="w-full h-full object-cover"
+                    loading="lazy"
                   />
+                </picture>
                 </div>
               <h3 className="text-primary text-sm sm:text-base md:text-lg font-semibold text-center mt-3 px-2">
                 Barangay Council

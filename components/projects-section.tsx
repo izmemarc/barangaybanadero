@@ -89,11 +89,15 @@ export function ProjectsSection() {
           {projects.map((project, index) => (
             <Card key={index} className="bg-card border-border hover:shadow-lg transition-all duration-300 hover:scale-[1.02] h-full flex flex-col">
               <div className="relative">
-                <img
-                  src={project.image || "/placeholder.svg"}
-                  alt={project.title}
-                  className="w-full h-40 sm:h-48 lg:h-52 object-cover rounded-t-lg"
-                />
+                <picture>
+                  <source srcSet={project.image?.replace(/\.(jpg|jpeg|png)$/, '.webp') || "/placeholder.svg"} type="image/webp" />
+                  <img
+                    src={project.image || "/placeholder.svg"}
+                    alt={project.title}
+                    className="w-full h-40 sm:h-48 lg:h-52 object-cover rounded-t-lg"
+                    loading="lazy"
+                  />
+                </picture>
                 <Badge className={`absolute top-2 sm:top-3 right-2 sm:right-3 text-xs sm:text-sm ${getStatusColor(project.status)}`} variant="outline">
                   {project.status}
                 </Badge>

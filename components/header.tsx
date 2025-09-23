@@ -17,12 +17,19 @@ export function Header() {
       <div className="w-full max-w-[1600px] mx-auto" style={{paddingLeft: 'clamp(0px, 1vw, 1rem)', paddingRight: 'clamp(0px, 1vw, 1rem)', paddingTop: 'clamp(0.75rem, 2vh, 1.25rem)', paddingBottom: 'clamp(0.75rem, 2vh, 1.25rem)'}}>
         <div className="flex items-center justify-between">
           <div className="flex items-center" style={{gap: 'clamp(0.5rem, 2vw, 1rem)'}}>
-            <img
-              src="/logo.png"
-              alt="Barangay Logo"
-              className="object-cover flex-shrink-0"
-              style={{width: 'clamp(2.5rem, 4vw, 3.5rem)', height: 'clamp(2.5rem, 4vw, 3.5rem)'}}
-            />
+            <picture>
+              <source srcSet="/logo.webp" type="image/webp" />
+              <img
+                src="/logo.png"
+                alt="Barangay Logo"
+                className="object-cover flex-shrink-0"
+                style={{width: 'clamp(2.5rem, 4vw, 3.5rem)', height: 'clamp(2.5rem, 4vw, 3.5rem)'}}
+                fetchPriority="high"
+                loading="eager"
+                width="56"
+                height="56"
+              />
+            </picture>
             <div className="min-w-0 flex-1">
                 <h1 className="font-black text-primary leading-none tracking-tight" style={{fontWeight: '900', fontFamily: 'system-ui, -apple-system, sans-serif', fontSize: 'clamp(0.75rem, 1.8vw, 1.25rem)', marginBottom: 'clamp(0.125rem, 0.3vh, 0.25rem)'}}>
                   Bañadero, Legazpi City
@@ -37,22 +44,22 @@ export function Header() {
           <nav className="hidden lg:flex items-center" style={{gap: 'clamp(0.25rem, 0.5vw, 0.5rem)'}}>
             <button
               onClick={() => scrollToSection("hero")}
-              className="text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 font-medium"
-              style={{padding: 'clamp(0.5rem, 1vh, 0.75rem) clamp(0.75rem, 1.5vw, 1rem)', fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}
+              className="text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
+              style={{padding: 'clamp(0.75rem, 1.5vh, 1rem) clamp(1rem, 2vw, 1.25rem)', fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}
             >
               Home
             </button>
             <button
               onClick={() => scrollToSection("projects")}
-              className="text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 font-medium"
-              style={{padding: 'clamp(0.5rem, 1vh, 0.75rem) clamp(0.75rem, 1.5vw, 1rem)', fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}
+              className="text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
+              style={{padding: 'clamp(0.75rem, 1.5vh, 1rem) clamp(1rem, 2vw, 1.25rem)', fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}
             >
               Projects
             </button>
             <button
               onClick={() => scrollToSection("community")}
-              className="text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 font-medium"
-              style={{padding: 'clamp(0.5rem, 1vh, 0.75rem) clamp(0.75rem, 1.5vw, 1rem)', fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}
+              className="text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
+              style={{padding: 'clamp(0.75rem, 1.5vh, 1rem) clamp(1rem, 2vw, 1.25rem)', fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}
             >
               Community
             </button>
@@ -76,22 +83,22 @@ export function Header() {
             <div className="flex flex-col" style={{gap: 'clamp(0.5rem, 1.5vh, 0.75rem)'}}>
               <button
                 onClick={() => scrollToSection("hero")}
-                className="text-left text-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200 rounded-lg font-medium"
-                style={{padding: 'clamp(0.5rem, 1.5vh, 0.75rem) clamp(0.5rem, 1vw, 0.5rem)', fontSize: 'clamp(0.875rem, 2vw, 1rem)'}}
+                className="text-left text-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200 rounded-lg font-medium min-h-[44px] flex items-center"
+                style={{padding: 'clamp(0.75rem, 2vh, 1rem) clamp(0.75rem, 1.5vw, 1rem)', fontSize: 'clamp(0.875rem, 2vw, 1rem)'}}
               >
                 Home
               </button>
               <button
                 onClick={() => scrollToSection("projects")}
-                className="text-left text-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200 rounded-lg font-medium"
-                style={{padding: 'clamp(0.5rem, 1.5vh, 0.75rem) clamp(0.5rem, 1vw, 0.5rem)', fontSize: 'clamp(0.875rem, 2vw, 1rem)'}}
+                className="text-left text-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200 rounded-lg font-medium min-h-[44px] flex items-center"
+                style={{padding: 'clamp(0.75rem, 2vh, 1rem) clamp(0.75rem, 1.5vw, 1rem)', fontSize: 'clamp(0.875rem, 2vw, 1rem)'}}
               >
                 Projects
               </button>
               <button
                 onClick={() => scrollToSection("community")}
-                className="text-left text-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200 rounded-lg font-medium"
-                style={{padding: 'clamp(0.5rem, 1.5vh, 0.75rem) clamp(0.5rem, 1vw, 0.5rem)', fontSize: 'clamp(0.875rem, 2vw, 1rem)'}}
+                className="text-left text-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200 rounded-lg font-medium min-h-[44px] flex items-center"
+                style={{padding: 'clamp(0.75rem, 2vh, 1rem) clamp(0.75rem, 1.5vw, 1rem)', fontSize: 'clamp(0.875rem, 2vw, 1rem)'}}
               >
                 Community
               </button>

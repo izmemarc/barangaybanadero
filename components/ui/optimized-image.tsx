@@ -27,7 +27,6 @@ export function OptimizedImage({
   style,
   ...props
 }: OptimizedImageProps) {
-  const [imageError, setImageError] = useState(false);
   
   // Generate WebP version path
   const getWebPSrc = (originalSrc: string) => {
@@ -86,7 +85,6 @@ export function OptimizedImage({
         sizes={sizes}
         fill={fill}
         style={style}
-        onError={() => setImageError(true)}
         {...props}
       />
     </picture>

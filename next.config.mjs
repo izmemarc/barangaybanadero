@@ -4,6 +4,27 @@ const nextConfig = {
   // Disable automatic redirects and ensure proper host binding
   trailingSlash: false,
   poweredByHeader: false,
+  // Performance optimizations
+  experimental: {
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+  },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  // Modern JavaScript target for better performance
+  swcMinify: true,
+  // Disable service worker to prevent 404 errors
+  generateBuildId: async () => {
+    return 'build-' + Date.now()
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/sw.js',
+        destination: '/404'
+      }
+    ]
+  },
   // Ensure the app doesn't redirect to localhost
   async headers() {
     return [

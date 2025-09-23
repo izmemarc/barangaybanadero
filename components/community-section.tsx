@@ -65,13 +65,17 @@ export function CommunitySection() {
   ]
 
   const officials = [
-    { name: "Arthur Marco", position: "Barangay Captain" },
-    { name: "Juan Dela Cruz", position: "Barangay Kagawad" },
-    { name: "Ana Rodriguez", position: "Barangay Kagawad" },
-    { name: "Pedro Martinez", position: "Barangay Kagawad" },
-    { name: "Rosa Garcia", position: "Barangay Secretary" },
-    { name: "Carlos Lopez", position: "Barangay Treasurer" },
-    { name: "Elena Reyes", position: "SK Chairperson" },
+    { name: "Arthur R. Marco", position: "Punong Barangay" },
+    { name: "Josefa B. Ballon", position: "Kagawad" },
+    { name: "Clarence A. Castillo", position: "Kagawad" },
+    { name: "Randy G. Loresto", position: "Kagawad" },
+    { name: "Ardi L. Marco", position: "Kagawad" },
+    { name: "Annabelle L. Azicate", position: "Kagawad" },
+    { name: "Regie M. Ajero", position: "Kagawad" },
+    { name: "Carmelo A. Abache", position: "Kagawad" },
+    { name: "Franz Vincent B. Reynoso", position: "SK Chairman" },
+    { name: "Maria Angela A. Nalles", position: "Secretary" },
+    { name: "Judith H. Silvestre", position: "Treasurer" },
   ]
 
   return (
@@ -82,6 +86,37 @@ export function CommunitySection() {
           <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed">
             Everything you need to know about our barangay services, events, and community programs.
           </p>
+        </div>
+
+        {/* Vision & Mission */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-10 lg:mb-12">
+          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+            <CardHeader>
+              <CardTitle className="text-primary text-lg sm:text-xl font-bold flex items-center gap-2">
+                <Heart className="h-5 w-5" />
+                Our Vision
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm sm:text-base text-muted-foreground text-pretty leading-relaxed italic">
+                "A self-reliant community enjoying a progressive and even-handed economy, disaster resilient, drug-free, well-managed solid wastes, peaceful and ecologically balanced environment with God-loving people guided by a responsive, participatory, transparent and accountable leadership and governance."
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-secondary/5 to-secondary/10 border-secondary/20">
+            <CardHeader>
+              <CardTitle className="text-secondary text-lg sm:text-xl font-bold flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Our Mission
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm sm:text-base text-muted-foreground text-pretty leading-relaxed italic">
+                "With the inspiration and guidance of the Almighty God, we are committed to adopt the state-of-the-art technologies, plan and implement programs, projects and activities using the Community Driven Development (CDD) strategy to promptly deliver quality basic services for the total improvement of the barangay."
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
@@ -184,7 +219,7 @@ export function CommunitySection() {
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-sm">Barangay Emergency</span>
-                    <span className="text-xs">(02) 123-4567</span>
+                    <span className="text-xs">0917 555 3323</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-sm">Police Station</span>
@@ -248,55 +283,55 @@ export function CommunitySection() {
       </div>
 
       {/* Footer - Full Width */}
-      <div className="border-t border-border pt-4 bg-background">
+      <div className="border-t border-border pt-6 pb-4 bg-background">
         <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-4 text-center md:text-left">
+          <div className="grid md:grid-cols-3 gap-6 text-center md:text-left">
             <div>
-              <h3 className="font-bold text-primary mb-1 text-balance" style={{fontSize: 'clamp(1rem, 2.5vw, 2rem)'}}>Banadero, Legazpi City</h3>
-              <p className="text-muted-foreground text-pretty leading-relaxed" style={{fontSize: 'clamp(0.875rem, 1.5vw, 1rem)'}}>
+              <h3 className="font-bold text-primary mb-2 text-balance" style={{fontSize: 'clamp(1.125rem, 2vw, 1.5rem)'}}>Banadero, Legazpi City</h3>
+              <p className="text-muted-foreground text-pretty leading-relaxed" style={{fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}>
                 Committed to serving our community with transparency, integrity, and dedication to progress.
               </p>
             </div>
             <div>
-              <h4 className="font-semibold mb-1" style={{fontSize: 'clamp(0.875rem, 1.5vw, 1rem)'}}>Quick Links</h4>
-              <div className="space-y-1 text-sm">
-                <p>
-                  <a href="#hero" className="text-muted-foreground hover:text-primary transition-colors">
+              <h4 className="font-semibold mb-3 text-primary" style={{fontSize: 'clamp(1rem, 1.5vw, 1.125rem)'}}>Quick Links</h4>
+              <div className="space-y-2">
+                <div>
+                  <a href="#hero" className="text-muted-foreground hover:text-primary transition-colors inline-block min-h-[44px] min-w-[44px] flex items-center py-2 px-1" style={{fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}>
                     Home
                   </a>
-                </p>
-                <p>
-                  <a href="#projects" className="text-muted-foreground hover:text-primary transition-colors">
+                </div>
+                <div>
+                  <a href="#projects" className="text-muted-foreground hover:text-primary transition-colors inline-block min-h-[44px] min-w-[44px] flex items-center py-2 px-1" style={{fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}>
                     Projects
                   </a>
-                </p>
-                <p>
-                  <a href="#community" className="text-muted-foreground hover:text-primary transition-colors">
+                </div>
+                <div>
+                  <a href="#community" className="text-muted-foreground hover:text-primary transition-colors inline-block min-h-[44px] min-w-[44px] flex items-center py-2 px-1" style={{fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}>
                     Community
                   </a>
-                </p>
+                </div>
               </div>
             </div>
             <div>
-              <h4 className="font-semibold mb-1" style={{fontSize: 'clamp(0.875rem, 1.5vw, 1rem)'}}>Contact Us</h4>
-              <div className="space-y-1 text-sm text-muted-foreground">
+              <h4 className="font-semibold mb-3 text-primary" style={{fontSize: 'clamp(1rem, 1.5vw, 1.125rem)'}}>Contact Us</h4>
+              <div className="space-y-2 text-muted-foreground">
                 <div className="flex items-center gap-2 justify-center md:justify-start">
-                  <MapPin className="h-3 w-3" />
-                  <span>4PQH+WXJ, Old Albay District, Legazpi City, Albay</span>
+                  <MapPin className="h-4 w-4" />
+                  <span style={{fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}>4PQH+WXJ, Old Albay District, Legazpi City, Albay</span>
                 </div>
                 <div className="flex items-center gap-2 justify-center md:justify-start">
-                  <Phone className="h-3 w-3" />
-                  <span>(02) 123-4567</span>
+                  <Phone className="h-4 w-4" />
+                  <span style={{fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}>0917 555 3323</span>
                 </div>
                 <div className="flex items-center gap-2 justify-center md:justify-start">
-                  <Mail className="h-3 w-3" />
-                  <span>brgy6banadero@gmail.com</span>
+                  <Mail className="h-4 w-4" />
+                  <span style={{fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}>brgy6banadero@gmail.com</span>
                 </div>
               </div>
             </div>
           </div>
-          <div className="border-t border-border mt-4 pt-2 text-center">
-            <p className="text-xs text-muted-foreground">© 2024 Banadero, Legazpi City. All rights reserved.</p>
+          <div className="border-t border-border mt-6 pt-4 text-center">
+            <p className="text-muted-foreground" style={{fontSize: 'clamp(0.75rem, 1vw, 0.875rem)'}}>© 2024 Banadero, Legazpi City. All rights reserved.</p>
           </div>
         </div>
       </div>
