@@ -8,8 +8,6 @@ import {
   GraduationCap,
   Shield,
   Leaf,
-  Phone,
-  Mail,
   MapPin,
   Clock,
   FileText,
@@ -65,66 +63,37 @@ export function CommunitySection() {
   ]
 
   const officials = [
-    { name: "Arthur R. Marco", position: "Punong Barangay" },
-    { name: "Josefa B. Ballon", position: "Kagawad" },
-    { name: "Clarence A. Castillo", position: "Kagawad" },
-    { name: "Randy G. Loresto", position: "Kagawad" },
-    { name: "Ardi L. Marco", position: "Kagawad" },
-    { name: "Annabelle L. Azicate", position: "Kagawad" },
-    { name: "Regie M. Ajero", position: "Kagawad" },
-    { name: "Carmelo A. Abache", position: "Kagawad" },
-    { name: "Franz Vincent B. Reynoso", position: "SK Chairman" },
-    { name: "Maria Angela A. Nalles", position: "Secretary" },
-    { name: "Judith H. Silvestre", position: "Treasurer" },
+    { name: "Arthur R. Marco", position: "Punong Barangay", image: "/officers/arthur.webp" },
+    { name: "Josefa B. Ballon", position: "Kagawad", image: "/officers/josefa.webp" },
+    { name: "Clarence A. Castillo", position: "Kagawad", image: "/officers/clarance.webp" },
+    { name: "Randy G. Loresto", position: "Kagawad", image: "/officers/randy.webp" },
+    { name: "Ardi L. Marco", position: "Kagawad", image: "/officers/ardi.webp" },
+    { name: "Annabelle L. Azicate", position: "Kagawad", image: "/officers/annabelle.webp" },
+    { name: "Regie M. Ajero", position: "Kagawad", image: "/officers/regie.webp" },
+    { name: "Carmelo A. Abache", position: "Kagawad", image: "/officers/carmelo.webp" },
+    { name: "Franz Vincent B. Reynoso", position: "SK Chairman", image: "/officers/franz.webp" },
+    { name: "Maria Angela A. Nalles", position: "Secretary", image: "/officers/maria.webp" },
+    { name: "Judith H. Silvestre", position: "Treasurer", image: "/officers/judith.webp" },
   ]
 
   return (
-    <section id="community" className="min-h-screen bg-background py-12 sm:py-16 lg:py-20">
+    <section id="community" className="bg-white pt-12 sm:pt-16 lg:pt-20">
       <div className="w-full max-w-[1600px] mx-auto px-0 sm:px-0.5 lg:px-1 xl:px-2">
         <div className="text-center mb-8 sm:mb-10 lg:mb-12">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 text-balance">Community Information</h2>
-          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed">
+          <h2 className="font-black text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', marginBottom: 'clamp(0.5rem, 1vh, 0.75rem)'}}>Community Information</h2>
+          <p className="text-gray-600 font-medium" style={{fontSize: 'clamp(0.875rem, 1.5vw, 1rem)'}}>
             Everything you need to know about our barangay services, events, and community programs.
           </p>
         </div>
 
-        {/* Vision & Mission */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-10 lg:mb-12">
-          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-            <CardHeader>
-              <CardTitle className="text-primary text-lg sm:text-xl font-bold flex items-center gap-2">
-                <Heart className="h-5 w-5" />
-                Our Vision
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm sm:text-base text-muted-foreground text-pretty leading-relaxed italic">
-                "A self-reliant community enjoying a progressive and even-handed economy, disaster resilient, drug-free, well-managed solid wastes, peaceful and ecologically balanced environment with God-loving people guided by a responsive, participatory, transparent and accountable leadership and governance."
-              </p>
-            </CardContent>
-          </Card>
 
-          <Card className="bg-gradient-to-br from-secondary/5 to-secondary/10 border-secondary/20">
-            <CardHeader>
-              <CardTitle className="text-secondary text-lg sm:text-xl font-bold flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Our Mission
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm sm:text-base text-muted-foreground text-pretty leading-relaxed italic">
-                "With the inspiration and guidance of the Almighty God, we are committed to adopt the state-of-the-art technologies, plan and implement programs, projects and activities using the Community Driven Development (CDD) strategy to promptly deliver quality basic services for the total improvement of the barangay."
-              </p>
-            </CardContent>
-          </Card>
-        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
           {/* Services & Programs */}
           <div className="space-y-3 sm:space-y-4">
-            <Card className="bg-card border-border">
+            <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98">
               <CardHeader className="pb-2">
-                <CardTitle className="text-primary text-base">Community Services</CardTitle>
+                 <CardTitle className="text-primary text-lg font-bold">Community Services</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {services.map((service, index) => (
@@ -141,9 +110,9 @@ export function CommunitySection() {
               </CardContent>
             </Card>
 
-            <Card className="bg-card border-border">
+            <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98">
               <CardHeader>
-                <CardTitle className="text-primary text-base">Office Hours</CardTitle>
+                 <CardTitle className="text-primary text-lg font-bold">Office Hours</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <div className="flex items-center gap-3">
@@ -173,9 +142,9 @@ export function CommunitySection() {
 
           {/* Upcoming Events */}
           <div className="space-y-3 sm:space-y-4">
-            <Card className="bg-card border-border">
+            <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-primary text-base">
+                 <CardTitle className="flex items-center gap-2 text-primary text-lg font-bold">
                   <Calendar className="h-4 w-4" />
                   Upcoming Events
                 </CardTitle>
@@ -208,9 +177,9 @@ export function CommunitySection() {
               </CardContent>
             </Card>
 
-            <Card className="bg-card border-border">
+            <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-primary text-base">
+                 <CardTitle className="flex items-center gap-2 text-primary text-lg font-bold">
                   <AlertCircle className="h-4 w-4" />
                   Emergency Contacts
                 </CardTitle>
@@ -240,9 +209,9 @@ export function CommunitySection() {
 
           {/* Officials & Contact */}
           <div className="space-y-3 sm:space-y-4">
-            <Card className="bg-card border-border">
+            <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-primary text-base">
+                 <CardTitle className="flex items-center gap-2 text-primary text-lg font-bold">
                   <Users className="h-4 w-4" />
                   Barangay Officials
                 </CardTitle>
@@ -250,8 +219,16 @@ export function CommunitySection() {
               <CardContent className="space-y-2">
                 {officials.map((official, index) => (
                   <div key={index} className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Users className="h-4 w-4 text-primary" />
+                    <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                      <picture>
+                        <source srcSet={official.image} type="image/webp" />
+                        <img
+                          src={official.image?.replace(/\.webp$/, '.png') || "/placeholder.svg"}
+                          alt={official.name}
+                          className="w-full h-full object-cover object-top"
+                          loading="lazy"
+                        />
+                      </picture>
                     </div>
                     <div>
                       <p className="font-semibold text-sm text-balance">{official.name}</p>
@@ -262,9 +239,9 @@ export function CommunitySection() {
               </CardContent>
             </Card>
 
-            <Card className="bg-primary text-primary-foreground">
+            <Card className="bg-primary/95 backdrop-blur-lg border-primary/30 text-primary-foreground shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-primary/98 hover:scale-[1.02]">
               <CardHeader>
-                <CardTitle className="text-base">Get Involved</CardTitle>
+                 <CardTitle className="text-lg font-bold">Get Involved</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-sm text-primary-foreground/90 text-pretty leading-relaxed">
@@ -282,59 +259,19 @@ export function CommunitySection() {
         </div>
       </div>
 
-      {/* Footer - Full Width */}
-      <div className="border-t border-border pt-6 pb-4 bg-background">
-        <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-6 text-center md:text-left">
-            <div>
-              <h3 className="font-bold text-primary mb-2 text-balance" style={{fontSize: 'clamp(1.125rem, 2vw, 1.5rem)'}}>Banadero, Legazpi City</h3>
-              <p className="text-muted-foreground text-pretty leading-relaxed" style={{fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}>
-                Committed to serving our community with transparency, integrity, and dedication to progress.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-3 text-primary" style={{fontSize: 'clamp(1rem, 1.5vw, 1.125rem)'}}>Quick Links</h4>
-              <div className="space-y-2">
-                <div>
-                  <a href="#hero" className="text-muted-foreground hover:text-primary transition-colors inline-block min-h-[44px] min-w-[44px] flex items-center py-2 px-1" style={{fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}>
-                    Home
-                  </a>
-                </div>
-                <div>
-                  <a href="#projects" className="text-muted-foreground hover:text-primary transition-colors inline-block min-h-[44px] min-w-[44px] flex items-center py-2 px-1" style={{fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}>
-                    Projects
-                  </a>
-                </div>
-                <div>
-                  <a href="#community" className="text-muted-foreground hover:text-primary transition-colors inline-block min-h-[44px] min-w-[44px] flex items-center py-2 px-1" style={{fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}>
-                    Community
-                  </a>
-                </div>
-              </div>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-3 text-primary" style={{fontSize: 'clamp(1rem, 1.5vw, 1.125rem)'}}>Contact Us</h4>
-              <div className="space-y-2 text-muted-foreground">
-                <div className="flex items-center gap-2 justify-center md:justify-start">
-                  <MapPin className="h-4 w-4" />
-                  <span style={{fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}>4PQH+WXJ, Old Albay District, Legazpi City, Albay</span>
-                </div>
-                <div className="flex items-center gap-2 justify-center md:justify-start">
-                  <Phone className="h-4 w-4" />
-                  <span style={{fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}>0917 555 3323</span>
-                </div>
-                <div className="flex items-center gap-2 justify-center md:justify-start">
-                  <Mail className="h-4 w-4" />
-                  <span style={{fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}>brgy6banadero@gmail.com</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-border mt-6 pt-4 text-center">
-            <p className="text-muted-foreground" style={{fontSize: 'clamp(0.75rem, 1vw, 0.875rem)'}}>© 2024 Banadero, Legazpi City. All rights reserved.</p>
+      {/* Footer */}
+      <footer className="bg-white/95 backdrop-blur-lg border-t border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98" style={{paddingTop: 'clamp(0.75rem, 2vh, 1.25rem)', paddingBottom: 'clamp(0.75rem, 2vh, 1.25rem)'}}>
+        <div className="w-full max-w-[1600px] mx-auto" style={{paddingLeft: 'clamp(0px, 1vw, 1rem)', paddingRight: 'clamp(0px, 1vw, 1rem)'}}>
+          <div className="text-center">
+            <p className="text-gray-600 font-medium" style={{fontSize: 'clamp(0.875rem, 1.5vw, 1rem)'}}>
+              © 2024 Barangay 6, Bañadero, Legazpi City. All Rights Reserved.
+            </p>
+            <p className="text-gray-500 text-sm mt-1" style={{fontSize: 'clamp(0.75rem, 1vw, 0.875rem)'}}>
+              Developed & Maintained by the Barangay Information Team.
+            </p>
           </div>
         </div>
-      </div>
+      </footer>
     </section>
   )
 }

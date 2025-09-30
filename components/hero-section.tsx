@@ -117,7 +117,7 @@ export function HeroSection() {
                   </CardHeader>
                   <CardContent className="pb-2 px-3 sm:px-6">
                      <p className="text-sm sm:text-sm lg:text-base text-pretty leading-snug">
-                       With the inspiration and guidance of the Almighty God, we are committed to adopt the state-of-the-art technologies, implement priority projects and programs through Community-Driven Development (CDD) strategy, to promptly deliver quality basic services for the total improvement of the barangay.
+                       With the inspiration and guidance of the Almighty God, we are committed to adopt state-of-the-art technologies, plan and implement programs, projects and activities using the Community Driven Development (CDD) strategy to promptly deliver quality basic services for the total improvement of the barangay.
                      </p>
                   </CardContent>
                 </Card>
@@ -128,7 +128,7 @@ export function HeroSection() {
                   </CardHeader>
                   <CardContent className="pb-2 px-3 sm:px-6">
                      <p className="text-sm sm:text-sm lg:text-base text-pretty leading-snug">
-                       A self-reliant community enjoying a progressive and even-handed economy, disaster resilient, livable, well-managed, with God-loving people guided with strong, committed, and dedicated leadership and governance.
+                       A self-reliant community enjoying a progressive and even-handed economy, disaster resilient, drug-free, well-managed solid wastes, peaceful and ecologically balanced environment with God-loving people guided by a responsive, participatory, transparent and accountable leadership and governance.
                      </p>
                   </CardContent>
                 </Card>
@@ -156,9 +156,12 @@ export function HeroSection() {
                   variant="outline"
                       className="w-full justify-start bg-transparent hover:bg-primary/5 border-primary/20 h-7 sm:h-8 text-left text-sm sm:text-sm font-medium"
                       aria-label="Request Barangay Clearance"
+                      asChild
                 >
+                  <a href="https://docs.google.com/forms/d/e/1FAIpQLSd8A3n_Y2O4cE5pH-Jaub9MAHWxVBQHGsB6BCLRWLXsue84YQ/viewform" target="_blank" rel="noopener noreferrer">
                       <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary" />
                   Barangay Clearance
+                  </a>
                 </Button>
                 <Button
                   variant="outline"
@@ -240,8 +243,10 @@ export function HeroSection() {
                   <img
                     src="/captain.png"
                     alt="Barangay Captain"
-                    className="w-48 h-56 xs:w-56 xs:h-64 sm:w-64 sm:h-72 md:w-72 md:h-80 lg:w-80 lg:h-88 xl:w-88 xl:h-104 object-cover rounded-2xl shadow-2xl"
+                    className="w-48 h-56 xs:w-56 xs:h-64 sm:w-64 sm:h-72 md:w-72 md:h-80 lg:w-80 lg:h-88 xl:w-88 xl:h-104 object-cover object-top rounded-2xl shadow-2xl"
                     loading="lazy"
+                    width={400}
+                    height={500}
                   />
                 </picture>
               </div>
@@ -262,8 +267,10 @@ export function HeroSection() {
                   <img
                     src="/group.jpeg"
                     alt="Barangay Council"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover object-top"
                     loading="lazy"
+                    width={400}
+                    height={300}
                   />
                 </picture>
                 </div>

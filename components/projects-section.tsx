@@ -1,134 +1,105 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Calendar, Users, Wrench } from "lucide-react"
+import { ProjectCard } from "./project-card"
 
 export function ProjectsSection() {
-  const projects = [
+  const coreAreasProjects = [
     {
-      title: "Multi-Purpose Community Center",
-      status: "Completed",
-      description: "A modern facility for community events, meetings, and recreational activities.",
-      image: "/modern-community-center-building-in-philippines.jpg",
-      date: "Completed March 2024",
-      beneficiaries: "2,500 residents",
-      budget: "₱5.2M",
-    },
-    {
-      title: "Street Lighting Project",
-      status: "Ongoing",
-      description: "Installation of LED street lights along major roads for improved safety and security.",
-      image: "/led-street-lights-installation-in-residential-area.jpg",
-      date: "Expected completion: June 2024",
+      title: "Financial Administration",
+      description: "Barangay Assembly – Second Semester CY 2024. Held on October 26, 2024, the assembly gathered residents and officials to present the financial report, update ongoing projects, and address community concerns through open dialogue and feedback.",
+      image: "/finance.webp",
+      date: "October 26, 2024",
       beneficiaries: "All residents",
-      budget: "₱1.8M",
+      url: "https://drive.google.com/drive/folders/10SxM2mhq1j7OqwlMr3FQAV3pEj9-18vQ?usp=sharing",
     },
     {
-      title: "Covered Basketball Court",
-      status: "Completed",
-      description: "Weather-proof basketball court with modern facilities for sports and events.",
-      image: "/covered-basketball-court-in-philippines-barangay.jpg",
-      date: "Completed January 2024",
-      beneficiaries: "Youth and sports enthusiasts",
-      budget: "₱3.5M",
+      title: "Disaster Preparedness",
+      description: "Preemptive Evacuation and Relief Distribution for Typhoon Opong. PB Arthur Marco led the preemptive evacuation of 24 families to ensure safety as Typhoon Opong intensified. Together with Kagawad Regie Ajero, BDRRM Chairman, the barangay council and BHW distributed food packs at the evacuation center.",
+      image: "/disaster.webp",
+      date: "September 25, 2025",
+      beneficiaries: "24 evacuated families",
+      url: "https://drive.google.com/drive/folders/1kAyJOijS80A_Y3Yr4ca53s9C9-_DnNfa?usp=sharing",
     },
     {
-      title: "Drainage System Improvement",
-      status: "Planning",
-      description: "Comprehensive drainage system upgrade to prevent flooding during rainy season.",
-      image: "/drainage-system-construction-project.jpg",
-      date: "Target start: August 2024",
-      beneficiaries: "1,800 households",
-      budget: "₱4.2M",
-    },
-    {
-      title: "Health Center Expansion",
-      status: "Ongoing",
-      description: "Expansion of the barangay health center to accommodate more patients and services.",
-      image: "/health-center-medical-facility-in-philippines.jpg",
-      date: "Expected completion: September 2024",
-      beneficiaries: "All residents",
-      budget: "₱2.9M",
-    },
-    {
-      title: "Senior Citizens Center",
-      status: "Planning",
-      description: "Dedicated facility for senior citizens' activities, health programs, and social services.",
-      image: "/senior-citizens-center-building.jpg",
-      date: "Target start: October 2024",
-      beneficiaries: "450 senior citizens",
-      budget: "₱2.1M",
+      title: "Social Protection",
+      description: "External Accreditation of Barangay 6 Bañadero Child Development Center. External evaluation was conducted to assess and improve the quality of education, ensuring standards for effective learning. Gratitude was extended to the accreditors, Barangay officials, and the Child Development Worker for their support in making the accreditation a success.",
+      image: "/social protection.webp",
+      date: "September 24, 2025",
+      beneficiaries: "Children and families",
+      url: "https://drive.google.com/drive/folders/191n5A7HwWok4vNpssWP8fE3udTi23eWc?usp=sharing",
     },
   ]
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Completed":
-        return "bg-green-100 text-green-800 border-green-200"
-      case "Ongoing":
-        return "bg-blue-100 text-blue-800 border-blue-200"
-      case "Planning":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200"
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
-    }
-  }
+  const essentialAreasProjects = [
+    {
+      title: "Business-Friendliness and Competitiveness",
+      description: "Empowering Women: Strengthening Lives Through Awareness and Opportunities. A seminar focused on gender advocacy, mental health, conflict resolution, and livelihood opportunities for women in the community.",
+      image: "/livelihood.webp",
+      date: "September 17, 2025",
+      beneficiaries: "Women in the community",
+      url: "https://drive.google.com/drive/folders/1vwyhTr3teTlupka_-9gQyMJ8KMNSCm9S?usp=sharing",
+    },
+    {
+      title: "Peace and Order",
+      description: "Seminar/Training for Lupon and Tanod – Empowering for a Drug-Free Community. Held on August 24, 2024, at the Barangay Action Center, the training covered the Katarungang Pambarangay Law, drug awareness and prevention, warrantless arrest procedures, and arresting and handcuffing techniques for barangay tanods.",
+      image: "/peace and order.webp",
+      date: "August 24, 2024",
+      beneficiaries: "Lupon and Tanod members",
+      url: "https://drive.google.com/drive/folders/1N_jgpcREiMRM1j-iE0JKs0tIJC46cfJ8?usp=sharing",
+    },
+    {
+      title: "Environmental Management",
+      description: "Seminar on Ecological Waste Segregation and Recycling for Livelihood. A community seminar held at the Barangay Action Center highlighting composting, waste segregation in line with RA 9003, and recycling as livelihood opportunities. Resource speakers from OCENR and ESWMO provided insights, while practical demonstrations showed how waste can be turned into useful and marketable products.",
+      image: "/environment.webp",
+      date: "March 8, 2025",
+      beneficiaries: "Community residents",
+      url: "https://drive.google.com/drive/folders/1m5xssM3vAWrQvgm2FcOe9VG5g3Lsjc6d?usp=sharing",
+    },
+  ]
+
+
 
   return (
-    <section id="projects" className="min-h-screen bg-muted py-12 sm:py-16 lg:py-20">
+    <section id="projects" className="min-h-screen bg-white py-12 sm:py-16 lg:py-20">
       <div className="w-full max-w-[1600px] mx-auto px-0 sm:px-0.5 lg:px-1 xl:px-2">
         <div className="text-center mb-8 sm:mb-10 lg:mb-12">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 text-balance">Community Projects</h2>
-          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed">
+          <h2 className="font-black text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', marginBottom: 'clamp(0.5rem, 1vh, 0.75rem)'}}>Community Projects</h2>
+          <p className="text-gray-600 font-medium" style={{fontSize: 'clamp(0.875rem, 1.5vw, 1rem)'}}>
             Discover the ongoing and completed projects that are transforming our barangay and improving the quality of
             life for all residents.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-10 lg:mb-12">
-          {projects.map((project, index) => (
-            <Card key={index} className="bg-card border-border hover:shadow-lg transition-all duration-300 hover:scale-[1.02] h-full flex flex-col">
-              <div className="relative">
-                <picture>
-                  <source srcSet={project.image?.replace(/\.(jpg|jpeg|png)$/, '.webp') || "/placeholder.svg"} type="image/webp" />
-                  <img
-                    src={project.image || "/placeholder.svg"}
-                    alt={project.title}
-                    className="w-full h-40 sm:h-48 lg:h-52 object-cover rounded-t-lg"
-                    loading="lazy"
-                  />
-                </picture>
-                <Badge className={`absolute top-2 sm:top-3 right-2 sm:right-3 text-xs sm:text-sm ${getStatusColor(project.status)}`} variant="outline">
-                  {project.status}
-                </Badge>
-              </div>
-              <CardHeader className="pb-2 sm:pb-3">
-                <CardTitle className="text-lg text-balance leading-tight">{project.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 sm:space-y-4 flex-1 flex flex-col">
-                <p className="text-sm text-muted-foreground text-pretty leading-relaxed flex-1">{project.description}</p>
+        {/* Main Pillars Section */}
+        <div className="mb-12 sm:mb-16 lg:mb-20">
+          <div className="text-center mb-6 sm:mb-8">
+            <h3 className="font-bold text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.25rem, 2.5vw, 2rem)'}}>Main Pillars</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+            {coreAreasProjects.map((project, index) => {
+              return (
+                <ProjectCard 
+                  key={`core-${project.title}-${index}`} 
+                  project={project} 
+                />
+              );
+            })}
+          </div>
+        </div>
 
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
-                    <span className="truncate">{project.date}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
-                    <span className="truncate">{project.beneficiaries}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Wrench className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
-                    <span className="font-semibold">{project.budget}</span>
-                  </div>
-                </div>
-
-                <Button variant="outline" className="w-full bg-transparent text-xs sm:text-sm h-8 sm:h-9 lg:h-10 mt-auto">
-                  Learn More
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+        {/* Supporting Pillars Section */}
+        <div className="mb-8 sm:mb-10 lg:mb-12">
+          <div className="text-center mb-6 sm:mb-8">
+            <h3 className="font-bold text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.25rem, 2.5vw, 2rem)'}}>Supporting Pillars</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+            {essentialAreasProjects.map((project, index) => {
+              return (
+                <ProjectCard 
+                  key={`essential-${project.title}-${index}`} 
+                  project={project} 
+                />
+              );
+            })}
+          </div>
         </div>
 
       </div>

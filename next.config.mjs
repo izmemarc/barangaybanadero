@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  // output: 'standalone', // Disabled to avoid Windows symlink permission issues
+  // Fix workspace root warning
+  outputFileTracingRoot: process.cwd(),
   // Disable automatic redirects and ensure proper host binding
   trailingSlash: false,
   poweredByHeader: false,
@@ -11,11 +13,23 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  // Modern JavaScript target for better performance
-  swcMinify: true,
   // Disable service worker to prevent 404 errors
   generateBuildId: async () => {
     return 'build-' + Date.now()
+  },
+  // Add cache-busting headers
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate',
+          },
+        ],
+      },
+    ]
   },
   async rewrites() {
     return [
