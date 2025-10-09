@@ -20,8 +20,8 @@ export function ProjectCard({ project }: { project: Project }) {
     >
       <div className="relative">
         <picture>
-          <source srcSet={project.image || "/placeholder.svg"} type="image/webp" />
-          <source srcSet={project.image?.replace(/\.webp$/, '.jpg') || "/placeholder.svg"} type="image/jpeg" />
+          <source srcSet={`${project.image || "/placeholder.svg"} 1x`} type="image/webp" />
+          <source srcSet={`${project.image?.replace(/\.webp$/, '.jpg') || "/placeholder.svg"} 1x`} type="image/jpeg" />
           <img
             src={project.image?.replace(/\.webp$/, '.jpg') || "/placeholder.svg"}
             alt={project.title}

@@ -6,10 +6,10 @@ export function HeroSection() {
   return (
     <section
       id="hero"
-      className="bg-white overflow-hidden relative hero-section-1080p"
+      className="bg-white relative hero-section-1080p"
       style={{minHeight: '100vh', paddingTop: 'clamp(5rem, 8vh, 6rem)'}}
     >
-      <div className="w-full max-w-[1600px] mx-auto flex items-start hero-content" style={{paddingLeft: 'clamp(0px, 1vw, 1rem)', paddingRight: 'clamp(0px, 1vw, 1rem)', paddingTop: 'clamp(1rem, 2vh, 2rem)', minHeight: 'calc(100vh - 5rem)'}}>
+      <div className="w-full max-w-[1600px] mx-auto flex items-start hero-content" style={{paddingTop: 'clamp(1rem, 2vh, 2rem)', minHeight: 'calc(100vh - 5rem)'}}>
         <div className="grid grid-cols-1 lg:grid-cols-3 w-full hero-grid" style={{gap: 'clamp(0.75rem, 1.5vw, 1.5rem)', paddingTop: 'clamp(1rem, 2vh, 2rem)', paddingBottom: 'clamp(1rem, 2vh, 2rem)'}}>
           {/* Left and Center Columns - Logo spanning both */}
           <div className="lg:col-span-2 flex flex-col hero-column" style={{gap: 'clamp(0.75rem, 1.5vw, 1.5rem)'}}>
@@ -25,7 +25,7 @@ export function HeroSection() {
                         src="/logo.png"
                         alt="Barangay Logo"
                         className="drop-shadow-sm"
-                        style={{width: 'clamp(5rem, 8vw, 9rem)', height: 'clamp(5rem, 8vw, 9rem)'}}
+                        style={{width: 'clamp(10rem, 16vw, 9rem)', height: 'clamp(10rem, 16vw, 9rem)'}}
                         fetchPriority="high"
                         loading="eager"
                         width="144"
@@ -36,13 +36,13 @@ export function HeroSection() {
                   
                   {/* Title Section */}
                   <div className="flex-1 text-center lg:text-left hero-text-section" style={{paddingLeft: 'clamp(0.5rem, 1vw, 1rem)', paddingRight: 'clamp(1rem, 2vw, 2rem)', paddingTop: 'clamp(1rem, 2vh, 2rem)', paddingBottom: 'clamp(1rem, 2vh, 2rem)'}}>
-                     <h1 className="font-black text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.125rem, 2.8vw, 2.25rem)', marginBottom: 'clamp(0.5rem, 1vh, 0.75rem)'}}>
+                     <h1 className="font-black text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.75rem, 3.6vw, 2.25rem)', marginBottom: 'clamp(0.5rem, 1vh, 0.75rem)'}}>
                        Barangay 6, Bañadero
                      </h1>
-                     <h2 className="font-bold text-primary leading-none" style={{fontSize: 'clamp(1rem, 2.5vw, 2rem)', marginBottom: 'clamp(0.75rem, 1.5vh, 1rem)'}}>
+                     <h2 className="font-bold text-primary leading-none" style={{fontSize: 'clamp(1.5rem, 3.2vw, 2rem)', marginBottom: 'clamp(0.75rem, 1.5vh, 1rem)'}}>
                        Legazpi City
                      </h2>
-                    <div className="text-gray-600 font-medium" style={{fontSize: 'clamp(0.875rem, 1.5vw, 1rem)', gap: 'clamp(0.25rem, 0.5vh, 0.25rem)'}}>
+                    <div className="text-gray-600 font-medium" style={{fontSize: 'clamp(1.125rem, 2vw, 1rem)', gap: 'clamp(0.25rem, 0.5vh, 0.25rem)'}}>
                       <p>Republic of the Philippines</p>
                       <p>Province of Albay</p>
                     </div>
@@ -112,10 +112,10 @@ export function HeroSection() {
               {/* Left Side - Mission & Vision */}
               <div className="flex flex-col" style={{gap: 'clamp(0.75rem, 1.5vw, 1.5rem)'}}>
                 <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl hero-card">
-                  <CardHeader className="pb-0 pt-2 px-3 sm:px-6">
+                  <CardHeader className="pb-0 pt-1 px-3 sm:px-6 gap-0">
                     <CardTitle className="text-primary text-sm sm:text-base lg:text-lg font-semibold">Our Mission</CardTitle>
                   </CardHeader>
-                  <CardContent className="pb-2 px-3 sm:px-6">
+                  <CardContent className="pb-2 px-3 sm:px-6 pt-0">
                      <p className="text-sm sm:text-sm lg:text-base text-pretty leading-snug">
                        With the inspiration and guidance of the Almighty God, we are committed to adopt state-of-the-art technologies, plan and implement programs, projects and activities using the Community Driven Development (CDD) strategy to promptly deliver quality basic services for the total improvement of the barangay.
                      </p>
@@ -123,10 +123,10 @@ export function HeroSection() {
                 </Card>
 
                 <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl hero-card">
-                  <CardHeader className="pb-0 pt-2 px-3 sm:px-6">
+                  <CardHeader className="pb-0 pt-1 px-3 sm:px-6 gap-0">
                     <CardTitle className="text-primary text-sm sm:text-base lg:text-lg font-semibold">Our Vision</CardTitle>
                   </CardHeader>
-                  <CardContent className="pb-2 px-3 sm:px-6">
+                  <CardContent className="pb-2 px-3 sm:px-6 pt-0">
                      <p className="text-sm sm:text-sm lg:text-base text-pretty leading-snug">
                        A self-reliant community enjoying a progressive and even-handed economy, disaster resilient, drug-free, well-managed solid wastes, peaceful and ecologically balanced environment with God-loving people guided by a responsive, participatory, transparent and accountable leadership and governance.
                      </p>
@@ -156,12 +156,9 @@ export function HeroSection() {
                   variant="outline"
                       className="w-full justify-start bg-transparent hover:bg-primary/5 border-primary/20 h-7 sm:h-8 text-left text-sm sm:text-sm font-medium"
                       aria-label="Request Barangay Clearance"
-                      asChild
                 >
-                  <a href="https://docs.google.com/forms/d/e/1FAIpQLSd8A3n_Y2O4cE5pH-Jaub9MAHWxVBQHGsB6BCLRWLXsue84YQ/viewform" target="_blank" rel="noopener noreferrer">
                       <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary" />
                   Barangay Clearance
-                  </a>
                 </Button>
                 <Button
                   variant="outline"
@@ -241,9 +238,9 @@ export function HeroSection() {
                 <picture>
                   <source srcSet="/captain.webp" type="image/webp" />
                   <img
-                    src="/captain.png"
+                    src="/captain.webp"
                     alt="Barangay Captain"
-                    className="w-48 h-56 xs:w-56 xs:h-64 sm:w-64 sm:h-72 md:w-72 md:h-80 lg:w-80 lg:h-88 xl:w-88 xl:h-104 object-cover object-top rounded-2xl shadow-2xl"
+                    className="w-4/5 h-auto mx-auto xs:w-56 xs:h-64 sm:w-64 sm:h-72 md:w-72 md:h-80 lg:w-80 lg:h-88 xl:w-88 xl:h-104 object-cover object-[center_40%] rounded-2xl shadow-2xl"
                     loading="lazy"
                     width={400}
                     height={500}
@@ -261,13 +258,13 @@ export function HeroSection() {
 
             {/* Barangay Council Section */}
             <div className="w-full">
-              <div className="w-full h-32 xs:h-40 sm:h-48 md:h-56 lg:h-64 xl:h-72 rounded-2xl overflow-hidden border border-gray-200/50 shadow-lg">
+              <div className="w-full relative pb-[66.67%] sm:pb-0 sm:h-48 md:h-56 lg:h-64 xl:h-72 rounded-2xl overflow-hidden border border-gray-200/50 shadow-lg">
                 <picture>
                   <source srcSet="/group.webp" type="image/webp" />
                   <img
                     src="/group.jpeg"
                     alt="Barangay Council"
-                    className="w-full h-full object-cover object-top"
+                    className="absolute top-0 left-0 w-full h-full object-cover object-center sm:object-[center_30%]"
                     loading="lazy"
                     width={400}
                     height={300}

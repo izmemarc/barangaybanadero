@@ -77,8 +77,8 @@ export function CommunitySection() {
   ]
 
   return (
-    <section id="community" className="bg-white pt-12 sm:pt-16 lg:pt-20">
-      <div className="w-full max-w-[1600px] mx-auto px-0 sm:px-0.5 lg:px-1 xl:px-2">
+    <section id="community" className="bg-white pt-12 sm:pt-16 lg:pt-20 pb-2 sm:pb-4 lg:pb-6">
+      <div className="w-full max-w-[1600px] mx-auto">
         <div className="text-center mb-8 sm:mb-10 lg:mb-12">
           <h2 className="font-black text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', marginBottom: 'clamp(0.5rem, 1vh, 0.75rem)'}}>Community Information</h2>
           <p className="text-gray-600 font-medium" style={{fontSize: 'clamp(0.875rem, 1.5vw, 1rem)'}}>
@@ -259,19 +259,6 @@ export function CommunitySection() {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="bg-white/95 backdrop-blur-lg border-t border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98" style={{paddingTop: 'clamp(0.75rem, 2vh, 1.25rem)', paddingBottom: 'clamp(0.75rem, 2vh, 1.25rem)'}}>
-        <div className="w-full max-w-[1600px] mx-auto" style={{paddingLeft: 'clamp(0px, 1vw, 1rem)', paddingRight: 'clamp(0px, 1vw, 1rem)'}}>
-          <div className="text-center">
-            <p className="text-gray-600 font-medium" style={{fontSize: 'clamp(0.875rem, 1.5vw, 1rem)'}}>
-              © 2024 Barangay 6, Bañadero, Legazpi City. All Rights Reserved.
-            </p>
-            <p className="text-gray-500 text-sm mt-1" style={{fontSize: 'clamp(0.75rem, 1vw, 0.875rem)'}}>
-              Developed & Maintained by the Barangay Information Team.
-            </p>
-          </div>
-        </div>
-      </footer>
     </section>
   )
 }

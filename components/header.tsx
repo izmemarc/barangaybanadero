@@ -14,7 +14,7 @@ export function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/98 backdrop-blur-xl border-b border-gray-200/50 shadow-lg">
-      <div className="w-full max-w-[1600px] mx-auto" style={{paddingLeft: 'clamp(0px, 1vw, 1rem)', paddingRight: 'clamp(0px, 1vw, 1rem)', paddingTop: 'clamp(0.75rem, 2vh, 1.25rem)', paddingBottom: 'clamp(0.75rem, 2vh, 1.25rem)'}}>
+      <div className="w-full max-w-[1600px] mx-auto" style={{paddingTop: 'clamp(0.75rem, 2vh, 1.25rem)', paddingBottom: 'clamp(0.75rem, 2vh, 1.25rem)', paddingLeft: '5%', paddingRight: '5%'}}>
         <div className="flex items-center justify-between">
           <div className="flex items-center" style={{gap: 'clamp(0.5rem, 2vw, 1rem)'}}>
             <picture>
@@ -31,10 +31,10 @@ export function Header() {
               />
             </picture>
             <div className="min-w-0 flex-1">
-                <h1 className="font-black text-primary leading-none tracking-tight" style={{fontWeight: '900', fontFamily: 'system-ui, -apple-system, sans-serif', fontSize: 'clamp(0.75rem, 1.8vw, 1.25rem)', marginBottom: 'clamp(0.125rem, 0.3vh, 0.25rem)'}}>
+                <h1 className="font-black text-primary leading-none tracking-tight" style={{fontWeight: '900', fontFamily: 'system-ui, -apple-system, sans-serif', fontSize: 'clamp(1.125rem, 2.4vw, 1.25rem)', marginBottom: 'clamp(0.125rem, 0.3vh, 0.25rem)'}}>
                   Bañadero, Legazpi City
                 </h1>
-              <p className="text-gray-600 font-medium leading-tight" style={{fontSize: 'clamp(0.625rem, 1.2vw, 0.75rem)'}}>
+              <p className="text-gray-600 font-medium leading-tight" style={{fontSize: 'clamp(0.875rem, 1.6vw, 0.75rem)'}}>
                 Serving Our Community
               </p>
             </div>

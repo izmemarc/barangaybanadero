@@ -59,7 +59,7 @@ export function ProjectsSection() {
 
   return (
     <section id="projects" className="min-h-screen bg-white py-12 sm:py-16 lg:py-20">
-      <div className="w-full max-w-[1600px] mx-auto px-0 sm:px-0.5 lg:px-1 xl:px-2">
+      <div className="w-full max-w-[1600px] mx-auto">
         <div className="text-center mb-8 sm:mb-10 lg:mb-12">
           <h2 className="font-black text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', marginBottom: 'clamp(0.5rem, 1vh, 0.75rem)'}}>Community Projects</h2>
           <p className="text-gray-600 font-medium" style={{fontSize: 'clamp(0.875rem, 1.5vw, 1rem)'}}>

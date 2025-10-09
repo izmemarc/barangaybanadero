@@ -5,11 +5,13 @@ import { CommunitySection } from "@/components/community-section"
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
+    <>
       <Header />
-      <HeroSection />
-      <ProjectsSection />
-      <CommunitySection />
-    </main>
+      <main style={{paddingLeft: '5%', paddingRight: '5%'}}>
+        <HeroSection />
+        <ProjectsSection />
+        <CommunitySection />
+      </main>
+    </>
   )
 }
