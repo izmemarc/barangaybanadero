@@ -34,7 +34,7 @@ Remove-Item -Recurse -Force .turbo -ErrorAction SilentlyContinue
 
 Write-Host "Creating archive..." -ForegroundColor Yellow
 $Archive = "deploy.zip"
-Compress-Archive -Path "app", "components", "lib", "public", "*.json", "*.mjs", "deployment/nginx.conf", "deployment/nginx-https.conf", "deployment/setup-ssl.sh" -DestinationPath $Archive -Force -ErrorAction SilentlyContinue
+Compress-Archive -Path "app", "components", "contexts", "hooks", "lib", "public", "*.json", "*.mjs", "deployment/nginx.conf", "deployment/nginx-https.conf", "deployment/setup-ssl.sh" -DestinationPath $Archive -Force -ErrorAction SilentlyContinue
 
 if (Test-Path $Archive) {
     Write-Host "Archive created: $Archive" -ForegroundColor Green
@@ -66,29 +66,43 @@ if ($LASTEXITCODE -eq 0) {
         Write-Host "Deploying application..." -ForegroundColor Cyan
         
         Write-Host "Cleaning old files and caches..." -ForegroundColor Yellow
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && rm -rf app components lib public *.json *.ts *.mjs node_modules .next .turbo"
+        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && rm -rf app components contexts hooks lib public *.json *.ts *.mjs node_modules .next .turbo"
         
         Write-Host "Extracting new files..." -ForegroundColor Yellow
         echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && unzip -o -q deploy.zip && rm deploy.zip"
         
+        Write-Host "Checking and installing build tools..." -ForegroundColor Yellow
+        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "apt-get update -qq && apt-get install -y -qq python3 make g++ build-essential 2>&1 | tail -5"
+        
         Write-Host "Clearing npm cache..." -ForegroundColor Yellow
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && npm cache clean --force"
+        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "rm -rf /root/.npm && mkdir -p /root/.npm && npm cache clean --force"
         
-        Write-Host "Installing dependencies..." -ForegroundColor Yellow
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && npm install --no-cache --silent"
+        Write-Host "Installing dependencies (please wait, this takes 2-3 minutes)..." -ForegroundColor Yellow
+        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && npm install --legacy-peer-deps --no-audit --no-fund"
         
-        Write-Host "Building application..." -ForegroundColor Yellow
-        $buildResult = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && npm run build 2>&1"
         if ($LASTEXITCODE -ne 0) {
-            Write-Host "Build failed! Error output:" -ForegroundColor Red
-            Write-Host $buildResult -ForegroundColor Red
-            Write-Host "Deployment aborted due to build failure." -ForegroundColor Red
-            return
+            Write-Host "`nInstallation failed!" -ForegroundColor Red
+            Read-Host "Press Enter to exit"
+            exit 1
         }
+        
+        Write-Host "Dependencies installed successfully!" -ForegroundColor Green
+        
+        Write-Host "Building application (this may take 1-2 minutes)..." -ForegroundColor Yellow
+        $buildResult = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && npm run build 2>&1"
+        
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "`nBuild failed! Showing last 30 lines of output:" -ForegroundColor Red
+            $buildResult | Select-Object -Last 30 | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+            Write-Host "`nDeployment aborted due to build failure." -ForegroundColor Red
+            Read-Host "`nPress Enter to exit"
+            exit 1
+        }
+        
         Write-Host "Build completed successfully!" -ForegroundColor Green
         
         Write-Host "Installing production dependencies..." -ForegroundColor Yellow
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && npm install --production --no-cache --silent"
+        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && npm install --production --legacy-peer-deps --no-audit --no-fund"
         
         Write-Host "Setting up SSL certificates..." -ForegroundColor Yellow
         echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "chmod +x /root/barangay-website/setup-ssl.sh && /root/barangay-website/setup-ssl.sh"
@@ -97,7 +111,7 @@ if ($LASTEXITCODE -eq 0) {
         echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo rm -f /etc/nginx/sites-enabled/* && sudo cp /root/barangay-website/nginx.conf /etc/nginx/sites-available/barangay-website && sudo ln -sf /etc/nginx/sites-available/barangay-website /etc/nginx/sites-enabled/ && sudo nginx -t && sudo systemctl reload nginx"
         
         Write-Host "Restarting application..." -ForegroundColor Yellow
-        $startResult = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "pm2 stop barangay-website > /dev/null 2>&1; pm2 delete barangay-website > /dev/null 2>&1; pm2 flush > /dev/null 2>&1; cd /root/barangay-website && HOSTNAME=0.0.0.0 PORT=3001 pm2 start npm --name barangay-website -- start 2>&1 && pm2 save > /dev/null"
+        $startResult = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "pm2 stop barangay-website > /dev/null 2>&1; pm2 delete barangay-website > /dev/null 2>&1; pm2 flush > /dev/null 2>&1; cd /root/barangay-website && HOSTNAME=0.0.0.0 PORT=3001 ADMIN_PASSWORD='`$2b`$10`$xXCCrkJAX7zbODYyN47Nnev9/dTKZE7001IQW4Cn/heZd9szAn8w.' pm2 start npm --name barangay-website -- start 2>&1 && pm2 save > /dev/null"
         if ($LASTEXITCODE -ne 0) {
             Write-Host "Failed to start application! Error output:" -ForegroundColor Red
             Write-Host $startResult -ForegroundColor Red
@@ -119,63 +133,13 @@ if ($LASTEXITCODE -eq 0) {
         
         Write-Host "Forcing comprehensive cache update for all users..." -ForegroundColor Yellow
         
-        # Clear all server-side caches
+        # Clear server-side caches
         Write-Host "Clearing server-side caches..." -ForegroundColor Cyan
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo rm -rf /var/cache/nginx/*"
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo rm -rf /tmp/nginx*"
         echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "pm2 flush"
         
-        # Temporarily disable all caching
-        Write-Host "Temporarily disabling all caching..." -ForegroundColor Cyan
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo cp /etc/nginx/sites-available/barangay-website /etc/nginx/sites-available/barangay-website.backup"
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo sed -i 's/max-age=[0-9]*/max-age=0/g' /etc/nginx/sites-available/barangay-website"
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo sed -i 's/expires [0-9]*[a-z]*;/expires -1;/g' /etc/nginx/sites-available/barangay-website"
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo sed -i 's/add_header Cache-Control/#add_header Cache-Control/g' /etc/nginx/sites-available/barangay-website"
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo sed -i 's/add_header Expires/#add_header Expires/g' /etc/nginx/sites-available/barangay-website"
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo nginx -t && sudo systemctl reload nginx"
-        
-        # Force browser cache invalidation with version parameter
-        Write-Host "Adding cache-busting headers..." -ForegroundColor Cyan
-        $timestamp = Get-Date -Format "yyyyMMddHHmmss"
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "echo '    add_header Cache-Control \"no-cache, no-store, must-revalidate\";' | sudo tee -a /etc/nginx/sites-available/barangay-website"
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "echo '    add_header Pragma \"no-cache\";' | sudo tee -a /etc/nginx/sites-available/barangay-website"
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "echo '    add_header Expires \"0\";' | sudo tee -a /etc/nginx/sites-available/barangay-website"
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "echo '}' | sudo tee -a /etc/nginx/sites-available/barangay-website"
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo nginx -t && sudo systemctl reload nginx"
-        
-        Write-Host "Waiting for cache to clear (60 seconds)..." -ForegroundColor Yellow
-        Start-Sleep -Seconds 60
-        
-        # Test cache headers
-        Write-Host "Testing cache headers..." -ForegroundColor Cyan
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "curl -I http://localhost:3001/ | grep -i 'cache-control\\|expires\\|pragma' || echo 'Cache headers check completed'"
-        
-        Write-Host "Re-enabling optimized caching..." -ForegroundColor Yellow
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo cp /etc/nginx/sites-available/barangay-website.backup /etc/nginx/sites-available/barangay-website"
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo nginx -t && sudo systemctl reload nginx"
-        
-        Write-Host "Testing cache headers..." -ForegroundColor Yellow
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "curl -I http://localhost:3001/logo.png | grep -i 'cache-control\\|expires' || echo 'Cache headers check completed'"
-        
-        Write-Host "Deployment complete!" -ForegroundColor Green
+        Write-Host "`nDeployment complete!" -ForegroundColor Green
         Write-Host "Website: https://banaderolegazpi.online" -ForegroundColor Cyan
-        Write-Host " HTTPS is now enabled with SSL certificates!" -ForegroundColor Green
-        Write-Host " All HTTP traffic redirects to HTTPS!" -ForegroundColor Green
-        Write-Host " Static files (CSS/JS/Images) are now properly served with cache headers!" -ForegroundColor Green
-        Write-Host " Images are optimized and cached for 1 year!" -ForegroundColor Green
-        Write-Host " Performance improvements are now active!" -ForegroundColor Green
-        Write-Host " Comprehensive cache clearing completed!" -ForegroundColor Green
-        Write-Host " All server-side caches have been cleared!" -ForegroundColor Green
-        Write-Host " Browser cache-busting headers have been applied!" -ForegroundColor Green
-        Write-Host " Users should now see the updated content immediately!" -ForegroundColor Cyan
-        Write-Host "" -ForegroundColor White
-        Write-Host "If users still see old content, they should:" -ForegroundColor Yellow
-        Write-Host "  1. Hard refresh (Ctrl+F5 or Cmd+Shift+R)" -ForegroundColor Yellow
-        Write-Host "  2. Clear browser cache completely" -ForegroundColor Yellow
-        Write-Host "  3. Try incognito/private browsing mode" -ForegroundColor Yellow
-        Write-Host "  4. Wait 2-3 minutes for global cache propagation" -ForegroundColor Yellow
-        Write-Host "" -ForegroundColor White
-        Write-Host "Cache-busting timestamp: $timestamp" -ForegroundColor Cyan
+        Write-Host "`nIf users see old content, they should hard refresh (Ctrl+F5)" -ForegroundColor Yellow
     } else {
         Write-Host "Upload failed - check network connection" -ForegroundColor Red
     }

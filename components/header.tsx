@@ -2,19 +2,38 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Menu, X } from "lucide-react"
+import { Menu, X, Settings, LogOut } from "lucide-react"
+import { useAdmin } from "@/contexts/admin-context"
+import { AdminLoginModal } from "./admin/admin-login-modal"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [showLoginModal, setShowLoginModal] = useState(false)
+  const { isEditMode, isAuthenticated, setEditMode, logout } = useAdmin()
 
   const scrollToSection = (sectionId: string) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" })
     setIsMenuOpen(false)
   }
 
+  const handleAdminClick = () => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true)
+    } else {
+      setEditMode(!isEditMode)
+    }
+  }
+
+  const handleLogout = async () => {
+    await logout()
+    setEditMode(false)
+  }
+
   return (
+    <>
+      <AdminLoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/98 backdrop-blur-xl border-b border-gray-200/50 shadow-lg">
-      <div className="w-full max-w-[1600px] mx-auto" style={{paddingTop: 'clamp(0.75rem, 2vh, 1.25rem)', paddingBottom: 'clamp(0.75rem, 2vh, 1.25rem)', paddingLeft: '5%', paddingRight: '5%'}}>
+      <div className="w-full max-w-[1600px] mx-auto" style={{paddingTop: 'clamp(0.75rem, 2vh, 1.25rem)', paddingBottom: 'clamp(0.75rem, 2vh, 1.25rem)'}}>
         <div className="flex items-center justify-between">
           <div className="flex items-center" style={{gap: 'clamp(0.5rem, 2vw, 1rem)'}}>
             <picture>
@@ -40,30 +59,76 @@ export function Header() {
             </div>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center" style={{gap: 'clamp(0.25rem, 0.5vw, 0.5rem)'}}>
-            <button
-              onClick={() => scrollToSection("hero")}
-              className="text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
-              style={{padding: 'clamp(0.75rem, 1.5vh, 1rem) clamp(1rem, 2vw, 1.25rem)', fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}
-            >
-              Home
-            </button>
-            <button
-              onClick={() => scrollToSection("projects")}
-              className="text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
-              style={{padding: 'clamp(0.75rem, 1.5vh, 1rem) clamp(1rem, 2vw, 1.25rem)', fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}
-            >
-              Projects
-            </button>
-            <button
-              onClick={() => scrollToSection("community")}
-              className="text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
-              style={{padding: 'clamp(0.75rem, 1.5vh, 1rem) clamp(1rem, 2vw, 1.25rem)', fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}
-            >
-              Community
-            </button>
-          </nav>
+              {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center" style={{gap: '0.25rem'}}>
+                <button
+                  onClick={() => scrollToSection("hero")}
+                  className="text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 font-semibold min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  style={{padding: 'clamp(0.75rem, 1.5vh, 1rem) clamp(1rem, 2vw, 1.25rem)', fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}
+                >
+                  Home
+                </button>
+                <button
+                  onClick={() => scrollToSection("projects")}
+                  className="text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 font-semibold min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  style={{padding: 'clamp(0.75rem, 1.5vh, 1rem) clamp(1rem, 2vw, 1.25rem)', fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}
+                >
+                  Projects
+                </button>
+                <button
+                  onClick={() => scrollToSection("community")}
+                  className="text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 font-semibold min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  style={{padding: 'clamp(0.75rem, 1.5vh, 1rem) clamp(1rem, 2vw, 1.25rem)', fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}
+                >
+                  Community
+                </button>
+                
+                {/* Admin-only links */}
+                {isAuthenticated && (
+                  <>
+                    <a
+                      href="https://docs.google.com/spreadsheets/d/1nO_XV6XFHNFU-_vJ1OcgHsBYoi_Qc1eQyNHTkHmsYVA/edit?usp=sharing"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 font-semibold min-h-[44px] min-w-[44px] flex items-center justify-center"
+                      style={{padding: 'clamp(0.75rem, 1.5vh, 1rem) clamp(1rem, 2vw, 1.25rem)', fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}
+                    >
+                      Sheets
+                    </a>
+                    <a
+                      href="https://drive.google.com/drive/folders/1IS_XN7YK4m_aCXVpXUwuap40U9kTw583?usp=sharing"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 font-semibold min-h-[44px] min-w-[44px] flex items-center justify-center"
+                      style={{padding: 'clamp(0.75rem, 1.5vh, 1rem) clamp(1rem, 2vw, 1.25rem)', fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}
+                    >
+                      Drive
+                    </a>
+                  </>
+                )}
+                
+                {/* Admin Button */}
+                <button
+                  onClick={handleAdminClick}
+                  className={`${isEditMode ? 'text-blue-600 bg-blue-50' : 'text-gray-700'} hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 font-medium min-h-[44px] min-w-[44px] flex items-center justify-center`}
+                  style={{padding: 'clamp(0.75rem, 1.5vh, 1rem) clamp(1rem, 2vw, 1.25rem)'}}
+                  title={isAuthenticated ? (isEditMode ? 'Exit Edit Mode' : 'Enter Edit Mode') : 'Admin Login'}
+                >
+                  <Settings size={20} />
+                </button>
+                
+                {/* Logout Button */}
+                {isAuthenticated && (
+                  <button
+                    onClick={handleLogout}
+                    className="text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    style={{padding: 'clamp(0.75rem, 1.5vh, 1rem) clamp(1rem, 2vw, 1.25rem)'}}
+                    title="Logout"
+                  >
+                    <LogOut size={20} />
+                  </button>
+                )}
+              </nav>
 
           {/* Mobile Menu Button */}
           <Button 
@@ -79,33 +144,58 @@ export function Header() {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <nav className="lg:hidden border-t border-gray-200/50 animate-in slide-in-from-top-2 duration-200" style={{marginTop: 'clamp(0.75rem, 2vh, 1rem)', paddingTop: 'clamp(0.75rem, 2vh, 1rem)', paddingBottom: 'clamp(0.75rem, 2vh, 1rem)'}}>
-            <div className="flex flex-col" style={{gap: 'clamp(0.5rem, 1.5vh, 0.75rem)'}}>
-              <button
-                onClick={() => scrollToSection("hero")}
-                className="text-left text-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200 rounded-lg font-medium min-h-[44px] flex items-center"
-                style={{padding: 'clamp(0.75rem, 2vh, 1rem) clamp(0.75rem, 1.5vw, 1rem)', fontSize: 'clamp(0.875rem, 2vw, 1rem)'}}
-              >
-                Home
-              </button>
-              <button
-                onClick={() => scrollToSection("projects")}
-                className="text-left text-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200 rounded-lg font-medium min-h-[44px] flex items-center"
-                style={{padding: 'clamp(0.75rem, 2vh, 1rem) clamp(0.75rem, 1.5vw, 1rem)', fontSize: 'clamp(0.875rem, 2vw, 1rem)'}}
-              >
-                Projects
-              </button>
-              <button
-                onClick={() => scrollToSection("community")}
-                className="text-left text-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200 rounded-lg font-medium min-h-[44px] flex items-center"
-                style={{padding: 'clamp(0.75rem, 2vh, 1rem) clamp(0.75rem, 1.5vw, 1rem)', fontSize: 'clamp(0.875rem, 2vw, 1rem)'}}
-              >
-                Community
-              </button>
-            </div>
-          </nav>
+              <nav className="lg:hidden border-t border-gray-200/50 animate-in slide-in-from-top-2 duration-200" style={{marginTop: 'clamp(0.75rem, 2vh, 1rem)', paddingTop: 'clamp(0.75rem, 2vh, 1rem)', paddingBottom: 'clamp(0.75rem, 2vh, 1rem)'}}>
+                <div className="flex flex-col" style={{gap: 'clamp(0.5rem, 1.5vh, 0.75rem)'}}>
+                  <button
+                    onClick={() => scrollToSection("hero")}
+                    className="text-left text-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200 rounded-lg font-semibold min-h-[44px] flex items-center"
+                    style={{padding: 'clamp(0.75rem, 2vh, 1rem) clamp(0.75rem, 1.5vw, 1rem)', fontSize: 'clamp(0.875rem, 2vw, 1rem)'}}
+                  >
+                    Home
+                  </button>
+                  <button
+                    onClick={() => scrollToSection("projects")}
+                    className="text-left text-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200 rounded-lg font-semibold min-h-[44px] flex items-center"
+                    style={{padding: 'clamp(0.75rem, 2vh, 1rem) clamp(0.75rem, 1.5vw, 1rem)', fontSize: 'clamp(0.875rem, 2vw, 1rem)'}}
+                  >
+                    Projects
+                  </button>
+                  <button
+                    onClick={() => scrollToSection("community")}
+                    className="text-left text-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200 rounded-lg font-semibold min-h-[44px] flex items-center"
+                    style={{padding: 'clamp(0.75rem, 2vh, 1rem) clamp(0.75rem, 1.5vw, 1rem)', fontSize: 'clamp(0.875rem, 2vw, 1rem)'}}
+                  >
+                    Community
+                  </button>
+                  
+                  {/* Admin-only links */}
+                  {isAuthenticated && (
+                    <>
+                      <a
+                        href="https://docs.google.com/spreadsheets/d/1nO_XV6XFHNFU-_vJ1OcgHsBYoi_Qc1eQyNHTkHmsYVA/edit?usp=sharing"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-left text-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200 rounded-lg font-semibold min-h-[44px] flex items-center"
+                        style={{padding: 'clamp(0.75rem, 2vh, 1rem) clamp(0.75rem, 1.5vw, 1rem)', fontSize: 'clamp(0.875rem, 2vw, 1rem)'}}
+                      >
+                        Sheets
+                      </a>
+                      <a
+                        href="https://drive.google.com/drive/folders/1IS_XN7YK4m_aCXVpXUwuap40U9kTw583?usp=sharing"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-left text-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200 rounded-lg font-semibold min-h-[44px] flex items-center"
+                        style={{padding: 'clamp(0.75rem, 2vh, 1rem) clamp(0.75rem, 1.5vw, 1rem)', fontSize: 'clamp(0.875rem, 2vw, 1rem)'}}
+                      >
+                        Drive
+                      </a>
+                    </>
+                  )}
+                </div>
+              </nav>
         )}
       </div>
     </header>
+    </>
   )
 }

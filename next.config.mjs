@@ -10,6 +10,13 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
+  serverExternalPackages: ['better-sqlite3'],
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals.push('better-sqlite3');
+    }
+    return config;
+  },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },

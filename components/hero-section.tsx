@@ -156,9 +156,12 @@ export function HeroSection() {
                   variant="outline"
                       className="w-full justify-start bg-transparent hover:bg-primary/5 border-primary/20 h-7 sm:h-8 text-left text-sm sm:text-sm font-medium"
                       aria-label="Request Barangay Clearance"
+                      asChild
                 >
+                  <a href="https://forms.gle/vTf6DqyxMA2besto6" target="_blank" rel="noopener noreferrer">
                       <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary" />
                   Barangay Clearance
+                  </a>
                 </Button>
                 <Button
                   variant="outline"

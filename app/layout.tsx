@@ -2,6 +2,7 @@ import React from "react";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { LoadingScreen } from "@/components/loading-screen";
+import { AdminProvider } from "@/contexts/admin-context";
 import "./globals.css";
 
 // Using system fonts to avoid Google Fonts dependency
@@ -129,7 +130,9 @@ export default function RootLayout({
           }}
         />
         <LoadingScreen />
-        <Suspense fallback={null}>{children}</Suspense>
+        <AdminProvider>
+          <Suspense fallback={null}>{children}</Suspense>
+        </AdminProvider>
       </body>
     </html>
   );

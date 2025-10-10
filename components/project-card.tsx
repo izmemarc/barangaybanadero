@@ -1,87 +1,243 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Calendar, Users } from "lucide-react"
+import { Calendar, Users, Pencil } from "lucide-react"
+import { useAdmin } from "@/contexts/admin-context"
+import { useState, useEffect } from "react"
+import { EditableImage } from "./admin/editable-image"
 
-interface Project {
+export interface Project {
+  id?: number
   title: string
+  subtitle?: string
   description: string
   image?: string
+  image_path?: string
   date: string
-  beneficiaries: string
-  url: string
+  beneficiaries?: string
+  url?: string
 }
 
-export function ProjectCard({ project }: { project: Project }) {
+export function ProjectCard({ project, onUpdate }: { project: Project; onUpdate?: () => void }) {
+  const { isEditMode } = useAdmin();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(project.title);
+  const [editedSubtitle, setEditedSubtitle] = useState(project.subtitle);
+  const [editedDescription, setEditedDescription] = useState(project.description);
+  const [editedDate, setEditedDate] = useState(project.date);
+  const [editedBeneficiaries, setEditedBeneficiaries] = useState(project.beneficiaries);
+
+  // Close editing mode when admin mode is turned off
+  useEffect(() => {
+    if (!isEditMode && isEditing) {
+      setIsEditing(false);
+    }
+  }, [isEditMode, isEditing]);
+
+  const handleCardClick = () => {
+    if (!isEditMode && !isEditing) {
+      window.open(project.url, '_blank');
+    }
+  };
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsEditing(true);
+  };
+
+  const handleSave = async () => {
+    if (!project.id) {
+      console.log('No project ID, cannot save');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/admin/projects', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: project.id,
+          title: editedTitle,
+          subtitle: editedSubtitle,
+          description: editedDescription,
+          date: editedDate,
+          beneficiaries: editedBeneficiaries,
+        }),
+      });
+
+      if (response.ok) {
+        console.log('Project saved successfully');
+        setIsEditing(false);
+        if (onUpdate) onUpdate();
+      } else {
+        console.error('Failed to save project');
+      }
+    } catch (error) {
+      console.error('Error saving project:', error);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditedTitle(project.title);
+    setEditedSubtitle(project.subtitle);
+    setEditedDescription(project.description);
+    setEditedDate(project.date);
+    setEditedBeneficiaries(project.beneficiaries);
+    setIsEditing(false);
+  };
+
   return (
     <Card 
-      className="bg-white/95 backdrop-blur-lg border-white/30 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] h-full flex flex-col overflow-hidden p-0 cursor-pointer"
-      onClick={() => window.open(project.url, '_blank')}
+      className={`bg-white/95 backdrop-blur-lg border-white/30 shadow-xl transition-all duration-300 h-full flex flex-col overflow-hidden p-0 group relative ${
+        !isEditMode && !isEditing ? 'hover:shadow-2xl hover:scale-[1.02] cursor-pointer' : ''
+      }`}
+      onClick={handleCardClick}
     >
+      {/* Edit Button - Only visible in edit mode */}
+      {isEditMode && !isEditing && (
+        <button
+          onClick={handleEditClick}
+          className="absolute top-2 right-2 z-10 p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 shadow-lg transition-opacity"
+          title="Edit Project"
+        >
+          <Pencil size={16} />
+        </button>
+      )}
+
       <div className="relative">
-        <picture>
-          <source srcSet={`${project.image || "/placeholder.svg"} 1x`} type="image/webp" />
-          <source srcSet={`${project.image?.replace(/\.webp$/, '.jpg') || "/placeholder.svg"} 1x`} type="image/jpeg" />
+        {isEditMode ? (
+          <EditableImage
+            currentPath={project.image_path || project.image || "/placeholder.svg"}
+            onImageChange={async (newPath) => {
+              if (!project.id) return;
+              
+              try {
+                const response = await fetch('/api/admin/projects', {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    id: project.id,
+                    image_path: newPath,
+                  }),
+                });
+
+                if (response.ok && onUpdate) {
+                  onUpdate();
+                }
+              } catch (error) {
+                console.error('Error updating image:', error);
+              }
+            }}
+            alt={project.title}
+            width={400}
+            height={300}
+            className="w-full h-48 sm:h-56 lg:h-64 object-cover"
+          />
+        ) : (
           <img
-            src={project.image?.replace(/\.webp$/, '.jpg') || "/placeholder.svg"}
+            src={project.image_path || project.image || "/placeholder.svg"}
             alt={project.title}
             className="w-full h-48 sm:h-56 lg:h-64 object-cover"
             loading="lazy"
             width={400}
             height={300}
           />
-        </picture>
+        )}
       </div>
       <CardHeader className="pb-2 px-4 sm:px-6">
-        <CardTitle className="font-bold text-primary leading-tight text-center" style={{fontSize: 'clamp(1rem, 1.5vw, 1.25rem)'}}>{project.title}</CardTitle>
+        {isEditing ? (
+          <input
+            type="text"
+            value={editedTitle}
+            onChange={(e) => setEditedTitle(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+            className="font-bold text-primary leading-tight text-center border-2 border-blue-500 rounded px-2 py-1 w-full"
+            style={{fontSize: 'clamp(1rem, 1.5vw, 1.25rem)'}}
+          />
+        ) : (
+          <CardTitle className="font-bold text-primary leading-tight text-center" style={{fontSize: 'clamp(1rem, 1.5vw, 1.25rem)'}}>{project.title}</CardTitle>
+        )}
       </CardHeader>
-       <CardContent className="space-y-4 flex-1 flex flex-col px-4 sm:px-6 pb-4">
-         {project.title === "Business-Friendliness and Competitiveness" ? (
+       <CardContent className="space-y-4 flex-1 flex flex-col px-4 sm:px-6 pb-4" onClick={(e) => isEditing && e.stopPropagation()}>
+         {isEditing ? (
            <>
-             <h3 className="font-semibold text-gray-800 leading-tight mb-3" style={{fontSize: 'clamp(0.9rem, 1.2vw, 1rem)'}}>Empowering Women: Strengthening Lives Through Awareness and Opportunities</h3>
-             <p className="text-gray-600 font-medium text-pretty leading-relaxed flex-1" style={{fontSize: 'clamp(0.8rem, 1.1vw, 0.9rem)'}}>A seminar focused on gender advocacy, mental health, conflict resolution, and livelihood opportunities for women in the community.</p>
-           </>
-         ) : project.title === "Financial Administration" ? (
-           <>
-             <h3 className="font-semibold text-gray-800 leading-tight mb-3" style={{fontSize: 'clamp(0.9rem, 1.2vw, 1rem)'}}>Barangay Assembly – Second Semester CY 2024</h3>
-             <p className="text-gray-600 font-medium text-pretty leading-relaxed flex-1" style={{fontSize: 'clamp(0.8rem, 1.1vw, 0.9rem)'}}>Held on October 26, 2024, the assembly gathered residents and officials to present the financial report, update ongoing projects, and address community concerns through open dialogue and feedback.</p>
-           </>
-         ) : project.title === "Social Protection" ? (
-           <>
-             <h3 className="font-semibold text-gray-800 leading-tight mb-3" style={{fontSize: 'clamp(0.9rem, 1.2vw, 1rem)'}}>External Accreditation of Barangay 6 Bañadero Child Development Center</h3>
-             <p className="text-gray-600 font-medium text-pretty leading-relaxed flex-1" style={{fontSize: 'clamp(0.8rem, 1.1vw, 0.9rem)'}}>External evaluation was conducted to assess and improve the quality of education, ensuring standards for effective learning. Gratitude was extended to the accreditors, Barangay officials, and the Child Development Worker for their support in making the accreditation a success.</p>
-           </>
-        ) : project.title === "Disaster Preparedness" ? (
-          <>
-            <h3 className="font-semibold text-gray-800 leading-tight mb-3" style={{fontSize: 'clamp(0.9rem, 1.2vw, 1rem)'}}>Preemptive Evacuation and Relief Distribution for Typhoon Opong</h3>
-            <p className="text-gray-600 font-medium text-pretty leading-relaxed flex-1" style={{fontSize: 'clamp(0.8rem, 1.1vw, 0.9rem)'}}>PB Arthur Marco led the preemptive evacuation of 24 families to ensure safety as Typhoon Opong intensified. Together with Kagawad Regie Ajero, BDRRM Chairman, the barangay council and BHW distributed food packs at the evacuation center.</p>
-          </>
-        ) : project.title === "Environmental Management" ? (
-           <>
-             <h3 className="font-semibold text-gray-800 leading-tight mb-3" style={{fontSize: 'clamp(0.9rem, 1.2vw, 1rem)'}}>Seminar on Ecological Waste Segregation and Recycling for Livelihood</h3>
-             <p className="text-gray-600 font-medium text-pretty leading-relaxed flex-1" style={{fontSize: 'clamp(0.8rem, 1.1vw, 0.9rem)'}}>A community seminar held at the Barangay Action Center highlighting composting, waste segregation in line with RA 9003, and recycling as livelihood opportunities. Resource speakers from OCENR and ESWMO provided insights, while practical demonstrations showed how waste can be turned into useful and marketable products.</p>
-           </>
-         ) : project.title === "Peace and Order" ? (
-           <>
-             <h3 className="font-semibold text-gray-800 leading-tight mb-3" style={{fontSize: 'clamp(0.9rem, 1.2vw, 1rem)'}}>Seminar/Training for Lupon and Tanod – Empowering for a Drug-Free Community</h3>
-             <p className="text-gray-600 font-medium text-pretty leading-relaxed flex-1" style={{fontSize: 'clamp(0.8rem, 1.1vw, 0.9rem)'}}>Held on August 24, 2024, at the Barangay Action Center, the training covered the Katarungang Pambarangay Law, drug awareness and prevention, warrantless arrest procedures, and arresting and handcuffing techniques for barangay tanods.</p>
+             <input
+               type="text"
+               value={editedSubtitle || ''}
+               onChange={(e) => setEditedSubtitle(e.target.value)}
+               onClick={(e) => e.stopPropagation()}
+               placeholder="Subtitle (optional)"
+               className="font-semibold text-gray-800 leading-tight border-2 border-blue-500 rounded px-2 py-1 w-full"
+               style={{fontSize: 'clamp(0.9rem, 1.2vw, 1rem)'}}
+             />
+             <textarea
+               value={editedDescription}
+               onChange={(e) => setEditedDescription(e.target.value)}
+               onClick={(e) => e.stopPropagation()}
+               className="text-gray-600 font-medium text-pretty leading-relaxed flex-1 border-2 border-blue-500 rounded px-2 py-1 w-full resize-none"
+               style={{fontSize: 'clamp(0.8rem, 1.1vw, 0.9rem)'}}
+               rows={6}
+             />
            </>
          ) : (
-           <p className="text-gray-600 font-medium text-pretty leading-relaxed flex-1" style={{fontSize: 'clamp(0.8rem, 1.1vw, 0.9rem)'}}>{project.description}</p>
+           <>
+             {project.subtitle && (
+               <h3 className="font-semibold text-gray-800 leading-tight mb-3" style={{fontSize: 'clamp(0.9rem, 1.2vw, 1rem)'}}>{project.subtitle}</h3>
+             )}
+             <p className="text-gray-600 font-medium text-pretty leading-relaxed flex-1" style={{fontSize: 'clamp(0.8rem, 1.1vw, 0.9rem)'}}>{project.description}</p>
+           </>
          )}
 
         <div className="space-y-3 mt-4">
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-primary flex-shrink-0" />
-            <span className="text-sm font-medium text-gray-700 truncate">{project.date}</span>
+            {isEditing ? (
+              <input
+                type="text"
+                value={editedDate}
+                onChange={(e) => setEditedDate(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                className="text-sm font-medium text-gray-700 border-b border-blue-500 flex-1"
+              />
+            ) : (
+              <span className="text-sm font-medium text-gray-700 truncate">{project.date}</span>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-primary flex-shrink-0" />
-            <span className="text-sm font-medium text-gray-700 truncate">{project.beneficiaries}</span>
+            {isEditing ? (
+              <input
+                type="text"
+                value={editedBeneficiaries}
+                onChange={(e) => setEditedBeneficiaries(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                className="text-sm font-medium text-gray-700 border-b border-blue-500 flex-1"
+              />
+            ) : (
+              <span className="text-sm font-medium text-gray-700 truncate">{project.beneficiaries}</span>
+            )}
           </div>
         </div>
+
+        {isEditing && (
+          <div className="flex gap-2 mt-4">
+            <button
+              onClick={(e) => { e.stopPropagation(); handleSave(); }}
+              className="flex-1 bg-green-500 text-white py-2 rounded hover:bg-green-600"
+            >
+              Save
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); handleCancel(); }}
+              className="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
 
       </CardContent>
     </Card>
   )
 }
+
