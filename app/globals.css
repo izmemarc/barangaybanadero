@@ -26,6 +26,8 @@ body {
   min-height: 100vh;
   padding-bottom: 0;
   margin-bottom: 0;
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.2) 1px, transparent 1px);
+  background-size: 15px 15px;
 }
 
 /* Remove excess white space */
@@ -71,7 +73,7 @@ footer {
   --chart-3: oklch(0.5 0.08 180);
   --chart-4: oklch(0.6 0.1 300);
   --chart-5: oklch(0.55 0.09 120);
-  --radius: 0.75rem;
+  --radius: 0.5rem;
   --sidebar: oklch(0.98 0.01 240);
   --sidebar-foreground: oklch(0.15 0.02 240);
   --sidebar-primary: oklch(0.25 0.05 240);
@@ -330,5 +332,11 @@ html {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Custom yellow hover effect for buttons */
+.hover-yellow:hover {
+  background-color: rgba(245, 234, 19, 0.85) !important;
+  color: #1a1a1a !important;
 }
 

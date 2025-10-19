@@ -47,7 +47,7 @@ export function LoadingScreen() {
   if (!isLoading) return null
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center" style={{backgroundColor: 'rgba(245, 234, 19, 0.85)'}}>
       <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
     </div>
   )

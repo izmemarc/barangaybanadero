@@ -31,7 +31,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
       </head>
-      <body className="font-sans bg-white" style={fontVariables}>
+      <body className="font-sans" style={{...fontVariables, backgroundColor: '#F9FAFB'}}>
         <script
           dangerouslySetInnerHTML={{
             __html: `

@@ -84,7 +84,7 @@ export function ProjectsSection() {
   const essentialAreasProjects = projects.length > 3 ? projects.slice(3, 6) : essentialAreasProjectsStatic;
 
   return (
-    <section id="projects" className="min-h-screen bg-white py-12 sm:py-16 lg:py-20">
+    <section id="projects" className="min-h-screen py-12 sm:py-16 lg:py-20">
       <div className="w-full max-w-[1600px] mx-auto">
         <div className="text-center mb-8 sm:mb-10 lg:mb-12">
           <h2 className="font-black text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', marginBottom: 'clamp(0.5rem, 1vh, 0.75rem)'}}>Community Projects</h2>

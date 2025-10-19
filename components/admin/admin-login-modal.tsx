@@ -36,7 +36,7 @@ export function AdminLoginModal({ isOpen, onClose }: AdminLoginModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
+      <div className="bg-white rounded-md p-6 w-full max-w-md relative">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
@@ -56,7 +56,7 @@ export function AdminLoginModal({ isOpen, onClose }: AdminLoginModalProps) {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter admin password"
               autoFocus
             />
@@ -69,7 +69,7 @@ export function AdminLoginModal({ isOpen, onClose }: AdminLoginModalProps) {
           <button
             type="submit"
             disabled={isLoading || !password}
-            className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="w-full bg-blue-500 text-white py-2 rounded-sm hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Logging in...' : 'Login'}
           </button>

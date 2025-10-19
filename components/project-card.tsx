@@ -88,7 +88,7 @@ export function ProjectCard({ project, onUpdate }: { project: Project; onUpdate?
 
   return (
     <Card 
-      className={`bg-white/95 backdrop-blur-lg border-white/30 shadow-xl transition-all duration-300 h-full flex flex-col overflow-hidden p-0 group relative ${
+      className={`bg-white/95 backdrop-blur-lg border-0 shadow-xl transition-all duration-300 h-full flex flex-col overflow-hidden p-0 group relative ${
         !isEditMode && !isEditing ? 'hover:shadow-2xl hover:scale-[1.02] cursor-pointer' : ''
       }`}
       onClick={handleCardClick}
@@ -97,7 +97,7 @@ export function ProjectCard({ project, onUpdate }: { project: Project; onUpdate?
       {isEditMode && !isEditing && (
         <button
           onClick={handleEditClick}
-          className="absolute top-2 right-2 z-10 p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 shadow-lg transition-opacity"
+          className="absolute top-2 right-2 z-10 p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 shadow-lg transition-opacity"
           title="Edit Project"
         >
           <Pencil size={16} />
@@ -223,13 +223,13 @@ export function ProjectCard({ project, onUpdate }: { project: Project; onUpdate?
           <div className="flex gap-2 mt-4">
             <button
               onClick={(e) => { e.stopPropagation(); handleSave(); }}
-              className="flex-1 bg-green-500 text-white py-2 rounded hover:bg-green-600"
+              className="flex-1 bg-green-500 text-white py-2 rounded-sm hover:bg-green-600"
             >
               Save
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); handleCancel(); }}
-              className="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600"
+              className="flex-1 bg-gray-500 text-white py-2 rounded-sm hover:bg-gray-600"
             >
               Cancel
             </button>

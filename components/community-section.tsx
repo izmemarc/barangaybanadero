@@ -50,7 +50,7 @@ interface EmergencyContact {
   number: string;
 }
 
-const iconMap: Record<string, any> = {
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Shield,
   Heart,
   GraduationCap,
@@ -163,7 +163,7 @@ export function CommunitySection() {
   ]
 
   return (
-    <section id="community" className="bg-white pt-12 sm:pt-16 lg:pt-20 pb-2 sm:pb-4 lg:pb-6">
+    <section id="community" className="pt-12 sm:pt-16 lg:pt-20 pb-2 sm:pb-4 lg:pb-6">
       <div className="w-full max-w-[1600px] mx-auto">
         <div className="text-center mb-8 sm:mb-10 lg:mb-12">
           <h2 className="font-black text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', marginBottom: 'clamp(0.5rem, 1vh, 0.75rem)'}}>Community Information</h2>
@@ -177,7 +177,7 @@ export function CommunitySection() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
           {/* Services & Programs */}
           <div className="space-y-3 sm:space-y-4">
-            <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98">
+            <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98">
               <CardHeader className="pb-2">
                  <CardTitle className="text-primary text-lg font-bold">Community Services</CardTitle>
               </CardHeader>
@@ -188,7 +188,7 @@ export function CommunitySection() {
                   
                   return (
                     <div key={service.id} className="flex items-start gap-3 relative group">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-md flex items-center justify-center flex-shrink-0">
                         <IconComponent className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                       </div>
                       <div className="min-w-0 flex-1">
@@ -236,7 +236,7 @@ export function CommunitySection() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98">
+            <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98">
               <CardHeader>
                  <CardTitle className="text-primary text-lg font-bold">Office Hours</CardTitle>
               </CardHeader>
@@ -295,7 +295,7 @@ export function CommunitySection() {
 
           {/* Upcoming Events */}
           <div className="space-y-3 sm:space-y-4">
-            <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98">
+            <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98">
               <CardHeader>
                  <CardTitle className="flex items-center gap-2 text-primary text-lg font-bold">
                   <Calendar className="h-4 w-4" />
@@ -391,7 +391,7 @@ export function CommunitySection() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98">
+            <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98">
               <CardHeader>
                  <CardTitle className="flex items-center gap-2 text-primary text-lg font-bold">
                   <AlertCircle className="h-4 w-4" />
@@ -454,7 +454,7 @@ export function CommunitySection() {
 
           {/* Officials & Contact */}
           <div className="space-y-3 sm:space-y-4">
-            <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98">
+            <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98">
               <CardHeader>
                  <CardTitle className="flex items-center gap-2 text-primary text-lg font-bold">
                   <Users className="h-4 w-4" />

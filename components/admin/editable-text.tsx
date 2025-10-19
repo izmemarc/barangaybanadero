@@ -111,7 +111,7 @@ export function EditableText({
       {!isEditing && (
         <button
           onClick={() => setIsEditing(true)}
-          className="absolute -right-8 top-0 opacity-0 group-hover:opacity-100 transition-opacity bg-blue-500 text-white p-1 rounded hover:bg-blue-600"
+          className="absolute -right-8 top-0 opacity-0 group-hover:opacity-100 transition-opacity bg-blue-500 text-white p-1 rounded-sm hover:bg-blue-600"
           title="Edit"
         >
           <Pencil size={16} />

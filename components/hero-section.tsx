@@ -1,20 +1,86 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileText, Users, Calendar, MapPin, Phone, Mail } from "lucide-react"
+import { FileText, Users, Calendar, MapPin, Phone, Mail, Briefcase, AlertCircle } from "lucide-react"
+import { EditableImage } from "@/components/admin/editable-image"
+import { useState, useEffect } from "react"
 
 export function HeroSection() {
+  const [captainImage, setCaptainImage] = useState("/captain.webp")
+  const [councilImage, setCouncilImage] = useState("/group.webp")
+
+  // Load saved images on component mount
+  useEffect(() => {
+    const loadImages = async () => {
+      try {
+        const captainResponse = await fetch('/api/admin/content?key=captain_image')
+        const captainData = await captainResponse.json()
+        if (captainData?.value) {
+          setCaptainImage(captainData.value)
+        }
+
+        const councilResponse = await fetch('/api/admin/content?key=council_image')
+        const councilData = await councilResponse.json()
+        if (councilData?.value) {
+          setCouncilImage(councilData.value)
+        }
+      } catch (error) {
+        console.error('Failed to load images:', error)
+      }
+    }
+
+    loadImages()
+  }, [])
+
+  // Save captain image to database
+  const handleCaptainImageChange = async (newPath: string) => {
+    setCaptainImage(newPath)
+    try {
+      await fetch('/api/admin/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: 'captain_image',
+          value: newPath,
+          type: 'text',
+        }),
+      })
+    } catch (error) {
+      console.error('Failed to save captain image:', error)
+    }
+  }
+
+  // Save council image to database
+  const handleCouncilImageChange = async (newPath: string) => {
+    setCouncilImage(newPath)
+    try {
+      await fetch('/api/admin/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: 'council_image',
+          value: newPath,
+          type: 'text',
+        }),
+      })
+    } catch (error) {
+      console.error('Failed to save council image:', error)
+    }
+  }
+
   return (
     <section
       id="hero"
-      className="bg-white relative hero-section-1080p"
-      style={{minHeight: '100vh', paddingTop: 'clamp(5rem, 8vh, 6rem)'}}
+      className="relative hero-section-1080p w-full"
+      style={{minHeight: '100vh', paddingTop: 'clamp(5rem, 8vh, 6rem)', width: '100vw', marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)'}}
     >
       <div className="w-full max-w-[1600px] mx-auto flex items-start hero-content" style={{paddingTop: 'clamp(1rem, 2vh, 2rem)', minHeight: 'calc(100vh - 5rem)'}}>
         <div className="grid grid-cols-1 lg:grid-cols-3 w-full hero-grid" style={{gap: 'clamp(0.75rem, 1.5vw, 1.5rem)', paddingTop: 'clamp(1rem, 2vh, 2rem)', paddingBottom: 'clamp(1rem, 2vh, 2rem)'}}>
           {/* Left and Center Columns - Logo spanning both */}
           <div className="lg:col-span-2 flex flex-col hero-column" style={{gap: 'clamp(0.75rem, 1.5vw, 1.5rem)'}}>
             {/* Logo Card spanning left and center */}
-            <Card className="bg-white/98 backdrop-blur-xl border border-gray-200/50 shadow-xl w-full overflow-hidden hero-card">
+            <Card className="bg-white/98 backdrop-blur-xl shadow-xl w-full overflow-hidden hero-card">
               <CardContent className="p-0">
                 <div className="flex flex-col lg:flex-row items-center lg:items-stretch">
                   {/* Logo Section */}
@@ -49,7 +115,7 @@ export function HeroSection() {
                   </div>
 
                   {/* Contact Section - Hidden on mobile, shown on larger screens */}
-                  <div className="hidden lg:flex flex-shrink-0 p-4 sm:p-6 lg:p-8 border-l-2 border-gray-300/60 min-w-[250px] xl:min-w-[280px]">
+                  <div className="hidden lg:flex flex-shrink-0 p-4 sm:p-6 lg:p-8 min-w-[250px] xl:min-w-[280px]">
                     <div className="w-full">
                       <h3 className="text-sm sm:text-sm font-bold text-primary mb-3 sm:mb-4 uppercase tracking-wider">Contact Information</h3>
                       <div className="space-y-2 sm:space-y-3">
@@ -80,7 +146,7 @@ export function HeroSection() {
                 </div>
                 
                 {/* Mobile Contact Section */}
-                <div className="lg:hidden border-t border-gray-200/50 p-4 sm:p-6 bg-gray-50/50">
+                <div className="lg:hidden p-4 sm:p-6 bg-gray-50/50">
                   <h3 className="text-sm font-bold text-primary mb-3 uppercase tracking-wider text-center">Contact Information</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
                     <div className="flex flex-col items-center">
@@ -111,23 +177,23 @@ export function HeroSection() {
             <div className="grid grid-cols-1 lg:grid-cols-2 flex-1" style={{gap: 'clamp(0.75rem, 1.5vw, 1.5rem)'}}>
               {/* Left Side - Mission & Vision */}
               <div className="flex flex-col" style={{gap: 'clamp(0.75rem, 1.5vw, 1.5rem)'}}>
-                <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl hero-card">
-                  <CardHeader className="pb-0 pt-1 px-3 sm:px-6 gap-0">
+                <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hero-card">
+                  <CardHeader className="pb-0 pt-0 px-3 sm:px-6 gap-0">
                     <CardTitle className="text-primary text-sm sm:text-base lg:text-lg font-semibold">Our Mission</CardTitle>
                   </CardHeader>
-                  <CardContent className="pb-2 px-3 sm:px-6 pt-0">
-                     <p className="text-sm sm:text-sm lg:text-base text-pretty leading-snug">
+                  <CardContent className="space-y-1.5 pb-3 px-3 sm:px-6 pt-0">
+                     <p className="text-sm sm:text-sm lg:text-base text-pretty leading-snug -mt-2">
                        With the inspiration and guidance of the Almighty God, we are committed to adopt state-of-the-art technologies, plan and implement programs, projects and activities using the Community Driven Development (CDD) strategy to promptly deliver quality basic services for the total improvement of the barangay.
                      </p>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl hero-card">
-                  <CardHeader className="pb-0 pt-1 px-3 sm:px-6 gap-0">
+                <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hero-card">
+                  <CardHeader className="pb-0 pt-0 px-3 sm:px-6 gap-0">
                     <CardTitle className="text-primary text-sm sm:text-base lg:text-lg font-semibold">Our Vision</CardTitle>
                   </CardHeader>
-                  <CardContent className="pb-2 px-3 sm:px-6 pt-0">
-                     <p className="text-sm sm:text-sm lg:text-base text-pretty leading-snug">
+                  <CardContent className="space-y-1.5 pb-3 px-3 sm:px-6 pt-0">
+                     <p className="text-sm sm:text-sm lg:text-base text-pretty leading-snug -mt-2">
                        A self-reliant community enjoying a progressive and even-handed economy, disaster resilient, drug-free, well-managed solid wastes, peaceful and ecologically balanced environment with God-loving people guided by a responsive, participatory, transparent and accountable leadership and governance.
                      </p>
                   </CardContent>
@@ -136,96 +202,57 @@ export function HeroSection() {
 
               {/* Right Side - Barangay Services */}
               <div className="flex flex-col order-first lg:order-none" style={{gap: 'clamp(0.75rem, 1.5vh, 1rem)'}}>
-                <Card className="bg-white/95 backdrop-blur-lg border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98 hero-card">
-                  <CardHeader className="pb-0 pt-2 px-3 sm:px-6">
+                <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98 hero-card">
+                  <CardHeader className="pb-0 pt-0 px-3 sm:px-6 gap-0">
                     <CardTitle className="flex items-center gap-2 sm:gap-3 text-primary text-sm sm:text-base lg:text-lg font-semibold">
                       <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
                       Barangay Services
                 </CardTitle>
               </CardHeader>
-                  <CardContent className="space-y-1.5 pb-3 px-3 sm:px-6">
+                  <CardContent className="space-y-1.5 pb-3 px-3 sm:px-6 pt-0 mt-0.5">
+                <a href="https://forms.gle/vTf6DqyxMA2besto6" target="_blank" rel="noopener noreferrer" className="w-full block -mt-2">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2"
+                    aria-label="Request Barangay Clearance"
+                  >
+                    <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
+                    Barangay Clearance
+                  </Button>
+                </a>
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSe4yR6BKatbd4eSfzidaIQXbrnqxM_kE33x8hF-PDqlNMAbHg/viewform?fbzx=-8760112926224005484" target="_blank" rel="noopener noreferrer" className="w-full block">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2"
+                    aria-label="Request Business Clearance"
+                  >
+                    <Briefcase className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
+                    Business Clearance
+                  </Button>
+                </a>
                     <Button
                       variant="outline"
-                      className="w-full justify-start bg-transparent hover:bg-primary/5 border-primary/20 h-7 sm:h-8 text-left text-sm sm:text-sm font-medium"
-                      aria-label="Request Barangay Certification"
+                      className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2"
+                      aria-label="File a Blotter"
                     >
-                      <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary" />
-                      Barangay Certification
-                    </Button>
-                <Button
-                  variant="outline"
-                      className="w-full justify-start bg-transparent hover:bg-primary/5 border-primary/20 h-7 sm:h-8 text-left text-sm sm:text-sm font-medium"
-                      aria-label="Request Barangay Clearance"
-                      asChild
-                >
-                  <a href="https://forms.gle/vTf6DqyxMA2besto6" target="_blank" rel="noopener noreferrer">
-                      <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary" />
-                  Barangay Clearance
-                  </a>
-                </Button>
-                <Button
-                  variant="outline"
-                      className="w-full justify-start bg-transparent hover:bg-primary/5 border-primary/20 h-7 sm:h-8 text-left text-sm sm:text-sm font-medium"
-                      aria-label="Request Community Tax Certificate"
-                    >
-                      <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary" />
-                      Community Tax Certificate
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start bg-transparent hover:bg-primary/5 border-primary/20 h-7 sm:h-8 text-left text-sm sm:text-sm font-medium"
-                      aria-label="Request Records Reproduction"
-                    >
-                      <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary" />
-                      Records Reproduction
+                      <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
+                      Blotter
                     </Button>
                     <Button
                       variant="outline"
-                      className="w-full justify-start bg-transparent hover:bg-primary/5 border-primary/20 h-7 sm:h-8 text-left text-sm sm:text-sm font-medium"
+                      className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2"
                       aria-label="Request Facility Use"
                     >
-                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary" />
+                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
                       Facility Use
                     </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start bg-transparent hover:bg-primary/5 border-primary/20 h-7 sm:h-8 text-left text-sm sm:text-sm font-medium"
-                      aria-label="Access Socio-Economic Services"
-                    >
-                      <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary" />
-                      Socio-Economic Services
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start bg-transparent hover:bg-primary/5 border-primary/20 h-7 sm:h-8 text-left text-sm sm:text-sm font-medium"
-                      aria-label="Access Health Services"
-                    >
-                      <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary" />
-                      Health Services
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start bg-transparent hover:bg-primary/5 border-primary/20 h-7 sm:h-8 text-left text-sm sm:text-sm font-medium"
-                      aria-label="Access Environment Services"
-                    >
-                      <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary" />
-                      Environment Services
-                </Button>
                 <Button
                   variant="outline"
-                      className="w-full justify-start bg-transparent hover:bg-primary/5 border-primary/20 h-7 sm:h-8 text-left text-sm sm:text-sm font-medium"
+                      className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2"
                       aria-label="Request Certification to File Action (CFA)"
                 >
-                      <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary" />
+                      <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
                       Certification to File Action (CFA)
-                </Button>
-                <Button
-                  variant="outline"
-                      className="w-full justify-start bg-transparent hover:bg-primary/5 border-primary/20 h-7 sm:h-8 text-left text-sm sm:text-sm font-medium"
-                      aria-label="Request Barangay Protection Order (BPO)"
-                >
-                      <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary" />
-                      Barangay Protection Order (BPO)
                 </Button>
               </CardContent>
             </Card>
@@ -238,20 +265,17 @@ export function HeroSection() {
             {/* Captain Section */}
             <div className="flex flex-col items-center text-center w-full">
               <div className="relative mb-3 sm:mb-4">
-                <picture>
-                  <source srcSet="/captain.webp" type="image/webp" />
-                  <img
-                    src="/captain.webp"
-                    alt="Barangay Captain"
-                    className="w-4/5 h-auto mx-auto xs:w-56 xs:h-64 sm:w-64 sm:h-72 md:w-72 md:h-80 lg:w-80 lg:h-88 xl:w-88 xl:h-104 object-cover object-[center_40%] rounded-2xl shadow-2xl"
-                    loading="lazy"
-                    width={400}
-                    height={500}
-                  />
-                </picture>
+                <EditableImage
+                  currentPath={captainImage}
+                  onImageChange={handleCaptainImageChange}
+                  alt="Barangay Captain"
+                  className="w-4/5 h-auto mx-auto xs:w-56 xs:h-64 sm:w-64 sm:h-72 md:w-72 md:h-80 lg:w-80 lg:h-88 xl:w-88 xl:h-104 object-cover object-[center_40%] rounded-lg shadow-2xl"
+                  width={400}
+                  height={500}
+                />
               </div>
 
-              <div className="space-y-1 sm:space-y-2 w-full">
+              <div className="space-y-0 w-full">
                 <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-black text-balance text-primary uppercase tracking-wider leading-tight px-2">
                   Arthur Marco
                 </h3>
@@ -261,19 +285,18 @@ export function HeroSection() {
 
             {/* Barangay Council Section */}
             <div className="w-full">
-              <div className="w-full relative pb-[66.67%] sm:pb-0 sm:h-48 md:h-56 lg:h-64 xl:h-72 rounded-2xl overflow-hidden border border-gray-200/50 shadow-lg">
-                <picture>
-                  <source srcSet="/group.webp" type="image/webp" />
-                  <img
-                    src="/group.jpeg"
+              <div className="w-full relative pb-[66.67%] sm:pb-0 sm:h-48 md:h-56 lg:h-64 xl:h-72 rounded-lg overflow-hidden shadow-lg">
+                <div className="absolute top-0 left-0 w-full h-full">
+                  <EditableImage
+                    currentPath={councilImage}
+                    onImageChange={handleCouncilImageChange}
                     alt="Barangay Council"
-                    className="absolute top-0 left-0 w-full h-full object-cover object-center sm:object-[center_30%]"
-                    loading="lazy"
+                    className="w-full h-full object-cover object-center sm:object-[center_30%]"
                     width={400}
                     height={300}
                   />
-                </picture>
                 </div>
+              </div>
               <h3 className="text-primary text-sm sm:text-base md:text-lg font-semibold text-center mt-3 px-2">
                 Barangay Council
               </h3>

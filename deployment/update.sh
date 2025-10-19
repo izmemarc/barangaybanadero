@@ -57,6 +57,12 @@ fi
 # Set permissions
 sudo chown -R $USER:$USER /var/www/barangay-website
 
+# Ensure uploads directory exists with proper permissions
+echo "📁 Setting up uploads directory..."
+sudo mkdir -p /var/www/barangay-website/public/uploads
+sudo chown -R $USER:$USER /var/www/barangay-website/public/uploads
+sudo chmod -R 755 /var/www/barangay-website/public/uploads
+
 # Install dependencies and build
 echo "📦 Installing dependencies..."
 cd /var/www/barangay-website
