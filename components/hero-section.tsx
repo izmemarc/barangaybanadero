@@ -9,6 +9,7 @@ import { useState, useEffect } from "react"
 export function HeroSection() {
   const [captainImage, setCaptainImage] = useState("/captain.webp")
   const [councilImage, setCouncilImage] = useState("/group.webp")
+  const [imagesLoaded, setImagesLoaded] = useState(false)
 
   // Load saved images on component mount
   useEffect(() => {
@@ -25,8 +26,11 @@ export function HeroSection() {
         if (councilData?.value) {
           setCouncilImage(councilData.value)
         }
+        
+        setImagesLoaded(true)
       } catch (error) {
         console.error('Failed to load images:', error)
+        setImagesLoaded(true)
       }
     }
 
@@ -35,9 +39,10 @@ export function HeroSection() {
 
   // Save captain image to database
   const handleCaptainImageChange = async (newPath: string) => {
-    setCaptainImage(newPath)
+    console.log('Captain image change handler called with:', newPath)
+    
     try {
-      await fetch('/api/admin/content', {
+      const response = await fetch('/api/admin/content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -46,16 +51,30 @@ export function HeroSection() {
           type: 'text',
         }),
       })
+      
+      const data = await response.json()
+      console.log('Captain image save response:', data)
+      
+      if (!response.ok) {
+        console.error('Failed to save captain image:', data)
+        alert(`Failed to save captain image: ${data.error || 'Unknown error'}`)
+      } else {
+        console.log('Captain image saved successfully')
+        // Immediately update the image with cache busting
+        setCaptainImage(`${newPath}?t=${Date.now()}`)
+      }
     } catch (error) {
       console.error('Failed to save captain image:', error)
+      alert('Failed to save captain image. Check console for details.')
     }
   }
 
   // Save council image to database
   const handleCouncilImageChange = async (newPath: string) => {
-    setCouncilImage(newPath)
+    console.log('Council image change handler called with:', newPath)
+    
     try {
-      await fetch('/api/admin/content', {
+      const response = await fetch('/api/admin/content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -64,8 +83,21 @@ export function HeroSection() {
           type: 'text',
         }),
       })
+      
+      const data = await response.json()
+      console.log('Council image save response:', data)
+      
+      if (!response.ok) {
+        console.error('Failed to save council image:', data)
+        alert(`Failed to save council image: ${data.error || 'Unknown error'}`)
+      } else {
+        console.log('Council image saved successfully')
+        // Immediately update the image with cache busting
+        setCouncilImage(`${newPath}?t=${Date.now()}`)
+      }
     } catch (error) {
       console.error('Failed to save council image:', error)
+      alert('Failed to save council image. Check console for details.')
     }
   }
 
@@ -177,7 +209,7 @@ export function HeroSection() {
             <div className="grid grid-cols-1 lg:grid-cols-2 flex-1" style={{gap: 'clamp(0.75rem, 1.5vw, 1.5rem)'}}>
               {/* Left Side - Mission & Vision */}
               <div className="flex flex-col" style={{gap: 'clamp(0.75rem, 1.5vw, 1.5rem)'}}>
-                <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hero-card">
+                <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hero-card hover-yellow transition-colors duration-200 cursor-pointer">
                   <CardHeader className="pb-0 pt-0 px-3 sm:px-6 gap-0">
                     <CardTitle className="text-primary text-sm sm:text-base lg:text-lg font-semibold">Our Mission</CardTitle>
                   </CardHeader>
@@ -188,7 +220,7 @@ export function HeroSection() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hero-card">
+                <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hero-card hover-yellow transition-colors duration-200 cursor-pointer">
                   <CardHeader className="pb-0 pt-0 px-3 sm:px-6 gap-0">
                     <CardTitle className="text-primary text-sm sm:text-base lg:text-lg font-semibold">Our Vision</CardTitle>
                   </CardHeader>
@@ -230,30 +262,50 @@ export function HeroSection() {
                     Business Clearance
                   </Button>
                 </a>
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSd-HShEKWNL2y-ycpWGidjVQnQUuDtA5iaotSirX1KGLKABeQ/viewform" target="_blank" rel="noopener noreferrer" className="w-full block">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2"
+                    aria-label="File a Blotter"
+                  >
+                    <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
+                    Blotter
+                  </Button>
+                </a>
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSdpiey70Vj9zLeaRKvZ_2kG7rxhcKhiZWa-Cw2UO6BpInslEQ/viewform" target="_blank" rel="noopener noreferrer" className="w-full block">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2"
+                    aria-label="Request Facility Use"
+                  >
+                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
+                    Facility Use
+                  </Button>
+                </a>
                     <Button
                       variant="outline"
                       className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2"
-                      aria-label="File a Blotter"
+                      aria-label="Request Certificate of Indigency"
                     >
-                      <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
-                      Blotter
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2"
-                      aria-label="Request Facility Use"
-                    >
-                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
-                      Facility Use
-                    </Button>
-                <Button
-                  variant="outline"
-                      className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2"
-                      aria-label="Request Certification to File Action (CFA)"
-                >
                       <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
-                      Certification to File Action (CFA)
-                </Button>
+                      Certificate of Indigency
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2"
+                      aria-label="Request Certificate of Residency"
+                    >
+                      <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
+                      Certificate of Residency
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2"
+                      aria-label="Request Certificate of Good Moral"
+                    >
+                      <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
+                      Certificate of Good Moral
+                    </Button>
               </CardContent>
             </Card>
                 </div>
@@ -265,14 +317,20 @@ export function HeroSection() {
             {/* Captain Section */}
             <div className="flex flex-col items-center text-center w-full">
               <div className="relative mb-3 sm:mb-4">
-                <EditableImage
-                  currentPath={captainImage}
-                  onImageChange={handleCaptainImageChange}
-                  alt="Barangay Captain"
-                  className="w-4/5 h-auto mx-auto xs:w-56 xs:h-64 sm:w-64 sm:h-72 md:w-72 md:h-80 lg:w-80 lg:h-88 xl:w-88 xl:h-104 object-cover object-[center_40%] rounded-lg shadow-2xl"
-                  width={400}
-                  height={500}
-                />
+                {imagesLoaded ? (
+                  <EditableImage
+                    currentPath={captainImage}
+                    onImageChange={handleCaptainImageChange}
+                    alt="Barangay Captain"
+                    className="w-4/5 h-auto mx-auto xs:w-56 xs:h-64 sm:w-64 sm:h-72 md:w-72 md:h-80 lg:w-80 lg:h-88 xl:w-88 xl:h-104 object-cover object-[center_40%] rounded-lg shadow-2xl"
+                    width={400}
+                    height={500}
+                  />
+                ) : (
+                  <div className="w-4/5 h-auto mx-auto xs:w-56 xs:h-64 sm:w-64 sm:h-72 md:w-72 md:h-80 lg:w-80 lg:h-88 xl:w-88 xl:h-104 bg-gray-200 rounded-lg shadow-2xl animate-pulse flex items-center justify-center">
+                    <span className="text-gray-400 text-sm">Loading...</span>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-0 w-full">
@@ -287,14 +345,20 @@ export function HeroSection() {
             <div className="w-full">
               <div className="w-full relative pb-[66.67%] sm:pb-0 sm:h-48 md:h-56 lg:h-64 xl:h-72 rounded-lg overflow-hidden shadow-lg">
                 <div className="absolute top-0 left-0 w-full h-full">
-                  <EditableImage
-                    currentPath={councilImage}
-                    onImageChange={handleCouncilImageChange}
-                    alt="Barangay Council"
-                    className="w-full h-full object-cover object-center sm:object-[center_30%]"
-                    width={400}
-                    height={300}
-                  />
+                  {imagesLoaded ? (
+                    <EditableImage
+                      currentPath={councilImage}
+                      onImageChange={handleCouncilImageChange}
+                      alt="Barangay Council"
+                      className="w-full h-full object-cover object-center sm:object-[center_30%]"
+                      width={400}
+                      height={300}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200 animate-pulse flex items-center justify-center">
+                      <span className="text-gray-400 text-sm">Loading...</span>
+                    </div>
+                  )}
                 </div>
               </div>
               <h3 className="text-primary text-sm sm:text-base md:text-lg font-semibold text-center mt-3 px-2">

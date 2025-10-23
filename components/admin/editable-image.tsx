@@ -30,6 +30,19 @@ export function EditableImage({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Check file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      alert('File too large. Maximum size is 5MB.');
+      return;
+    }
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      alert('Only image files are allowed.');
+      return;
+    }
+
     setIsUploading(true);
 
     try {
@@ -44,15 +57,22 @@ export function EditableImage({
       const data = await response.json();
 
       if (data.success) {
+        // Pass the clean path to the parent component
+        console.log('Upload successful, path:', data.path);
         onImageChange(data.path);
       } else {
-        alert('Failed to upload image');
+        console.error('Upload failed:', data.error);
+        alert(`Failed to upload image: ${data.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Failed to upload image');
+      alert('Failed to upload image. Please check your connection and try again.');
     } finally {
       setIsUploading(false);
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -70,6 +90,7 @@ export function EditableImage({
         width={width}
         height={height}
         className={className}
+        key={currentPath} // Force re-render when path changes
       />
       
       {isEditMode && (

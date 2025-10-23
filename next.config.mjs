@@ -6,9 +6,10 @@ const nextConfig = {
   // Disable automatic redirects and ensure proper host binding
   trailingSlash: false,
   poweredByHeader: false,
-  // Performance optimizations
+  // Experimental features for larger uploads
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    serverComponentsExternalPackages: ['sharp'],
   },
   serverExternalPackages: ['better-sqlite3'],
   webpack: (config, { isServer }) => {
@@ -23,20 +24,6 @@ const nextConfig = {
   // Disable service worker to prevent 404 errors
   generateBuildId: async () => {
     return 'build-' + Date.now()
-  },
-  // Add cache-busting headers
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=0, must-revalidate',
-          },
-        ],
-      },
-    ]
   },
   async rewrites() {
     return [

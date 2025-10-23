@@ -14,21 +14,25 @@ interface AdminContextType {
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
 export function AdminProvider({ children }: { children: React.ReactNode }) {
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [isEditMode, setIsEditModeState] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   const checkAuth = async () => {
     try {
       const response = await fetch('/api/admin/auth');
       const data = await response.json();
+      console.log('Auth check result:', data);
       setIsAuthenticated(data.authenticated);
-      if (!data.authenticated) {
-        setIsEditMode(false);
-      }
+      // Always keep edit mode false on page load, even if authenticated
+      console.log('Admin context: Forcing edit mode to false after auth check');
+      setIsEditModeState(false);
+      setHasInitialized(true);
     } catch (error) {
       console.error('Auth check failed:', error);
       setIsAuthenticated(false);
-      setIsEditMode(false);
+      setIsEditModeState(false);
+      setHasInitialized(true);
     }
   };
 
@@ -44,7 +48,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       
       if (data.success) {
         setIsAuthenticated(true);
-        setIsEditMode(true);
+        setIsEditModeState(true); // Only enable edit mode when explicitly logging in
         return true;
       }
       
@@ -59,20 +63,31 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     try {
       await fetch('/api/admin/auth', { method: 'DELETE' });
       setIsAuthenticated(false);
-      setIsEditMode(false);
+      setIsEditModeState(false);
     } catch (error) {
       console.error('Logout failed:', error);
     }
   };
 
   const setEditMode = (mode: boolean) => {
-    if (mode && !isAuthenticated) {
-      return; // Can't enable edit mode without authentication
+    // Don't allow edit mode changes until after initialization
+    if (!hasInitialized) {
+      console.log('Admin context: Ignoring setEditMode call before initialization');
+      return;
     }
-    setIsEditMode(mode);
+    // Only allow enabling edit mode if authenticated
+    if (mode && !isAuthenticated) {
+      console.log('Admin context: Cannot enable edit mode without authentication');
+      return;
+    }
+    console.log('Admin context: setEditMode called with:', mode);
+    setIsEditModeState(mode);
   };
 
   useEffect(() => {
+    // Always start in non-edit mode on page load
+    console.log('Admin context: Setting edit mode to false on page load');
+    setIsEditModeState(false);
     checkAuth();
   }, []);
 

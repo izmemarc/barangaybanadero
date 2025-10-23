@@ -68,6 +68,10 @@ echo "📦 Installing dependencies..."
 cd /var/www/barangay-website
 pnpm install
 
+# Rebuild Sharp for production environment
+echo "🖼️ Rebuilding Sharp for production..."
+npm rebuild sharp
+
 echo "🔨 Building application..."
 pnpm build
 
