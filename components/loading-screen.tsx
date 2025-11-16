@@ -9,7 +9,60 @@ export function LoadingScreen() {
     let isHydrated = false
     let checkCount = 0
     const maxChecks = 200 // 10 seconds max (50ms intervals)
+    const maxAssetWaitMs = 3000 // max time to wait for critical images
+    const postHydrationDelayMs = 100 // small buffer after hydration
+    const postReadyDelayMs = 500 // delay before hiding loader
     
+    function waitForImages(): Promise<void> {
+      return new Promise((resolve) => {
+        const start = Date.now()
+        const deadline = start + maxAssetWaitMs
+
+        // Collect only critical images
+        const imgs = Array.from(document.querySelectorAll('img[data-critical="true"]')) as HTMLImageElement[]
+
+        if (imgs.length === 0) {
+          resolve()
+          return
+        }
+
+        let remaining = imgs.length
+
+        function doneOnce() {
+          remaining -= 1
+          if (remaining <= 0) resolve()
+        }
+
+        imgs.forEach((img) => {
+          if ((img.complete && img.naturalWidth > 0)) {
+            doneOnce()
+            return
+          }
+          const onLoadOrError = () => {
+            img.removeEventListener('load', onLoadOrError)
+            img.removeEventListener('error', onLoadOrError)
+            doneOnce()
+          }
+          img.addEventListener('load', onLoadOrError)
+          img.addEventListener('error', onLoadOrError)
+          // Try decode when supported for better reliability
+          if (typeof img.decode === 'function') {
+            img.decode().catch(() => { /* ignore */ })
+          }
+        })
+
+        // Fallback timeout to avoid hanging
+        const checkTimeout = () => {
+          if (Date.now() >= deadline) {
+            resolve()
+          } else if (remaining > 0) {
+            setTimeout(checkTimeout, 150)
+          }
+        }
+        setTimeout(checkTimeout, 150)
+      })
+    }
+
     function checkHydration() {
       checkCount++
       
@@ -27,7 +80,14 @@ export function LoadingScreen() {
       
       if (hasReactHydrated) {
         isHydrated = true
-        setIsLoading(false)
+        // Small buffer then wait for images to finish (with timeout)
+        setTimeout(async () => {
+          try {
+            await waitForImages()
+          } finally {
+            setTimeout(() => setIsLoading(false), postReadyDelayMs)
+          }
+        }, postHydrationDelayMs)
         return
       }
       

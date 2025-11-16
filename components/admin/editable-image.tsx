@@ -12,6 +12,11 @@ interface EditableImageProps {
   width?: number;
   height?: number;
   fill?: boolean;
+  dataCritical?: boolean;
+  loading?: 'eager' | 'lazy';
+  decoding?: 'async' | 'sync' | 'auto';
+  fetchPriority?: 'high' | 'low' | 'auto';
+  sizes?: string;
 }
 
 export function EditableImage({
@@ -21,6 +26,11 @@ export function EditableImage({
   className = '',
   width,
   height,
+  dataCritical,
+  loading = 'lazy',
+  decoding = 'async',
+  fetchPriority,
+  sizes,
 }: EditableImageProps) {
   const { isEditMode } = useAdmin();
   const [isUploading, setIsUploading] = useState(false);
@@ -90,6 +100,11 @@ export function EditableImage({
         width={width}
         height={height}
         className={className}
+        data-critical={dataCritical ? 'true' : undefined}
+        loading={loading}
+        decoding={decoding}
+        fetchPriority={fetchPriority}
+        sizes={sizes}
         key={currentPath} // Force re-render when path changes
       />
       

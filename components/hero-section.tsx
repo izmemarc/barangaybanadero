@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileText, Users, Calendar, MapPin, Phone, Mail, Briefcase, AlertCircle } from "lucide-react"
+import { FileText, Calendar, MapPin, Phone, Mail, Briefcase, AlertCircle } from "lucide-react"
 import { EditableImage } from "@/components/admin/editable-image"
 import { useState, useEffect } from "react"
 
@@ -105,14 +105,14 @@ export function HeroSection() {
     <section
       id="hero"
       className="relative hero-section-1080p w-full"
-      style={{minHeight: '100vh', paddingTop: 'clamp(5rem, 8vh, 6rem)', width: '100vw', marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)'}}
+      style={{minHeight: 'auto', paddingTop: 'clamp(5rem, 8vh, 6rem)', paddingBottom: 'clamp(2rem, 4vh, 3rem)'}}
     >
-      <div className="w-full max-w-[1600px] mx-auto flex items-start hero-content" style={{paddingTop: 'clamp(1rem, 2vh, 2rem)', minHeight: 'calc(100vh - 5rem)'}}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 w-full hero-grid" style={{gap: 'clamp(0.75rem, 1.5vw, 1.5rem)', paddingTop: 'clamp(1rem, 2vh, 2rem)', paddingBottom: 'clamp(1rem, 2vh, 2rem)'}}>
+      <div className="w-full max-w-[1600px] mx-auto flex items-start hero-content" style={{paddingTop: 'clamp(1rem, 2vh, 2rem)', minHeight: 'auto'}}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 w-full hero-grid gap-4 sm:gap-6 lg:gap-8" style={{paddingTop: 'clamp(1rem, 2vh, 2rem)', paddingBottom: 'clamp(1rem, 2vh, 2rem)'}}>
           {/* Left and Center Columns - Logo spanning both */}
-          <div className="lg:col-span-2 flex flex-col hero-column" style={{gap: 'clamp(0.75rem, 1.5vw, 1.5rem)'}}>
+          <div className="lg:col-span-2 flex flex-col hero-column gap-4 sm:gap-6 lg:gap-8">
             {/* Logo Card spanning left and center */}
-            <Card className="bg-white/98 backdrop-blur-xl shadow-xl w-full overflow-hidden hero-card">
+            <Card className="bg-white/98 backdrop-blur-xl shadow-[0_4px_12px_rgba(0,0,0,0.08)] sm:shadow-xl w-full overflow-hidden hero-card transition-shadow duration-300">
               <CardContent className="p-0">
                 <div className="flex flex-col lg:flex-row items-center lg:items-stretch">
                   {/* Logo Section */}
@@ -125,7 +125,9 @@ export function HeroSection() {
                         className="drop-shadow-sm"
                         style={{width: 'clamp(10rem, 16vw, 9rem)', height: 'clamp(10rem, 16vw, 9rem)'}}
                         fetchPriority="high"
+                        decoding="async"
                         loading="eager"
+                        data-critical="true"
                         width="144"
                         height="144"
                       />
@@ -206,10 +208,10 @@ export function HeroSection() {
             </Card>
 
             {/* Two columns for Mission/Vision and Services */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 flex-1" style={{gap: 'clamp(0.75rem, 1.5vw, 1.5rem)'}}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 flex-1 gap-4 sm:gap-6 lg:gap-8">
               {/* Left Side - Mission & Vision */}
-              <div className="flex flex-col" style={{gap: 'clamp(0.75rem, 1.5vw, 1.5rem)'}}>
-                <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hero-card hover-yellow transition-colors duration-200 cursor-pointer">
+              <div className="flex flex-col gap-4 sm:gap-6 lg:gap-8">
+                <Card className="bg-white/95 backdrop-blur-lg shadow-[0_4px_12px_rgba(0,0,0,0.08)] sm:shadow-2xl hero-card hover-yellow transition-all duration-300 cursor-pointer">
                   <CardHeader className="pb-0 pt-0 px-3 sm:px-6 gap-0">
                     <CardTitle className="text-primary text-sm sm:text-base lg:text-lg font-semibold">Our Mission</CardTitle>
                   </CardHeader>
@@ -220,7 +222,7 @@ export function HeroSection() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hero-card hover-yellow transition-colors duration-200 cursor-pointer">
+                <Card className="bg-white/95 backdrop-blur-lg shadow-[0_4px_12px_rgba(0,0,0,0.08)] sm:shadow-2xl hero-card hover-yellow transition-all duration-300 cursor-pointer">
                   <CardHeader className="pb-0 pt-0 px-3 sm:px-6 gap-0">
                     <CardTitle className="text-primary text-sm sm:text-base lg:text-lg font-semibold">Our Vision</CardTitle>
                   </CardHeader>
@@ -234,7 +236,7 @@ export function HeroSection() {
 
               {/* Right Side - Barangay Services */}
               <div className="flex flex-col order-first lg:order-none" style={{gap: 'clamp(0.75rem, 1.5vh, 1rem)'}}>
-                <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98 hero-card">
+                <Card className="bg-white/95 backdrop-blur-lg shadow-[0_4px_12px_rgba(0,0,0,0.08)] sm:shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98 hero-card">
                   <CardHeader className="pb-0 pt-0 px-3 sm:px-6 gap-0">
                     <CardTitle className="flex items-center gap-2 sm:gap-3 text-primary text-sm sm:text-base lg:text-lg font-semibold">
                       <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -245,7 +247,7 @@ export function HeroSection() {
                 <a href="https://forms.gle/vTf6DqyxMA2besto6" target="_blank" rel="noopener noreferrer" className="w-full block -mt-2">
                   <Button
                     variant="outline"
-                    className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2"
+                    className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
                     aria-label="Request Barangay Clearance"
                   >
                     <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
@@ -255,7 +257,7 @@ export function HeroSection() {
                 <a href="https://docs.google.com/forms/d/e/1FAIpQLSe4yR6BKatbd4eSfzidaIQXbrnqxM_kE33x8hF-PDqlNMAbHg/viewform?fbzx=-8760112926224005484" target="_blank" rel="noopener noreferrer" className="w-full block">
                   <Button
                     variant="outline"
-                    className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2"
+                    className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
                     aria-label="Request Business Clearance"
                   >
                     <Briefcase className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
@@ -265,7 +267,7 @@ export function HeroSection() {
                 <a href="https://docs.google.com/forms/d/e/1FAIpQLSd-HShEKWNL2y-ycpWGidjVQnQUuDtA5iaotSirX1KGLKABeQ/viewform" target="_blank" rel="noopener noreferrer" className="w-full block">
                   <Button
                     variant="outline"
-                    className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2"
+                    className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
                     aria-label="File a Blotter"
                   >
                     <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
@@ -275,37 +277,43 @@ export function HeroSection() {
                 <a href="https://docs.google.com/forms/d/e/1FAIpQLSdpiey70Vj9zLeaRKvZ_2kG7rxhcKhiZWa-Cw2UO6BpInslEQ/viewform" target="_blank" rel="noopener noreferrer" className="w-full block">
                   <Button
                     variant="outline"
-                    className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2"
+                    className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
                     aria-label="Request Facility Use"
                   >
                     <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
                     Facility Use
                   </Button>
                 </a>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2"
-                      aria-label="Request Certificate of Indigency"
-                    >
-                      <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
-                      Certificate of Indigency
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2"
-                      aria-label="Request Certificate of Residency"
-                    >
-                      <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
-                      Certificate of Residency
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2"
-                      aria-label="Request Certificate of Good Moral"
-                    >
-                      <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
-                      Certificate of Good Moral
-                    </Button>
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSexW6TC0zNe9V2FejpKzKJ3TeFGnWtTQjGuopwoQQPLwvpcgg/viewform?usp=header" target="_blank" rel="noopener noreferrer" className="w-full block">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
+                    aria-label="Request Certificate of Good Moral"
+                  >
+                    <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
+                    Certificate of Good Moral
+                  </Button>
+                </a>
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSe4UiZDpxAuCyxxmh52Db67DRKfxP2w6gnEyehceyqmtVhGNg/viewform?usp=header" target="_blank" rel="noopener noreferrer" className="w-full block">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
+                    aria-label="Request Certificate of Indigency"
+                  >
+                    <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
+                    Certificate of Indigency
+                  </Button>
+                </a>
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSdcXnix_r_TTxx23SRpWesRHZMHoUfUFmAdLNGF030jZJysJQ/viewform?usp=header" target="_blank" rel="noopener noreferrer" className="w-full block">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
+                    aria-label="Request Certificate of Residency"
+                  >
+                    <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
+                    Certificate of Residency
+                  </Button>
+                </a>
               </CardContent>
             </Card>
                 </div>
@@ -322,6 +330,10 @@ export function HeroSection() {
                     currentPath={captainImage}
                     onImageChange={handleCaptainImageChange}
                     alt="Barangay Captain"
+                    dataCritical
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
                     className="w-4/5 h-auto mx-auto xs:w-56 xs:h-64 sm:w-64 sm:h-72 md:w-72 md:h-80 lg:w-80 lg:h-88 xl:w-88 xl:h-104 object-cover object-[center_40%] rounded-lg shadow-2xl"
                     width={400}
                     height={500}
@@ -350,6 +362,10 @@ export function HeroSection() {
                       currentPath={councilImage}
                       onImageChange={handleCouncilImageChange}
                       alt="Barangay Council"
+                      dataCritical
+                      loading="eager"
+                      fetchPriority="high"
+                      decoding="async"
                       className="w-full h-full object-cover object-center sm:object-[center_30%]"
                       width={400}
                       height={300}

@@ -9,9 +9,8 @@ const nextConfig = {
   // Experimental features for larger uploads
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
-    serverComponentsExternalPackages: ['sharp'],
   },
-  serverExternalPackages: ['better-sqlite3'],
+  serverExternalPackages: ['better-sqlite3', 'sharp'],
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.externals.push('better-sqlite3');
@@ -31,6 +30,25 @@ const nextConfig = {
         source: '/sw.js',
         destination: '/404'
       }
+    ]
+  },
+  async redirects() {
+    return [
+      {
+        source: '/forms/good-moral',
+        destination: 'https://docs.google.com/forms/d/e/1FAIpQLSexW6TC0zNe9V2FejpKzKJ3TeFGnWtTQjGuopwoQQPLwvpcgg/viewform?usp=header',
+        permanent: false,
+      },
+      {
+        source: '/forms/indigency',
+        destination: 'https://docs.google.com/forms/d/e/1FAIpQLSe4UiZDpxAuCyxxmh52Db67DRKfxP2w6gnEyehceyqmtVhGNg/viewform?usp=header',
+        permanent: false,
+      },
+      {
+        source: '/forms/residency',
+        destination: 'https://docs.google.com/forms/d/e/1FAIpQLSe4UiZDpxAuCyxxmh52Db67DRKfxP2w6gnEyehceyqmtVhGNg/viewform?usp=header',
+        permanent: false,
+      },
     ]
   },
   // Ensure the app doesn't redirect to localhost

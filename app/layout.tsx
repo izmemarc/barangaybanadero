@@ -75,8 +75,24 @@ export default function RootLayout({
                function initScaling() {
                  // Wait a bit more to ensure hydration is complete
                  setTimeout(() => {
-                   // Piecewise scaling function
+                   // Piecewise scaling function for 1080p and 1440p
                    function getScale(h) {
+                     const w = window.innerWidth;
+                     
+                     // Disable scaling on mobile to prevent blank space issues
+                     if (w < 768) {
+                       return 1; // No scaling on mobile
+                     }
+                     
+                     // For 1440p (2560x1440), scale UP to match 1080p with 25% zoom
+                     if (w >= 2560 && h >= 1440) {
+                       // Calculate what 1080p would use at 1080 height
+                       const scale1080p = 0.000880 * 1080 + 0.11; // = 1.0604
+                       // Scale UP by 25% (multiply by 1.25) to match 1080p appearance at 1440p
+                       return scale1080p * 1.25; // = 1.3255
+                     }
+                     
+                     // Original scaling for 1080p and other resolutions
                      if (h >= 735) {
                        return 0.000880 * h + 0.11;
                      } else {
@@ -86,28 +102,43 @@ export default function RootLayout({
 
                     function scalePage() {
                     const h = window.innerHeight;
+                    const w = window.innerWidth;
                     const scale = getScale(h);
+                    
+                    console.log('Scaling:', { width: w, height: h, scale: scale });
 
                     // Use requestAnimationFrame to ensure DOM is ready
                     requestAnimationFrame(() => {
-                     // Scale only the main content, not the footer
-                     const main = document.querySelector('main');
-                     const footer = document.querySelector('footer');
+                     // Scale the entire body element
+                     const body = document.body;
                      
-                     if (main && footer) {
-                       // Get the natural content height before any modifications
-                       const naturalHeight = main.scrollHeight;
+                     if (body) {
+                       // Clear all previous styles
+                       body.style.transform = '';
+                       body.style.transformOrigin = '';
+                       body.style.width = '';
+                       body.style.height = '';
+                       body.style.minHeight = '';
+                       document.documentElement.style.height = '';
                        
-                       // Apply scaling and width
-                       main.style.transform = 'scale(' + scale + ')';
-                       main.style.transformOrigin = 'top left';
-                       main.style.width = (100 / scale) + '%';
+                       // Force reflow to get accurate measurements
+                       void body.offsetHeight;
                        
-                       // Calculate the scaled height
+                       // Get natural height after clearing styles
+                       const naturalHeight = body.scrollHeight;
+                       
+                       // Apply scaling to entire page
+                       body.style.transform = 'scale(' + scale + ')';
+                       body.style.transformOrigin = 'top left';
+                       body.style.width = (100 / scale) + '%';
+                       
+                       // Set document height to scaled height to prevent blank space
                        const scaledHeight = naturalHeight * scale;
+                       document.documentElement.style.height = scaledHeight + 'px';
                        
-                       // Set the height to the scaled value
-                       main.style.height = scaledHeight + 'px';
+                       console.log('Applied scale:', scale, 'naturalHeight:', naturalHeight, 'scaledHeight:', scaledHeight);
+                     } else {
+                       console.log('Body element not found');
                      }
                        
                        document.body.style.overflowX = 'hidden';

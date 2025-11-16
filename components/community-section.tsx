@@ -484,16 +484,19 @@ export function CommunitySection() {
               </CardContent>
             </Card>
 
-            <Card className="bg-primary/95 backdrop-blur-lg border-primary/30 text-primary-foreground shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-primary/98 hover:scale-[1.02]">
+            <Card className="shadow-2xl transition-all duration-300" style={{backgroundColor: '#0007C6'}}>
               <CardHeader>
-                 <CardTitle className="text-lg font-bold">Get Involved</CardTitle>
+                 <CardTitle className="flex items-center gap-2 text-white text-lg font-bold">
+                  <Users className="h-4 w-4" />
+                  Get Involved
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <p className="text-sm text-primary-foreground/90 text-pretty leading-relaxed">
+                <p className="text-sm text-white text-pretty leading-relaxed">
                   Join our community programs and help make our barangay a better place for everyone.
                 </p>
                 <div className="space-y-2">
-                  <Button variant="secondary" className="w-full">
+                  <Button variant="secondary" className="w-full bg-yellow-400 text-black hover:bg-yellow-400">
                     <FileText className="h-4 w-4 mr-2" />
                     Submit Feedback
                   </Button>

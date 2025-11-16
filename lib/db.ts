@@ -219,20 +219,28 @@ if (hoursCount.count === 0) {
   const insertHours = db.prepare('INSERT INTO office_hours (day, hours, is_closed, order_index) VALUES (?, ?, ?, ?)');
   
   insertHours.run('Monday - Friday', '8:00 AM - 5:00 PM', 0, 0);
-  insertHours.run('Saturday', '8:00 AM - 12:00 PM', 0, 1);
+  insertHours.run('Saturday', 'Closed', 1, 1);
   insertHours.run('Sunday', 'Closed', 1, 2);
 }
 
-// Initialize emergency contacts if empty
-const contactsCount = db.prepare('SELECT COUNT(*) as count FROM emergency_contacts').get() as { count: number };
-if (contactsCount.count === 0) {
-  const insertContact = db.prepare('INSERT INTO emergency_contacts (name, number, order_index) VALUES (?, ?, ?)');
-  
-  insertContact.run('Barangay Emergency', '0917 555 3323', 0);
-  insertContact.run('Police Station', '117', 1);
-  insertContact.run('Fire Department', '116', 2);
-  insertContact.run('Medical Emergency', '911', 3);
-}
+// Initialize emergency contacts - always set to defaults
+const defaultContacts = [
+  { name: 'Barangay Emergency', number: '0917 555 3323', order_index: 0 },
+  { name: 'Medical Emergency', number: '911', order_index: 1 },
+  { name: 'Fire Department', number: '09199925484 / 09171859984', order_index: 2 },
+  { name: 'UST Hospital', number: '0917 626 3621', order_index: 3 },
+  { name: 'BRTTH', number: '(052) 732 5555', order_index: 4 },
+  { name: 'Legazpi PNP', number: '09985985926 / 09266256247', order_index: 5 },
+  { name: 'Philippine Red Cross - Albay', number: '(052) 742-2199', order_index: 6 },
+  { name: 'Mental Health', number: '0917-899-8727', order_index: 7 },
+];
+
+// Clear existing contacts and insert defaults
+db.prepare('DELETE FROM emergency_contacts').run();
+const insertContact = db.prepare('INSERT INTO emergency_contacts (name, number, order_index) VALUES (?, ?, ?)');
+defaultContacts.forEach(contact => {
+  insertContact.run(contact.name, contact.number, contact.order_index);
+});
 
 export default db;
 

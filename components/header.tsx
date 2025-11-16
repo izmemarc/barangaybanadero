@@ -33,7 +33,7 @@ export function Header() {
     <>
       <AdminLoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
     <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b border-gray-200/50 shadow-lg" style={{backgroundColor: '#0007C6'}}>
-      <div className="w-full max-w-[1600px] mx-auto" style={{paddingTop: 'clamp(0.75rem, 2vh, 1.25rem)', paddingBottom: 'clamp(0.75rem, 2vh, 1.25rem)', paddingLeft: '5%', paddingRight: '5%'}}>
+      <div className="w-full mx-auto" style={{paddingTop: 'clamp(0.75rem, 2vh, 1.25rem)', paddingBottom: 'clamp(0.75rem, 2vh, 1.25rem)', paddingLeft: '5%', paddingRight: '5%'}}>
         <div className="flex items-center justify-between">
           <div className="flex items-center" style={{gap: 'clamp(0.5rem, 2vw, 1rem)'}}>
             <picture>
