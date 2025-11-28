@@ -85,10 +85,20 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Always start in non-edit mode on page load
-    console.log('Admin context: Setting edit mode to false on page load');
-    setIsEditModeState(false);
-    checkAuth();
+    // Always logout and reset state on page load/refresh
+    console.log('Admin context: Logging out on page load');
+    const performLogout = async () => {
+      try {
+        await fetch('/api/admin/auth', { method: 'DELETE' });
+      } catch (error) {
+        console.error('Logout on page load failed:', error);
+      }
+      setIsAuthenticated(false);
+      setIsEditModeState(false);
+      setHasInitialized(true);
+    };
+    
+    performLogout();
   }, []);
 
   return (

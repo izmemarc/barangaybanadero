@@ -347,7 +347,7 @@ export function HeroSection() {
 
               <div className="space-y-0 w-full">
                 <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-black text-balance text-primary uppercase tracking-wider leading-tight px-2">
-                  Arthur Marco
+                  Arthur R. Marco
                 </h3>
                 <p className="text-sm sm:text-base md:text-lg text-muted-foreground font-medium">Punong Barangay</p>
               </div>
