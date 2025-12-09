@@ -133,11 +133,20 @@ export function Header() {
           <Button 
             variant="ghost" 
             size="sm" 
-            className="lg:hidden p-2" 
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="lg:hidden p-3 text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white focus-visible:outline-none focus-visible:ring-0 active:bg-white/10 [&:hover]:!bg-white/10 [&:hover]:!text-white [&:focus]:!bg-white/10 [&:focus]:!text-white" 
+            onClick={(e) => {
+              setIsMenuOpen(!isMenuOpen)
+              // Remove focus after click to prevent yellow from staying
+              const target = e.currentTarget
+              setTimeout(() => {
+                if (target) {
+                  target.blur()
+                }
+              }, 0)
+            }}
             aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
           >
-            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {isMenuOpen ? <X className="h-[30px] w-[30px] size-[30px]" style={{ width: '30px', height: '30px' }} /> : <Menu className="h-[30px] w-[30px] size-[30px]" style={{ width: '30px', height: '30px' }} />}
           </Button>
         </div>
 
