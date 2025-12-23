@@ -41,8 +41,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const { id } = await request.json();
     
     if (!id) {
       return NextResponse.json({ error: 'ID is required' }, { status: 400 });

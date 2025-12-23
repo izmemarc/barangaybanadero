@@ -25,3 +25,20 @@ export async function PUT(request: NextRequest) {
   }
 }
 
+export async function DELETE(request: NextRequest) {
+  try {
+    const { id } = await request.json();
+    
+    if (!id) {
+      return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+    }
+    
+    db.prepare('DELETE FROM office_hours WHERE id = ?').run(id);
+    
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting office hour:', error);
+    return NextResponse.json({ error: 'Failed to delete office hour' }, { status: 500 });
+  }
+}
+

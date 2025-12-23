@@ -208,9 +208,7 @@ const eventsCount = db.prepare('SELECT COUNT(*) as count FROM community_events')
 if (eventsCount.count === 0) {
   const insertEvent = db.prepare('INSERT INTO community_events (title, date, time, location, type, order_index) VALUES (?, ?, ?, ?, ?, ?)');
   
-  insertEvent.run('Barangay Assembly Meeting', 'March 15, 2024', '7:00 PM', 'Community Center', 'Meeting', 0);
-  insertEvent.run('Health and Wellness Fair', 'March 22, 2024', '8:00 AM - 4:00 PM', 'Basketball Court', 'Health', 1);
-  insertEvent.run('Environmental Clean-up Drive', 'March 30, 2024', '6:00 AM - 10:00 AM', 'Various Areas', 'Environment', 2);
+  insertEvent.run('Barangay Year-End Assessment and Evaluation & Christmas Get-Together 2025', 'December 20, 2025', '8:00 AM - 12:00 NOON', 'Barangay Action Center', 'Event', 0);
 }
 
 // Initialize office hours if empty

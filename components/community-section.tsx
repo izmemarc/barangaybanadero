@@ -17,6 +17,8 @@ import {
   Pencil,
   Save,
   X,
+  Trash2,
+  Plus,
 } from "lucide-react"
 import { useAdmin } from "@/contexts/admin-context"
 import { useState, useEffect } from "react"
@@ -119,6 +121,39 @@ export function CommunitySection() {
     }
   };
 
+  const handleAddEvent = async () => {
+    try {
+      await fetch('/api/admin/community/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: 'New Event',
+          date: 'Date',
+          time: 'Time',
+          location: 'Location',
+          type: 'Event',
+        }),
+      });
+      fetchData();
+    } catch (error) {
+      console.error('Error adding event:', error);
+    }
+  };
+
+  const handleDeleteEvent = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this event?')) return;
+    try {
+      await fetch('/api/admin/community/events', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      fetchData();
+    } catch (error) {
+      console.error('Error deleting event:', error);
+    }
+  };
+
   const handleSaveHour = async (hour: OfficeHour) => {
     try {
       await fetch('/api/admin/community/hours', {
@@ -130,6 +165,20 @@ export function CommunitySection() {
       fetchData();
     } catch (error) {
       console.error('Error saving office hour:', error);
+    }
+  };
+
+  const handleDeleteHour = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this entry?')) return;
+    try {
+      await fetch('/api/admin/community/hours', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      fetchData();
+    } catch (error) {
+      console.error('Error deleting hour:', error);
     }
   };
 
@@ -273,15 +322,17 @@ export function CommunitySection() {
                           </>
                         ) : (
                           <>
-                            <p className={`font-semibold text-sm ${hour.is_closed ? 'text-muted-foreground' : ''}`}>{hour.day}</p>
-                            <p className="text-xs text-muted-foreground">{hour.hours}</p>
+                            <p className="font-semibold text-sm">{hour.day}</p>
+                            <p className={`text-xs ${hour.is_closed ? 'text-red-500' : 'text-muted-foreground'}`}>{hour.hours}</p>
                             {isEditMode && (
-                              <button
-                                onClick={() => setEditingHour(hour.id)}
-                                className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <Pencil className="h-3 w-3 text-primary" />
-                              </button>
+                              <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                                <button onClick={() => setEditingHour(hour.id)}>
+                                  <Pencil className="h-3 w-3 text-primary" />
+                                </button>
+                                <button onClick={() => handleDeleteHour(hour.id)}>
+                                  <Trash2 className="h-3 w-3 text-red-500" />
+                                </button>
+                              </div>
                             )}
                           </>
                         )}
@@ -289,6 +340,24 @@ export function CommunitySection() {
                     </div>
                   );
                 })}
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-primary text-lg font-bold">
+                  <Calendar className="h-4 w-4" />
+                  Covered Court Booked Dates
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-center py-4 text-center">
+                  <div>
+                    <Calendar className="h-8 w-8 text-primary mx-auto mb-2" />
+                    <p className="text-sm">No bookings scheduled</p>
+                    <p className="text-xs mt-1">Court is available for reservation</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -303,6 +372,15 @@ export function CommunitySection() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
+                {isEditMode && (
+                  <button
+                    onClick={handleAddEvent}
+                    className="w-full flex items-center justify-center gap-2 py-2 border-2 border-dashed border-primary/30 rounded-lg text-primary hover:border-primary hover:bg-primary/5 transition-colors text-sm"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Event
+                  </button>
+                )}
                 {events.map((event) => {
                   const isEditing = editingEvent === event.id;
                   
@@ -376,12 +454,14 @@ export function CommunitySection() {
                             </div>
                           </div>
                           {isEditMode && (
-                            <button
-                              onClick={() => setEditingEvent(event.id)}
-                              className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <Pencil className="h-3 w-3 text-primary" />
-                            </button>
+                            <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                              <button onClick={() => setEditingEvent(event.id)}>
+                                <Pencil className="h-3 w-3 text-primary" />
+                              </button>
+                              <button onClick={() => handleDeleteEvent(event.id)}>
+                                <Trash2 className="h-3 w-3 text-red-500" />
+                              </button>
+                            </div>
                           )}
                         </>
                       )}
@@ -496,10 +576,12 @@ export function CommunitySection() {
                   Join our community programs and help make our barangay a better place for everyone.
                 </p>
                 <div className="space-y-2">
-                  <Button variant="secondary" className="w-full bg-yellow-400 text-black hover:bg-yellow-400">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Submit Feedback
-                  </Button>
+                  <a href="https://docs.google.com/forms/d/e/1FAIpQLSe0dXTVprKmQqRG1_hZpcnIeN8TW9y-NX9-E9Yl3a3AJecIHQ/viewform" target="_blank" rel="noopener noreferrer" className="w-full">
+                    <Button variant="secondary" className="w-full bg-yellow-400 text-black hover:bg-yellow-400">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Submit Feedback
+                    </Button>
+                  </a>
                 </div>
               </CardContent>
             </Card>

@@ -42,7 +42,7 @@ if (!(Test-Path "public/uploads/.gitkeep")) {
 
 Write-Host "Creating archive..." -ForegroundColor Yellow
 $Archive = "deploy.zip"
-Compress-Archive -Path "app", "components", "contexts", "hooks", "lib", "public", "*.json", "*.mjs", "deployment/nginx.conf", "deployment/nginx-https.conf", "deployment/setup-ssl.sh" -DestinationPath $Archive -Force -ErrorAction SilentlyContinue
+Compress-Archive -Path "app", "components", "contexts", "hooks", "lib", "public", "*.json", "*.mjs", "deployment/nginx-http.conf", "deployment/nginx-https.conf", "deployment/setup-ssl.sh" -DestinationPath $Archive -Force -ErrorAction SilentlyContinue
 
 if (Test-Path $Archive) {
     Write-Host "Archive created: $Archive" -ForegroundColor Green
@@ -153,23 +153,89 @@ if ($LASTEXITCODE -eq 0) {
         Write-Host "Installing production dependencies..." -ForegroundColor Yellow
         echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && npm install --production --legacy-peer-deps --no-audit --no-fund"
         
-        Write-Host "Setting up SSL certificates..." -ForegroundColor Yellow
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "chmod +x /root/barangay-website/setup-ssl.sh && /root/barangay-website/setup-ssl.sh"
+        Write-Host "Opening firewall ports..." -ForegroundColor Yellow
+        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo ufw allow 80/tcp && sudo ufw allow 443/tcp && sudo ufw allow 22/tcp"
+        Write-Host "  - Firewall configured" -ForegroundColor Green
         
-        Write-Host "Configuring nginx..." -ForegroundColor Yellow
-        Write-Host "  - Updating nginx config with correct paths..." -ForegroundColor Cyan
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo rm -f /etc/nginx/sites-enabled/* && sudo cp /root/barangay-website/nginx.conf /etc/nginx/sites-available/barangay-website && sudo ln -sf /etc/nginx/sites-available/barangay-website /etc/nginx/sites-enabled/"
+        Write-Host "Configuring nginx (HTTP-only first)..." -ForegroundColor Yellow
+        Write-Host "  - Cleaning old nginx configs..." -ForegroundColor Cyan
+        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo rm -f /etc/nginx/sites-enabled/* && sudo rm -f /etc/nginx/sites-available/barangay-website"
+        
+        Write-Host "  - Installing HTTP-only config..." -ForegroundColor Cyan
+        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo cp /root/barangay-website/nginx-http.conf /etc/nginx/sites-available/barangay-website && sudo ln -sf /etc/nginx/sites-available/barangay-website /etc/nginx/sites-enabled/barangay-website"
+        
+        Write-Host "  - Verifying config file contents..." -ForegroundColor Cyan
+        $configCheck = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "head -20 /etc/nginx/sites-enabled/barangay-website"
+        Write-Host "    First 20 lines of active config:" -ForegroundColor Gray
+        Write-Host $configCheck -ForegroundColor Gray
         
         Write-Host "  - Testing nginx configuration..." -ForegroundColor Cyan
         $nginxTest = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo nginx -t 2>&1"
+        Write-Host "    Nginx test output: $nginxTest" -ForegroundColor Gray
+        
         if ($nginxTest -match "test is successful") {
-            Write-Host "  - Nginx config is valid, reloading..." -ForegroundColor Green
-            echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo systemctl reload nginx"
+            Write-Host "  - Nginx config is valid, starting nginx..." -ForegroundColor Green
+            echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo systemctl restart nginx && sudo systemctl enable nginx"
+            
+            Write-Host "  - Verifying nginx is running..." -ForegroundColor Cyan
+            $nginxStatus = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo systemctl is-active nginx"
+            if ($nginxStatus -match "active") {
+                Write-Host "  - Nginx is running successfully!" -ForegroundColor Green
+                
+                Write-Host "  - Testing HTTP access..." -ForegroundColor Cyan
+                $httpTest = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "curl -s -o /dev/null -w '%{http_code}' http://localhost:80"
+                Write-Host "    HTTP Status: $httpTest" -ForegroundColor Gray
+            } else {
+                Write-Host "  - Warning: Nginx may not be running properly" -ForegroundColor Yellow
+                $nginxStatusFull = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo systemctl status nginx --no-pager -l"
+                Write-Host "    Status: $nginxStatusFull" -ForegroundColor Gray
+            }
         } else {
             Write-Host "  - Nginx config test failed:" -ForegroundColor Red
             Write-Host "    $nginxTest" -ForegroundColor Yellow
-            Write-Host "  - Attempting to restore previous config..." -ForegroundColor Yellow
-            echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo systemctl reload nginx"
+            Write-Host "  - This should not happen with HTTP config. Checking what config is active..." -ForegroundColor Yellow
+            $activeConfig = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "ls -la /etc/nginx/sites-enabled/ && cat /etc/nginx/sites-enabled/barangay-website | grep -E 'listen|ssl_certificate'"
+            Write-Host "    Active config info: $activeConfig" -ForegroundColor Gray
+        }
+        
+        Write-Host "Setting up SSL certificates..." -ForegroundColor Yellow
+        Write-Host "  - Stopping nginx temporarily for SSL setup..." -ForegroundColor Cyan
+        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo systemctl stop nginx"
+        
+        Write-Host "  - Attempting to obtain SSL certificate..." -ForegroundColor Cyan
+        $sslResult = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "chmod +x /root/barangay-website/setup-ssl.sh && /root/barangay-website/setup-ssl.sh 2>&1"
+        
+        Write-Host "  - Checking if SSL certificates were created..." -ForegroundColor Cyan
+        $sslCheck = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "test -f /etc/letsencrypt/live/banaderolegazpi.online/fullchain.pem && echo 'SSL_EXISTS' || echo 'SSL_MISSING'"
+        
+        if ($sslCheck -match "SSL_EXISTS") {
+            Write-Host "  - SSL certificates found, switching to HTTPS config..." -ForegroundColor Green
+            echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo cp /root/barangay-website/nginx-https.conf /etc/nginx/sites-available/barangay-website && sudo ln -sf /etc/nginx/sites-available/barangay-website /etc/nginx/sites-enabled/"
+            
+            Write-Host "  - Ensuring correct port (3001) in nginx config..." -ForegroundColor Cyan
+            echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo sed -i 's|http://127.0.0.1:3000|http://127.0.0.1:3001|g' /etc/nginx/sites-available/barangay-website"
+            
+            Write-Host "  - Testing HTTPS nginx config..." -ForegroundColor Cyan
+            $httpsTest = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo nginx -t 2>&1"
+            if ($httpsTest -match "test is successful") {
+                Write-Host "  - HTTPS config valid, starting nginx with SSL..." -ForegroundColor Green
+                echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo systemctl start nginx"
+                Write-Host "  - HTTPS enabled successfully!" -ForegroundColor Green
+            } else {
+                Write-Host "  - HTTPS config test failed, reverting to HTTP..." -ForegroundColor Yellow
+                echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo cp /root/barangay-website/nginx-http.conf /etc/nginx/sites-available/barangay-website && sudo ln -sf /etc/nginx/sites-available/barangay-website /etc/nginx/sites-enabled/ && sudo systemctl start nginx"
+            }
+        } else {
+            Write-Host "  - SSL certificates not found, using HTTP-only config" -ForegroundColor Yellow
+            Write-Host "  - Ensuring HTTP config is active..." -ForegroundColor Cyan
+            echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo cp /root/barangay-website/nginx-http.conf /etc/nginx/sites-available/barangay-website && sudo ln -sf /etc/nginx/sites-available/barangay-website /etc/nginx/sites-enabled/"
+            
+            Write-Host "  - Ensuring correct port (3001) in nginx config..." -ForegroundColor Cyan
+            echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo sed -i 's|http://127.0.0.1:3000|http://127.0.0.1:3001|g' /etc/nginx/sites-available/barangay-website"
+            
+            echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo systemctl start nginx"
+            Write-Host "  - Site will be accessible via HTTP only" -ForegroundColor Yellow
+            Write-Host "  - To setup SSL later, run: ssh root@${ServerIP} 'systemctl stop nginx && certbot certonly --standalone -d banaderolegazpi.online -d www.banaderolegazpi.online && systemctl start nginx'" -ForegroundColor Cyan
         }
         
         Write-Host "Setting proper permissions for nginx to access files..." -ForegroundColor Yellow
