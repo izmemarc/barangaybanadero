@@ -1,11 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { FileText, Download, CheckCircle, XCircle, Clock, UserPlus } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
+import { supabase } from '@/lib/supabase'
 
 interface Submission {
   id: string
@@ -46,25 +48,105 @@ export default function AdminDashboard() {
   const [filter, setFilter] = useState<string>('pending')
   const [activeTab, setActiveTab] = useState<'clearances' | 'registrations'>('clearances')
   const [generating, setGenerating] = useState<string | null>(null)
+  const [removingRegistrations, setRemovingRegistrations] = useState<Set<string>>(new Set())
+  const { toast } = useToast()
+  const filterRef = useRef(filter)
+  const activeTabRef = useRef(activeTab)
 
+  // Keep refs in sync
+  useEffect(() => {
+    filterRef.current = filter
+    activeTabRef.current = activeTab
+  }, [filter, activeTab])
+
+  // Initial fetch
   useEffect(() => {
     if (activeTab === 'clearances') {
       fetchSubmissions()
     } else {
       fetchRegistrations()
     }
-
-    // Poll every 10 seconds for new submissions
-    const interval = setInterval(() => {
-      if (activeTab === 'clearances') {
-        fetchSubmissions()
-      } else {
-        fetchRegistrations()
-      }
-    }, 10000)
-
-    return () => clearInterval(interval)
   }, [filter, activeTab])
+
+  // Real-time subscriptions
+  useEffect(() => {
+    let submissionsChannel: ReturnType<typeof supabase.channel> | null = null
+    let registrationsChannel: ReturnType<typeof supabase.channel> | null = null
+
+    console.log('[Realtime] Setting up subscriptions...')
+
+    // Subscribe to clearance_submissions changes
+    submissionsChannel = supabase
+      .channel('clearance_submissions_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'clearance_submissions',
+        },
+        (payload) => {
+          console.log('[Realtime] Clearance submission change detected:', payload)
+          const currentFilter = filterRef.current
+          const newRecord = payload.new as any
+          const oldRecord = payload.old as any
+          // Refresh if change matches current filter or if status changed (item moved between filters)
+          if (currentFilter === 'all' || 
+              newRecord?.status === currentFilter || 
+              oldRecord?.status === currentFilter ||
+              (oldRecord?.status !== newRecord?.status)) {
+            if (activeTabRef.current === 'clearances') {
+              console.log('[Realtime] Fetching submissions due to change')
+              fetchSubmissions()
+            }
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('[Realtime] Clearance submissions subscription status:', status)
+      })
+
+    // Subscribe to pending_registrations changes
+    registrationsChannel = supabase
+      .channel('pending_registrations_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'pending_registrations',
+        },
+        (payload) => {
+          console.log('[Realtime] Registration change detected:', payload)
+          const currentFilter = filterRef.current
+          const newRecord = payload.new as any
+          const oldRecord = payload.old as any
+          // Refresh if change matches current filter or if status changed (item moved between filters)
+          if (currentFilter === 'all' || 
+              newRecord?.status === currentFilter || 
+              oldRecord?.status === currentFilter ||
+              (oldRecord?.status !== newRecord?.status)) {
+            if (activeTabRef.current === 'registrations') {
+              console.log('[Realtime] Fetching registrations due to change')
+              fetchRegistrations()
+            }
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('[Realtime] Registrations subscription status:', status)
+      })
+
+    return () => {
+      console.log('[Realtime] Cleaning up subscriptions')
+      if (submissionsChannel) {
+        supabase.removeChannel(submissionsChannel)
+      }
+      if (registrationsChannel) {
+        supabase.removeChannel(registrationsChannel)
+      }
+    }
+  }, [])
 
   async function fetchSubmissions() {
     setLoading(true)
@@ -118,8 +200,16 @@ export default function AdminDashboard() {
       if (!response.ok) throw new Error(result.error)
 
       await fetchSubmissions()
+      toast({
+        title: 'Document generated',
+        description: 'The clearance document has been generated successfully.',
+      })
     } catch (error) {
-      alert('Failed to generate document')
+      toast({
+        variant: 'destructive',
+        title: 'Failed to generate document',
+        description: 'An error occurred while generating the document. Please try again.',
+      })
     } finally {
       setGenerating(null)
     }
@@ -136,8 +226,16 @@ export default function AdminDashboard() {
       if (!response.ok) throw new Error()
 
       await fetchSubmissions()
+      toast({
+        title: 'Status updated',
+        description: 'The submission has been rejected.',
+      })
     } catch (error) {
-      alert('Failed to update')
+      toast({
+        variant: 'destructive',
+        title: 'Failed to update',
+        description: 'An error occurred while updating the status. Please try again.',
+      })
     }
   }
 
@@ -151,9 +249,29 @@ export default function AdminDashboard() {
 
       if (!response.ok) throw new Error()
 
-      await fetchRegistrations()
+      // Mark for removal and animate out
+      setRemovingRegistrations(prev => new Set(prev).add(registrationId))
+      
+      // Remove from list after animation
+      setTimeout(() => {
+        setRegistrations(prev => prev.filter(r => r.id !== registrationId))
+        setRemovingRegistrations(prev => {
+          const next = new Set(prev)
+          next.delete(registrationId)
+          return next
+        })
+      }, 300)
+
+      toast({
+        title: 'Registration approved',
+        description: 'The resident has been added to the database.',
+      })
     } catch (error) {
-      alert('Failed to approve')
+      toast({
+        variant: 'destructive',
+        title: 'Failed to approve',
+        description: 'An error occurred while approving the registration. Please try again.',
+      })
     }
   }
 
@@ -167,9 +285,29 @@ export default function AdminDashboard() {
 
       if (!response.ok) throw new Error()
 
-      await fetchRegistrations()
+      // Mark for removal and animate out
+      setRemovingRegistrations(prev => new Set(prev).add(registrationId))
+      
+      // Remove from list after animation
+      setTimeout(() => {
+        setRegistrations(prev => prev.filter(r => r.id !== registrationId))
+        setRemovingRegistrations(prev => {
+          const next = new Set(prev)
+          next.delete(registrationId)
+          return next
+        })
+      }, 300)
+
+      toast({
+        title: 'Registration rejected',
+        description: 'The registration has been rejected.',
+      })
     } catch (error) {
-      alert('Failed to reject')
+      toast({
+        variant: 'destructive',
+        title: 'Failed to reject',
+        description: 'An error occurred while rejecting the registration. Please try again.',
+      })
     }
   }
 
@@ -326,7 +464,14 @@ export default function AdminDashboard() {
             ) : (
               <div className="space-y-4">
                 {registrations.map((registration) => (
-                  <Card key={registration.id} className="shadow-xl hover:shadow-2xl transition-shadow">
+                  <Card 
+                    key={registration.id} 
+                    className={`shadow-xl hover:shadow-2xl transition-all duration-300 ${
+                      removingRegistrations.has(registration.id) 
+                        ? 'opacity-0 -translate-y-4 scale-95 pointer-events-none' 
+                        : 'opacity-100 translate-y-0 scale-100'
+                    }`}
+                  >
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">

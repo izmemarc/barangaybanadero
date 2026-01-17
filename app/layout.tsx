@@ -2,6 +2,7 @@ import React from "react";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { LoadingScreen } from "@/components/loading-screen";
+import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
 // Using system fonts to avoid Google Fonts dependency
@@ -176,6 +177,7 @@ export default function RootLayout({
           />
           <LoadingScreen />
           <Suspense fallback={null}>{children}</Suspense>
+          <Toaster />
         </div>
       </body>
     </html>
