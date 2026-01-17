@@ -327,8 +327,8 @@ export function CommunitySection() {
                             {isEditMode && (
                               <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
                                 <button onClick={() => setEditingHour(hour.id)}>
-                                  <Pencil className="h-3 w-3 text-primary" />
-                                </button>
+                                <Pencil className="h-3 w-3 text-primary" />
+                              </button>
                                 <button onClick={() => handleDeleteHour(hour.id)}>
                                   <Trash2 className="h-3 w-3 text-red-500" />
                                 </button>
@@ -456,8 +456,8 @@ export function CommunitySection() {
                           {isEditMode && (
                             <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
                               <button onClick={() => setEditingEvent(event.id)}>
-                                <Pencil className="h-3 w-3 text-primary" />
-                              </button>
+                              <Pencil className="h-3 w-3 text-primary" />
+                            </button>
                               <button onClick={() => handleDeleteEvent(event.id)}>
                                 <Trash2 className="h-3 w-3 text-red-500" />
                               </button>
@@ -577,10 +577,10 @@ export function CommunitySection() {
                 </p>
                 <div className="space-y-2">
                   <a href="https://docs.google.com/forms/d/e/1FAIpQLSe0dXTVprKmQqRG1_hZpcnIeN8TW9y-NX9-E9Yl3a3AJecIHQ/viewform" target="_blank" rel="noopener noreferrer" className="w-full">
-                    <Button variant="secondary" className="w-full bg-yellow-400 text-black hover:bg-yellow-400">
-                      <FileText className="h-4 w-4 mr-2" />
-                      Submit Feedback
-                    </Button>
+                  <Button variant="secondary" className="w-full bg-yellow-400 text-black hover:bg-yellow-400">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Submit Feedback
+                  </Button>
                   </a>
                 </div>
               </CardContent>
