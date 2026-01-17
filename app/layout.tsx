@@ -123,8 +123,6 @@ export default function RootLayout({
                       const h = window.innerHeight;
                       const w = window.innerWidth;
                       const scale = getScale(h);
-                      
-                      console.log('Scaling:', { width: w, height: h, scale: scale });
 
                       // Use requestAnimationFrame to ensure DOM is ready
                       requestAnimationFrame(() => {
@@ -137,12 +135,8 @@ export default function RootLayout({
                          wrapper.style.transformOrigin = 'top left';
                          wrapper.style.width = (100 / scale) + '%';
                          wrapper.style.pointerEvents = 'none';
-                         
-                         console.log('Applied scale:', scale);
-                       } else {
-                         console.log('Page wrapper not found');
                        }
-                        });
+                       });
                       }
 
                       scalePage();
@@ -177,8 +171,8 @@ export default function RootLayout({
           />
           <LoadingScreen />
           <Suspense fallback={null}>{children}</Suspense>
-          <Toaster />
         </div>
+        <Toaster />
       </body>
     </html>
   );

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, Building2, AlertCircle, Calendar, Award, Heart, Home, ArrowLeft, UserPlus } from 'lucide-react'
+import { FileText, Building2, AlertCircle, Calendar, Award, Heart, Home, ArrowLeft, UserPlus, CheckCircle } from 'lucide-react'
 import { submitClearance, searchResidents, calculateAge, type Resident } from '@/lib/supabase'
 
 type ClearanceType = 
@@ -244,6 +244,11 @@ export default function ClearancesPage() {
           setSubmitted(false)
           setSelectedType(null)
           setFormData({ name: '' })
+          setNameQuery('')
+          setResidents([])
+          setShowSuggestions(false)
+          setNameWasSelected(false)
+          setSelectedResidentId(null)
         }, 3000)
         return
       }
@@ -258,15 +263,19 @@ export default function ClearancesPage() {
       await submitClearance(selectedType, formData.name, formData, selectedResidentId)
 
       setIsSubmitting(false)
+      setSubmitted(true)
       
-      // Reset form immediately without success message
-      setSelectedType(null)
-      setFormData({ name: '' })
-      setNameQuery('')
-      setResidents([])
-      setShowSuggestions(false)
-      setNameWasSelected(false)
-      setSelectedResidentId(null)
+      // Reset form after 3 seconds
+      setTimeout(() => {
+        setSubmitted(false)
+        setSelectedType(null)
+        setFormData({ name: '' })
+        setNameQuery('')
+        setResidents([])
+        setShowSuggestions(false)
+        setNameWasSelected(false)
+        setSelectedResidentId(null)
+      }, 3000)
     } catch (err) {
       setIsSubmitting(false)
       setError(err instanceof Error ? err.message : 'Failed to submit form. Please try again.')
@@ -310,7 +319,7 @@ export default function ClearancesPage() {
             </div>
           ) : (
             <div className="px-4 sm:px-6">
-              <div className="flex justify-center items-start">
+              <div className="flex justify-center items-start flex-col sm:flex-row">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -319,24 +328,38 @@ export default function ClearancesPage() {
                     setFormData({ name: '' })
                     setSubmitted(false)
                   }}
-                  className="gap-2 hover:bg-primary/5 mt-1 flex-shrink-0 mr-3"
+                  className="gap-2 hover:bg-primary/5 mt-1 flex-shrink-0 mb-3 sm:mb-0 sm:mr-3"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back
                 </Button>
-                <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98" style={{ width: '520px' }}>
-                      <CardHeader className="pb-0 pt-4 text-center">
-                        {selectedTypeData && (
-                          <CardTitle className="flex items-center justify-center gap-2 text-primary text-2xl font-bold">
-                            {selectedTypeData.icon && (
-                              <selectedTypeData.icon className="h-5 w-5" />
-                            )}
-                            {selectedTypeData.label}
-                          </CardTitle>
-                        )}
-                      </CardHeader>
+                <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98 w-full sm:w-[520px] max-w-full sm:max-w-[520px]">
+                      {!submitted && (
+                        <CardHeader className="pb-0 pt-4 text-center">
+                          {selectedTypeData && (
+                            <CardTitle className="flex items-center justify-center gap-2 text-primary text-2xl font-bold">
+                              {selectedTypeData.icon && (
+                                <selectedTypeData.icon className="h-5 w-5" />
+                              )}
+                              {selectedTypeData.label}
+                            </CardTitle>
+                          )}
+                        </CardHeader>
+                      )}
                       <CardContent className="pt-0">
 
+                {submitted ? (
+                  <div className="text-center py-12 space-y-4">
+                    <div className="flex justify-center">
+                      <CheckCircle className="h-20 w-20 text-green-600" />
+                    </div>
+                    <p className="text-gray-600 text-lg">
+                      {selectedType === 'register' 
+                        ? 'Your registration has been submitted successfully. Pending admin approval.'
+                        : 'Form submitted successfully.'}
+                    </p>
+                  </div>
+                ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Error message */}
                     {error && (
@@ -537,6 +560,7 @@ export default function ClearancesPage() {
                       </Button>
                     </div>
                   </form>
+                )}
                   </CardContent>
                 </Card>
                 {/* Spacer to balance the back button */}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { flushSync } from 'react-dom'
 import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -41,17 +42,34 @@ interface Registration {
 }
 
 export default function AdminDashboard() {
-  const [submissions, setSubmissions] = useState<Submission[]>([])
-  const [registrations, setRegistrations] = useState<Registration[]>([])
-  const [loading, setLoading] = useState(false)
+  const [allSubmissions, setAllSubmissions] = useState<Submission[]>([])
+  const [allRegistrations, setAllRegistrations] = useState<Registration[]>([])
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<string>('pending')
+  
+  // Filter data client-side for instant updates
+  const submissions = allSubmissions.filter(s => filter === 'all' || s.status === filter)
+  const registrations = allRegistrations.filter(r => filter === 'all' || r.status === filter)
   const [activeTab, setActiveTab] = useState<'clearances' | 'registrations'>('clearances')
   const [generating, setGenerating] = useState<string | null>(null)
+  const [removingSubmissions, setRemovingSubmissions] = useState<Set<string>>(new Set())
   const [removingRegistrations, setRemovingRegistrations] = useState<Set<string>>(new Set())
+  const [removingRegistrationStatuses, setRemovingRegistrationStatuses] = useState<Map<string, string>>(new Map())
+  const [newSubmissions, setNewSubmissions] = useState<Set<string>>(new Set())
+  const [newRegistrations, setNewRegistrations] = useState<Set<string>>(new Set())
+  const [expandingSubmissions, setExpandingSubmissions] = useState<Set<string>>(new Set())
+  const [expandingRegistrations, setExpandingRegistrations] = useState<Set<string>>(new Set())
+  const [animateEmptySubmissions, setAnimateEmptySubmissions] = useState(false)
+  const [animateEmptyRegistrations, setAnimateEmptyRegistrations] = useState(false)
   const { toast } = useToast()
   const filterRef = useRef(filter)
   const activeTabRef = useRef(activeTab)
+  const removingRegistrationsRef = useRef(removingRegistrations)
+
+  // Keep removing ref in sync
+  useEffect(() => {
+    removingRegistrationsRef.current = removingRegistrations
+  }, [removingRegistrations])
 
   // Keep refs in sync
   useEffect(() => {
@@ -66,7 +84,16 @@ export default function AdminDashboard() {
     } else {
       fetchRegistrations()
     }
-  }, [filter, activeTab])
+  }, [activeTab])
+  
+  // Fetch all data when filter changes (background update)
+  useEffect(() => {
+    if (activeTab === 'clearances') {
+      fetchSubmissions(true)
+    } else {
+      fetchRegistrations(true)
+    }
+  }, [filter])
 
   // Real-time subscriptions
   useEffect(() => {
@@ -90,14 +117,48 @@ export default function AdminDashboard() {
           const currentFilter = filterRef.current
           const newRecord = payload.new as any
           const oldRecord = payload.old as any
-          // Refresh if change matches current filter or if status changed (item moved between filters)
-          if (currentFilter === 'all' || 
-              newRecord?.status === currentFilter || 
-              oldRecord?.status === currentFilter ||
-              (oldRecord?.status !== newRecord?.status)) {
-            if (activeTabRef.current === 'clearances') {
+          const eventType = payload.eventType || (payload as any).type
+          
+          // Handle INSERT - add new item with animation
+          if (eventType === 'INSERT' || (!oldRecord && newRecord)) {
+            setAllSubmissions(prev => {
+              // Check if already exists
+              if (prev.some(s => s.id === newRecord.id)) return prev
+              // Add to beginning
+              const updated = [newRecord as Submission, ...prev]
+              // Mark as new for animation if it matches current filter
+              if (currentFilter === 'all' || newRecord?.status === currentFilter) {
+                setNewSubmissions(prev => new Set(prev).add(newRecord.id))
+                // Expand card after brief delay to allow render
+                setTimeout(() => {
+                  setExpandingSubmissions(prev => new Set(prev).add(newRecord.id))
+                }, 150)
+                // Remove animation class after animation completes
+                setTimeout(() => {
+                  setNewSubmissions(prev => {
+                    const next = new Set(prev)
+                    next.delete(newRecord.id)
+                    return next
+                  })
+                  setExpandingSubmissions(prev => {
+                    const next = new Set(prev)
+                    next.delete(newRecord.id)
+                    return next
+                  })
+                }, 950)
+              }
+              return updated
+            })
+            return // Don't fetch, we already added it
+          }
+          // Handle UPDATE/DELETE - refresh list
+          if (eventType === 'UPDATE' || eventType === 'DELETE' || (oldRecord && newRecord)) {
+            if (currentFilter === 'all' || 
+                newRecord?.status === currentFilter || 
+                oldRecord?.status === currentFilter ||
+                (oldRecord?.status !== newRecord?.status)) {
               console.log('[Realtime] Fetching submissions due to change')
-              fetchSubmissions()
+              fetchSubmissions(true) // silent fetch
             }
           }
         }
@@ -116,25 +177,82 @@ export default function AdminDashboard() {
           schema: 'public',
           table: 'pending_registrations',
         },
-        (payload) => {
+        (payload: any) => {
           console.log('[Realtime] Registration change detected:', payload)
+          console.log('[Realtime] Full payload:', JSON.stringify(payload, null, 2))
           const currentFilter = filterRef.current
-          const newRecord = payload.new as any
-          const oldRecord = payload.old as any
-          // Refresh if change matches current filter or if status changed (item moved between filters)
-          if (currentFilter === 'all' || 
-              newRecord?.status === currentFilter || 
-              oldRecord?.status === currentFilter ||
-              (oldRecord?.status !== newRecord?.status)) {
-            if (activeTabRef.current === 'registrations') {
+          const newRecord = payload.new
+          const oldRecord = payload.old
+          const eventType = payload.eventType || payload.type || (payload as any).eventType
+          
+          console.log('[Realtime] Event type:', eventType, 'Has new:', !!newRecord, 'Has old:', !!oldRecord)
+          console.log('[Realtime] Active tab:', activeTabRef.current, 'Current filter:', currentFilter)
+          
+          // Handle INSERT - add new item with animation
+          if (eventType === 'INSERT' || (!oldRecord && newRecord)) {
+            console.log('[Realtime] Processing INSERT for registration')
+            setAllRegistrations(prev => {
+              // Check if already exists
+              if (prev.some(r => r.id === newRecord.id)) {
+                console.log('[Realtime] Registration already exists, skipping')
+                return prev
+              }
+              console.log('[Realtime] Adding new registration:', newRecord.id)
+              // Add to beginning
+              const updated = [newRecord as Registration, ...prev]
+              // Mark as new for animation if it matches current filter
+              if (currentFilter === 'all' || newRecord?.status === currentFilter) {
+                setNewRegistrations(prev => new Set(prev).add(newRecord.id))
+                // Expand card after brief delay to allow render
+                setTimeout(() => {
+                  setExpandingRegistrations(prev => new Set(prev).add(newRecord.id))
+                }, 150)
+                // Remove animation class after animation completes
+                setTimeout(() => {
+                  setNewRegistrations(prev => {
+                    const next = new Set(prev)
+                    next.delete(newRecord.id)
+                    return next
+                  })
+                  setExpandingRegistrations(prev => {
+                    const next = new Set(prev)
+                    next.delete(newRecord.id)
+                    return next
+                  })
+                }, 950)
+              }
+              return updated
+            })
+            return // Don't fetch, we already added it
+          }
+          // Handle UPDATE/DELETE
+          if (eventType === 'UPDATE' || eventType === 'DELETE' || (oldRecord && newRecord)) {
+            // Skip if this item is being animated out
+            const recordId = newRecord?.id || oldRecord?.id
+            if (recordId && removingRegistrationsRef.current.has(recordId)) {
+              console.log('[Realtime] Skipping update for item being removed:', recordId)
+              return
+            }
+            if (currentFilter === 'all' || 
+                newRecord?.status === currentFilter || 
+                oldRecord?.status === currentFilter ||
+                (oldRecord?.status !== newRecord?.status)) {
               console.log('[Realtime] Fetching registrations due to change')
-              fetchRegistrations()
+              fetchRegistrations(true) // silent fetch
             }
           }
         }
       )
-      .subscribe((status) => {
+      .subscribe((status, err) => {
         console.log('[Realtime] Registrations subscription status:', status)
+        if (err) {
+          console.error('[Realtime] Registrations subscription error:', err)
+        }
+        if (status === 'SUBSCRIBED') {
+          console.log('[Realtime] Successfully subscribed to pending_registrations')
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('[Realtime] Channel error - check if table has realtime enabled')
+        }
       })
 
     return () => {
@@ -148,41 +266,60 @@ export default function AdminDashboard() {
     }
   }, [])
 
-  async function fetchSubmissions() {
-    setLoading(true)
-    setError(null)
+  async function fetchSubmissions(silent = false) {
+    if (!silent) setError(null)
     try {
-      const response = await fetch(`/api/admin/submissions?status=${filter}`)
+      // Fetch all submissions, filter client-side
+      const response = await fetch(`/api/admin/submissions?status=all`)
       const result = await response.json()
 
       if (!response.ok) throw new Error(result.error)
 
-      setSubmissions(result.data || [])
+      setAllSubmissions(result.data || [])
+      const filtered = (result.data || []).filter((s: Submission) => filter === 'all' || s.status === filter)
+      if (filtered.length > 0) {
+        setAnimateEmptySubmissions(false)
+      }
     } catch (error) {
       console.error('Error:', error)
-      setError('Failed to load')
-      setSubmissions([])
-    } finally {
-      setLoading(false)
+      if (!silent) setError('Failed to load')
     }
   }
 
-  async function fetchRegistrations() {
-    setLoading(true)
-    setError(null)
+  async function fetchRegistrations(silent = false) {
+    if (!silent) setError(null)
     try {
-      const response = await fetch(`/api/admin/registrations?status=${filter}`)
+      // Fetch all registrations, filter client-side
+      const response = await fetch(`/api/admin/registrations?status=all`)
       const result = await response.json()
 
       if (!response.ok) throw new Error(result.error)
 
-      setRegistrations(result.data || [])
+      // Preserve items that are being removed (to not interrupt animation)
+      const newData = result.data || []
+      const filtered = newData.filter((r: Registration) => filter === 'all' || r.status === filter)
+      if (filtered.length > 0) {
+        setAnimateEmptyRegistrations(false)
+      }
+      setAllRegistrations(prev => {
+        const removingIds = removingRegistrationsRef.current
+        if (removingIds.size === 0) {
+          return newData
+        }
+        // Keep removing items from previous state WITH ORIGINAL STATUS, add new items that aren't being removed
+        const removingItems = prev
+          .filter(r => removingIds.has(r.id))
+          .map(r => {
+            // Preserve original status from the stored map
+            const originalStatus = removingRegistrationStatuses.get(r.id)
+            return originalStatus ? { ...r, status: originalStatus } : r
+          })
+        const otherItems = newData.filter((r: Registration) => !removingIds.has(r.id))
+        return [...removingItems, ...otherItems]
+      })
     } catch (error) {
       console.error('Error:', error)
-      setError('Failed to load')
-      setRegistrations([])
-    } finally {
-      setLoading(false)
+      if (!silent) setError('Failed to load')
     }
   }
 
@@ -199,7 +336,13 @@ export default function AdminDashboard() {
 
       if (!response.ok) throw new Error(result.error)
 
-      await fetchSubmissions()
+      // Update submission locally with document URL
+      setAllSubmissions(prev => prev.map(s => 
+        s.id === submissionId 
+          ? { ...s, status: 'approved', document_url: result.documentUrl }
+          : s
+      ))
+
       toast({
         title: 'Document generated',
         description: 'The clearance document has been generated successfully.',
@@ -217,15 +360,45 @@ export default function AdminDashboard() {
 
   async function updateStatus(submissionId: string, status: string) {
     try {
+      // Check if this is the last item in filtered view
+      const isLastItem = submissions.length === 1
+      
+      // Mark for removal animation
+      setRemovingSubmissions(prev => new Set(prev).add(submissionId))
+      
       const response = await fetch('/api/admin/submissions', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ submissionId, status })
       })
 
-      if (!response.ok) throw new Error()
+      if (!response.ok) {
+        // Revert on error
+        setRemovingSubmissions(prev => {
+          const next = new Set(prev)
+          next.delete(submissionId)
+          return next
+        })
+        throw new Error()
+      }
 
-      await fetchSubmissions()
+      // Remove from list after animation completes
+      setTimeout(() => {
+        setAllSubmissions(prev => {
+          const filtered = prev.filter(s => s.id !== submissionId)
+          // If this was the last item, animate the empty state
+          if (isLastItem) {
+            setAnimateEmptySubmissions(true)
+          }
+          return filtered
+        })
+        setRemovingSubmissions(prev => {
+          const next = new Set(prev)
+          next.delete(submissionId)
+          return next
+        })
+      }, 400)
+
       toast({
         title: 'Status updated',
         description: 'The submission has been rejected.',
@@ -241,26 +414,56 @@ export default function AdminDashboard() {
 
   async function approveRegistration(registrationId: string) {
     try {
+      // Check if this is the last item in filtered view
+      const isLastItem = registrations.length === 1
+      
+      // Store original status and mark for removal - update ref immediately for realtime check
+      const registration = registrations.find(r => r.id === registrationId)
+      if (registration) {
+        setRemovingRegistrationStatuses(prev => new Map(prev).set(registrationId, registration.status))
+      }
+      // Update ref first (synchronous)
+      removingRegistrationsRef.current = new Set(removingRegistrationsRef.current).add(registrationId)
+      // Mark for removal animation
+      setRemovingRegistrations(prev => new Set(prev).add(registrationId))
+      
       const response = await fetch('/api/admin/approve-registration', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ registrationId, processedBy: 'Secretary' })
       })
 
-      if (!response.ok) throw new Error()
-
-      // Mark for removal and animate out
-      setRemovingRegistrations(prev => new Set(prev).add(registrationId))
-      
-      // Remove from list after animation
-      setTimeout(() => {
-        setRegistrations(prev => prev.filter(r => r.id !== registrationId))
+      if (!response.ok) {
+        // Revert on error
         setRemovingRegistrations(prev => {
           const next = new Set(prev)
           next.delete(registrationId)
           return next
         })
-      }, 300)
+        setRemovingRegistrationStatuses(prev => {
+          const next = new Map(prev)
+          next.delete(registrationId)
+          return next
+        })
+        removingRegistrationsRef.current.delete(registrationId)
+        throw new Error()
+      }
+
+      // Remove from list after animation completes
+      setTimeout(() => {
+        setAllRegistrations(prev => prev.filter(r => r.id !== registrationId))
+        setRemovingRegistrations(prev => {
+          const next = new Set(prev)
+          next.delete(registrationId)
+          return next
+        })
+        setRemovingRegistrationStatuses(prev => {
+          const next = new Map(prev)
+          next.delete(registrationId)
+          return next
+        })
+        removingRegistrationsRef.current.delete(registrationId)
+      }, 400)
 
       toast({
         title: 'Registration approved',
@@ -277,26 +480,63 @@ export default function AdminDashboard() {
 
   async function rejectRegistration(registrationId: string) {
     try {
+      // Check if this is the last item in filtered view
+      const isLastItem = registrations.length === 1
+      
+      // Store original status and mark for removal - update ref immediately for realtime check
+      const registration = registrations.find(r => r.id === registrationId)
+      if (registration) {
+        setRemovingRegistrationStatuses(prev => new Map(prev).set(registrationId, registration.status))
+      }
+      // Update ref first (synchronous)
+      removingRegistrationsRef.current = new Set(removingRegistrationsRef.current).add(registrationId)
+      // Mark for removal animation
+      setRemovingRegistrations(prev => new Set(prev).add(registrationId))
+      
       const response = await fetch('/api/admin/registrations', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ registrationId, status: 'rejected' })
       })
 
-      if (!response.ok) throw new Error()
-
-      // Mark for removal and animate out
-      setRemovingRegistrations(prev => new Set(prev).add(registrationId))
-      
-      // Remove from list after animation
-      setTimeout(() => {
-        setRegistrations(prev => prev.filter(r => r.id !== registrationId))
+      if (!response.ok) {
+        // Revert on error
         setRemovingRegistrations(prev => {
           const next = new Set(prev)
           next.delete(registrationId)
           return next
         })
-      }, 300)
+        setRemovingRegistrationStatuses(prev => {
+          const next = new Map(prev)
+          next.delete(registrationId)
+          return next
+        })
+        removingRegistrationsRef.current.delete(registrationId)
+        throw new Error()
+      }
+
+      // Remove from list after animation completes
+      setTimeout(() => {
+        setAllRegistrations(prev => {
+          const filtered = prev.filter(r => r.id !== registrationId)
+          // If this was the last item, animate the empty state
+          if (isLastItem) {
+            setAnimateEmptyRegistrations(true)
+          }
+          return filtered
+        })
+        setRemovingRegistrations(prev => {
+          const next = new Set(prev)
+          next.delete(registrationId)
+          return next
+        })
+        setRemovingRegistrationStatuses(prev => {
+          const next = new Map(prev)
+          next.delete(registrationId)
+          return next
+        })
+        removingRegistrationsRef.current.delete(registrationId)
+      }, 400)
 
       toast({
         title: 'Registration rejected',
@@ -372,7 +612,16 @@ export default function AdminDashboard() {
                 size="sm" 
                 variant={filter === f ? 'default' : 'outline'} 
                 onClick={() => setFilter(f)}
-                className="min-w-[90px]"
+                className="sm:w-[100px] h-9 px-4"
+                style={{
+                  height: '36px',
+                  paddingLeft: '16px',
+                  paddingRight: '16px',
+                  boxSizing: 'border-box',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
               >
                 {f.charAt(0).toUpperCase() + f.slice(1)}
               </Button>
@@ -380,16 +629,8 @@ export default function AdminDashboard() {
           </div>
 
           {/* Content */}
-          {loading && (
-            <Card className="shadow-xl">
-              <CardContent className="py-12 text-center text-muted-foreground">
-                Loading...
-              </CardContent>
-            </Card>
-          )}
-          
-          {error && !loading && (
-            <Card className="mb-4 shadow-xl">
+          {error && (
+            <Card className="bg-white mb-4 shadow-xl">
               <CardContent className="py-6 text-center">
                 <XCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
                 <p className="text-sm mb-2">{error}</p>
@@ -398,17 +639,58 @@ export default function AdminDashboard() {
             </Card>
           )}
 
-          {!loading && !error && activeTab === 'clearances' && (
+          {activeTab === 'clearances' && (
             submissions.length === 0 ? (
-              <Card className="shadow-xl">
+              <div
+                onAnimationEnd={() => animateEmptySubmissions && setAnimateEmptySubmissions(false)}
+              >
+                <Card 
+                  className="bg-white shadow-xl"
+                  style={animateEmptySubmissions ? {
+                    opacity: 0,
+                    animation: 'fadeInSlide 0.8s ease-in-out forwards'
+                  } : {}}
+                >
                 <CardContent className="py-12 text-center text-muted-foreground">
                   No submissions found
                 </CardContent>
               </Card>
+              </div>
             ) : (
               <div className="space-y-4">
-                {submissions.map((submission) => (
-                  <Card key={submission.id} className="shadow-xl hover:shadow-2xl transition-shadow">
+                {submissions.map((submission) => {
+                  const isRemoving = removingSubmissions.has(submission.id)
+                  const isNew = newSubmissions.has(submission.id)
+                  
+                  return (
+                    <div
+                      key={submission.id}
+                      style={{
+                        maxHeight: isRemoving ? '0px' : (isNew && !expandingSubmissions.has(submission.id)) ? '0px' : '5000px',
+                        marginBottom: isRemoving ? '0px' : undefined,
+                        paddingTop: isRemoving ? undefined : (isNew && !expandingSubmissions.has(submission.id)) ? '0px' : undefined,
+                        paddingBottom: isRemoving ? undefined : (isNew && !expandingSubmissions.has(submission.id)) ? '0px' : undefined,
+                        overflow: 'hidden',
+                        transition: isRemoving 
+                          ? 'max-height 0.4s ease-out, margin-bottom 0.4s ease-out'
+                          : 'max-height 0.8s ease-in-out, margin-bottom 0.8s ease-in-out, padding-top 0.8s ease-in-out, padding-bottom 0.8s ease-in-out'
+                      }}
+                    >
+                      <Card
+                        className="bg-white shadow-xl hover:shadow-2xl"
+                        style={{
+                          opacity: isRemoving ? 0 : (isNew && !expandingSubmissions.has(submission.id)) ? 0 : 1,
+                          transform: isRemoving 
+                            ? 'translateY(-20px) scale(0.95)' 
+                            : (isNew && !expandingSubmissions.has(submission.id))
+                            ? 'translateY(-10px) scale(0.98)'
+                            : 'translateY(0) scale(1)',
+                          transition: isRemoving 
+                            ? 'opacity 0.4s ease-out, transform 0.4s ease-out'
+                            : 'opacity 0.8s ease-in-out, transform 0.8s ease-in-out',
+                          pointerEvents: isRemoving ? 'none' : 'auto'
+                        }}
+                      >
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
@@ -449,29 +731,69 @@ export default function AdminDashboard() {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                    </div>
+                  )
+                })}
               </div>
             )
           )}
 
-          {!loading && !error && activeTab === 'registrations' && (
+          {(activeTab as 'clearances' | 'registrations') === 'registrations' && (
             registrations.length === 0 ? (
-              <Card className="shadow-xl">
+              <div
+                onAnimationEnd={() => animateEmptyRegistrations && setAnimateEmptyRegistrations(false)}
+              >
+                <Card 
+                  className="bg-white shadow-xl"
+                  style={animateEmptyRegistrations ? {
+                    opacity: 0,
+                    animation: 'fadeInSlide 0.8s ease-in-out forwards'
+                  } : {}}
+                >
                 <CardContent className="py-12 text-center text-muted-foreground">
                   No registrations found
                 </CardContent>
               </Card>
+              </div>
             ) : (
               <div className="space-y-4">
-                {registrations.map((registration) => (
-                  <Card 
-                    key={registration.id} 
-                    className={`shadow-xl hover:shadow-2xl transition-all duration-300 ${
-                      removingRegistrations.has(registration.id) 
-                        ? 'opacity-0 -translate-y-4 scale-95 pointer-events-none' 
-                        : 'opacity-100 translate-y-0 scale-100'
-                    }`}
-                  >
+                {registrations.map((registration) => {
+                  const isRemoving = removingRegistrations.has(registration.id)
+                  const isNew = newRegistrations.has(registration.id)
+                  // Get the status to use for display - prefer stored original status if removing
+                  const displayStatus = isRemoving 
+                    ? (removingRegistrationStatuses.get(registration.id) || registration.status)
+                    : registration.status
+                  
+                  return (
+                    <div
+                      key={registration.id}
+                      style={{
+                        maxHeight: isRemoving ? '0px' : (isNew && !expandingRegistrations.has(registration.id)) ? '0px' : '5000px',
+                        marginBottom: isRemoving ? '0px' : undefined,
+                        paddingTop: isRemoving ? undefined : (isNew && !expandingRegistrations.has(registration.id)) ? '0px' : undefined,
+                        paddingBottom: isRemoving ? undefined : (isNew && !expandingRegistrations.has(registration.id)) ? '0px' : undefined,
+                        overflow: 'hidden',
+                        transition: isRemoving 
+                          ? 'max-height 0.4s ease-out, margin-bottom 0.4s ease-out'
+                          : 'max-height 0.8s ease-in-out, margin-bottom 0.8s ease-in-out, padding-top 0.8s ease-in-out, padding-bottom 0.8s ease-in-out'
+                      }}
+                    >
+                      <Card
+                        className="bg-white shadow-xl hover:shadow-2xl"
+                        style={{
+                          opacity: isRemoving ? 0 : (isNew && !expandingRegistrations.has(registration.id)) ? 0 : 1,
+                          transform: isRemoving 
+                            ? 'translateY(-20px) scale(0.95)' 
+                            : (isNew && !expandingRegistrations.has(registration.id))
+                            ? 'translateY(-10px) scale(0.98)'
+                            : 'translateY(0) scale(1)',
+                          transition: isRemoving 
+                            ? 'opacity 0.4s ease-out, transform 0.4s ease-out'
+                            : 'opacity 0.8s ease-in-out, transform 0.8s ease-in-out',
+                          pointerEvents: isRemoving ? 'none' : 'auto'
+                        }}
+                      >
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
@@ -495,12 +817,23 @@ export default function AdminDashboard() {
                         <div><span className="font-semibold">Submitted:</span> {new Date(registration.created_at).toLocaleString()}</div>
                       </div>
                       <div className="flex gap-2 flex-wrap">
-                        {registration.status === 'pending' && (
+                        {(isRemoving || displayStatus === 'pending') && (
                           <>
-                            <Button size="sm" onClick={() => approveRegistration(registration.id)}>
+                            <Button 
+                              size="sm" 
+                              onClick={() => approveRegistration(registration.id)}
+                              disabled={isRemoving}
+                              className={isRemoving ? 'opacity-100' : ''}
+                            >
                               <CheckCircle className="h-4 w-4 mr-1" />Approve
                             </Button>
-                            <Button size="sm" variant="destructive" onClick={() => rejectRegistration(registration.id)}>
+                            <Button 
+                              size="sm" 
+                              variant="destructive" 
+                              onClick={() => rejectRegistration(registration.id)}
+                              disabled={isRemoving}
+                              className={isRemoving ? 'opacity-100' : ''}
+                            >
                               <XCircle className="h-4 w-4 mr-1" />Reject
                             </Button>
                           </>
@@ -508,7 +841,9 @@ export default function AdminDashboard() {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                    </div>
+                  )
+                })}
               </div>
             )
           )}
