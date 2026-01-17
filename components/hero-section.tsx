@@ -3,104 +3,8 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, Calendar, MapPin, Phone, Mail, Briefcase, AlertCircle } from "lucide-react"
-import { EditableImage } from "@/components/admin/editable-image"
-import { useState, useEffect } from "react"
 
 export function HeroSection() {
-  const [captainImage, setCaptainImage] = useState("/captain.webp")
-  const [councilImage, setCouncilImage] = useState("/group.webp")
-  const [imagesLoaded, setImagesLoaded] = useState(false)
-
-  // Load saved images on component mount
-  useEffect(() => {
-    const loadImages = async () => {
-      try {
-        const captainResponse = await fetch('/api/admin/content?key=captain_image')
-        const captainData = await captainResponse.json()
-        if (captainData?.value) {
-          setCaptainImage(captainData.value)
-        }
-
-        const councilResponse = await fetch('/api/admin/content?key=council_image')
-        const councilData = await councilResponse.json()
-        if (councilData?.value) {
-          setCouncilImage(councilData.value)
-        }
-        
-        setImagesLoaded(true)
-      } catch (error) {
-        console.error('Failed to load images:', error)
-        setImagesLoaded(true)
-      }
-    }
-
-    loadImages()
-  }, [])
-
-  // Save captain image to database
-  const handleCaptainImageChange = async (newPath: string) => {
-    console.log('Captain image change handler called with:', newPath)
-    
-    try {
-      const response = await fetch('/api/admin/content', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          key: 'captain_image',
-          value: newPath,
-          type: 'text',
-        }),
-      })
-      
-      const data = await response.json()
-      console.log('Captain image save response:', data)
-      
-      if (!response.ok) {
-        console.error('Failed to save captain image:', data)
-        alert(`Failed to save captain image: ${data.error || 'Unknown error'}`)
-      } else {
-        console.log('Captain image saved successfully')
-        // Immediately update the image with cache busting
-        setCaptainImage(`${newPath}?t=${Date.now()}`)
-      }
-    } catch (error) {
-      console.error('Failed to save captain image:', error)
-      alert('Failed to save captain image. Check console for details.')
-    }
-  }
-
-  // Save council image to database
-  const handleCouncilImageChange = async (newPath: string) => {
-    console.log('Council image change handler called with:', newPath)
-    
-    try {
-      const response = await fetch('/api/admin/content', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          key: 'council_image',
-          value: newPath,
-          type: 'text',
-        }),
-      })
-      
-      const data = await response.json()
-      console.log('Council image save response:', data)
-      
-      if (!response.ok) {
-        console.error('Failed to save council image:', data)
-        alert(`Failed to save council image: ${data.error || 'Unknown error'}`)
-      } else {
-        console.log('Council image saved successfully')
-        // Immediately update the image with cache busting
-        setCouncilImage(`${newPath}?t=${Date.now()}`)
-      }
-    } catch (error) {
-      console.error('Failed to save council image:', error)
-      alert('Failed to save council image. Check console for details.')
-    }
-  }
-
   return (
     <section
       id="hero"
@@ -325,24 +229,17 @@ export function HeroSection() {
             {/* Captain Section */}
             <div className="flex flex-col items-center text-center w-full">
               <div className="relative mb-3 sm:mb-4">
-                {imagesLoaded ? (
-                  <EditableImage
-                    currentPath={captainImage}
-                    onImageChange={handleCaptainImageChange}
-                    alt="Barangay Captain"
-                    dataCritical
-                    loading="eager"
-                    fetchPriority="high"
-                    decoding="async"
-                    className="w-4/5 h-auto mx-auto xs:w-56 xs:h-64 sm:w-64 sm:h-72 md:w-72 md:h-80 lg:w-80 lg:h-88 xl:w-88 xl:h-104 object-cover object-[center_40%] rounded-lg shadow-2xl"
-                    width={400}
-                    height={500}
-                  />
-                ) : (
-                  <div className="w-4/5 h-auto mx-auto xs:w-56 xs:h-64 sm:w-64 sm:h-72 md:w-72 md:h-80 lg:w-80 lg:h-88 xl:w-88 xl:h-104 bg-gray-200 rounded-lg shadow-2xl animate-pulse flex items-center justify-center">
-                    <span className="text-gray-400 text-sm">Loading...</span>
-                  </div>
-                )}
+                <img
+                  src="/captain.webp"
+                  alt="Barangay Captain"
+                  data-critical="true"
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
+                  className="w-4/5 h-auto mx-auto xs:w-56 xs:h-64 sm:w-64 sm:h-72 md:w-72 md:h-80 lg:w-80 lg:h-88 xl:w-88 xl:h-104 object-cover object-[center_40%] rounded-lg shadow-2xl"
+                  width={400}
+                  height={500}
+                />
               </div>
 
               <div className="space-y-0 w-full">
@@ -357,24 +254,17 @@ export function HeroSection() {
             <div className="w-full">
               <div className="w-full relative pb-[66.67%] sm:pb-0 sm:h-48 md:h-56 lg:h-64 xl:h-72 rounded-lg overflow-hidden shadow-lg">
                 <div className="absolute top-0 left-0 w-full h-full">
-                  {imagesLoaded ? (
-                    <EditableImage
-                      currentPath={councilImage}
-                      onImageChange={handleCouncilImageChange}
-                      alt="Barangay Council"
-                      dataCritical
-                      loading="eager"
-                      fetchPriority="high"
-                      decoding="async"
-                      className="w-full h-full object-cover object-center sm:object-[center_30%]"
-                      width={400}
-                      height={300}
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-200 animate-pulse flex items-center justify-center">
-                      <span className="text-gray-400 text-sm">Loading...</span>
-                    </div>
-                  )}
+                  <img
+                    src="/group.webp"
+                    alt="Barangay Council"
+                    data-critical="true"
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
+                    className="w-full h-full object-cover object-center sm:object-[center_30%]"
+                    width={400}
+                    height={300}
+                  />
                 </div>
               </div>
               <h3 className="text-primary text-sm sm:text-base md:text-lg font-semibold text-center mt-3 px-2">

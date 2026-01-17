@@ -3,6 +3,13 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Missing Supabase credentials:', { 
+    hasUrl: !!supabaseUrl, 
+    hasKey: !!supabaseAnonKey 
+  })
+}
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Type definitions for clearance submissions
@@ -63,18 +70,42 @@ export async function submitClearance(
 export async function searchResidents(query: string, limit = 10) {
   if (!query || query.length < 2) return []
 
+  const searchTerm = query.trim().toLowerCase()
+  const terms = searchTerm.split(/\s+/)
+  
+  // Get candidates from database
   const { data, error } = await supabase
     .from('residents')
     .select('id, first_name, middle_name, last_name, purok, birthdate')
-    .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%`)
-    .limit(limit)
+    .or(`first_name.ilike.%${terms[0]}%,last_name.ilike.%${terms[0]}%,middle_name.ilike.%${terms[0]}%`)
+    .limit(100)
 
   if (error) {
     console.error('Error searching residents:', error)
     return []
   }
 
-  return data || []
+  if (!data) return []
+
+  // Flexible matching: all terms must exist in full name (any order)
+  const results = data.filter(resident => {
+    const first = resident.first_name.toLowerCase()
+    const middle = (resident.middle_name || '').toLowerCase()
+    const last = resident.last_name.toLowerCase()
+    const fullName = `${first} ${middle} ${last}`.trim()
+
+    if (terms.length === 1) {
+      // Single term: match start of any name part
+      return first.startsWith(terms[0]) ||
+             last.startsWith(terms[0]) ||
+             middle.startsWith(terms[0])
+    }
+
+    // Multiple terms: all must exist in full name (any order)
+    return terms.every(term => fullName.includes(term))
+  })
+
+  return results.slice(0, limit)
 }
 
 // Calculate age from birthdate

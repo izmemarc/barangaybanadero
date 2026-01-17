@@ -2,31 +2,14 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Menu, X, Settings, LogOut } from "lucide-react"
-import { useAdmin } from "@/contexts/admin-context"
-import { AdminLoginModal } from "./admin/admin-login-modal"
+import { Menu, X } from "lucide-react"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [showLoginModal, setShowLoginModal] = useState(false)
-  const { isEditMode, isAuthenticated, setEditMode, logout } = useAdmin()
 
   const scrollToSection = (sectionId: string) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" })
     setIsMenuOpen(false)
-  }
-
-  const handleAdminClick = () => {
-    if (!isAuthenticated) {
-      setShowLoginModal(true)
-    } else {
-      setEditMode(!isEditMode)
-    }
-  }
-
-  const handleLogout = async () => {
-    await logout()
-    setEditMode(false)
   }
 
   return (
@@ -81,52 +64,6 @@ export function Header() {
                 >
                   Info
                 </button>
-                
-                {/* Admin-only links */}
-                {isAuthenticated && (
-                  <>
-                    <a
-                      href="https://docs.google.com/spreadsheets/d/1nO_XV6XFHNFU-_vJ1OcgHsBYoi_Qc1eQyNHTkHmsYVA/edit?usp=sharing"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-200 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 font-semibold min-h-[44px] w-20 flex items-center justify-center"
-                      style={{padding: '0.25rem 0.5rem', fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}
-                    >
-                      Sheets
-                    </a>
-                    <a
-                      href="https://drive.google.com/drive/folders/1IS_XN7YK4m_aCXVpXUwuap40U9kTw583?usp=sharing"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-200 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 font-semibold min-h-[44px] w-20 flex items-center justify-center"
-                      style={{padding: '0.25rem 0.5rem', fontSize: 'clamp(0.875rem, 1.2vw, 1rem)'}}
-                    >
-                      Drive
-                    </a>
-                  </>
-                )}
-                
-                {/* Admin Button */}
-                <button
-                  onClick={handleAdminClick}
-                  className={`${isEditMode ? 'text-blue-300 bg-blue-900/30' : 'text-gray-200'} hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 font-medium min-h-[44px] min-w-[44px] flex items-center justify-center`}
-                  style={{padding: 'clamp(0.75rem, 1.5vh, 1rem) clamp(1rem, 2vw, 1.25rem)'}}
-                  title={isAuthenticated ? (isEditMode ? 'Exit Edit Mode' : 'Enter Edit Mode') : 'Admin Login'}
-                >
-                  <Settings size={20} />
-                </button>
-                
-                {/* Logout Button */}
-                {isAuthenticated && (
-                  <button
-                    onClick={handleLogout}
-                    className="text-gray-200 hover:text-red-300 hover:bg-red-900/30 rounded-lg transition-all duration-200 font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
-                    style={{padding: 'clamp(0.75rem, 1.5vh, 1rem) clamp(1rem, 2vw, 1.25rem)'}}
-                    title="Logout"
-                  >
-                    <LogOut size={20} />
-                  </button>
-                )}
               </nav>
 
           {/* Mobile Menu Button */}
@@ -175,58 +112,11 @@ export function Header() {
                   >
                     Info
                   </button>
-                  
-                  {/* Admin Button for Mobile */}
-                  <button
-                    onClick={handleAdminClick}
-                    className={`text-left ${isEditMode ? 'text-blue-300 bg-blue-900/30' : 'text-gray-200'} hover:text-white hover:bg-white/10 transition-all duration-200 rounded-lg font-semibold min-h-[44px] flex items-center gap-2`}
-                    style={{padding: 'clamp(0.5rem, 1.5vh, 0.75rem) clamp(0.5rem, 1vw, 0.75rem)', fontSize: 'clamp(0.875rem, 2vw, 1rem)'}}
-                  >
-                    <Settings size={20} />
-                    <span>{isAuthenticated ? (isEditMode ? 'Exit Edit Mode' : 'Enter Edit Mode') : 'Admin Login'}</span>
-                  </button>
-                  
-                  {/* Logout Button for Mobile */}
-                  {isAuthenticated && (
-                    <button
-                      onClick={handleLogout}
-                      className="text-left text-gray-200 hover:text-red-300 hover:bg-red-900/30 transition-all duration-200 rounded-lg font-semibold min-h-[44px] flex items-center gap-2"
-                      style={{padding: 'clamp(0.5rem, 1.5vh, 0.75rem) clamp(0.5rem, 1vw, 0.75rem)', fontSize: 'clamp(0.875rem, 2vw, 1rem)'}}
-                    >
-                      <LogOut size={20} />
-                      <span>Logout</span>
-                    </button>
-                  )}
-                  
-                  {/* Admin-only links */}
-                  {isAuthenticated && (
-                    <>
-                      <a
-                        href="https://docs.google.com/spreadsheets/d/1nO_XV6XFHNFU-_vJ1OcgHsBYoi_Qc1eQyNHTkHmsYVA/edit?usp=sharing"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-left text-gray-200 hover:text-white hover:bg-white/10 transition-all duration-200 rounded-lg font-semibold min-h-[44px] flex items-center"
-                        style={{padding: 'clamp(0.5rem, 1.5vh, 0.75rem) clamp(0.5rem, 1vw, 0.75rem)', fontSize: 'clamp(0.875rem, 2vw, 1rem)'}}
-                      >
-                        Sheets
-                      </a>
-                      <a
-                        href="https://drive.google.com/drive/folders/1IS_XN7YK4m_aCXVpXUwuap40U9kTw583?usp=sharing"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-left text-gray-200 hover:text-white hover:bg-white/10 transition-all duration-200 rounded-lg font-semibold min-h-[44px] flex items-center"
-                        style={{padding: 'clamp(0.5rem, 1.5vh, 0.75rem) clamp(0.5rem, 1vw, 0.75rem)', fontSize: 'clamp(0.875rem, 2vw, 1rem)'}}
-                      >
-                        Drive
-                      </a>
-                    </>
-                  )}
                 </div>
               </nav>
         )}
       </div>
     </header>
-      <AdminLoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </>
   )
 }

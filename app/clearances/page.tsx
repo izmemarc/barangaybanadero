@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, Building2, AlertCircle, Calendar, Award, Heart, Home, ArrowLeft } from 'lucide-react'
+import { FileText, Building2, AlertCircle, Calendar, Award, Heart, Home, ArrowLeft, UserPlus } from 'lucide-react'
 import { submitClearance, searchResidents, calculateAge, type Resident } from '@/lib/supabase'
 
 type ClearanceType = 
@@ -15,6 +15,7 @@ type ClearanceType =
   | 'good-moral'
   | 'indigency'
   | 'residency'
+  | 'register'
 
 interface FormData {
   name: string
@@ -29,6 +30,7 @@ const clearanceTypes = [
   { id: 'good-moral' as ClearanceType, label: 'Certificate of Good Moral', icon: Award },
   { id: 'indigency' as ClearanceType, label: 'Certificate of Indigency', icon: Heart },
   { id: 'residency' as ClearanceType, label: 'Certificate of Residency', icon: Home },
+  { id: 'register' as ClearanceType, label: 'Register as Resident', icon: UserPlus },
 ]
 
 export default function ClearancesPage() {
@@ -43,10 +45,14 @@ export default function ClearancesPage() {
   const [residents, setResidents] = useState<Resident[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [selectedResidentIndex, setSelectedResidentIndex] = useState(-1)
+  const [nameWasSelected, setNameWasSelected] = useState(false)
   const nameInputRef = useRef<HTMLInputElement>(null)
 
   // Search residents when name query changes
   useEffect(() => {
+    // Don't search if name was just selected
+    if (nameWasSelected) return
+    
     const searchTimeout = setTimeout(async () => {
       if (nameQuery.length >= 2) {
         const results = await searchResidents(nameQuery)
@@ -59,7 +65,7 @@ export default function ClearancesPage() {
     }, 300) // Debounce 300ms
 
     return () => clearTimeout(searchTimeout)
-  }, [nameQuery])
+  }, [nameQuery, nameWasSelected])
 
   // Handle selecting a resident from suggestions
   const selectResident = (resident: Resident) => {
@@ -68,6 +74,7 @@ export default function ClearancesPage() {
     setNameQuery(fullName)
     setShowSuggestions(false)
     setSelectedResidentIndex(-1)
+    setNameWasSelected(true)
   }
 
   // Keyboard navigation for suggestions
@@ -165,6 +172,31 @@ export default function ClearancesPage() {
           { id: 'yearResided', label: 'Year resided', type: 'number', required: true },
           { id: 'contact', label: 'Contact Number', type: 'tel', required: true },
         ]
+      case 'register':
+        return [
+          { id: 'firstName', label: 'First Name', type: 'text', required: true },
+          { id: 'middleName', label: 'Middle Name', type: 'text', required: false },
+          { id: 'lastName', label: 'Last Name', type: 'text', required: true },
+          { id: 'suffix', label: 'Suffix', type: 'text', required: false, placeholder: 'Jr., Sr., III, etc.' },
+          { id: 'birthdate', label: 'Birthdate', type: 'date', required: true },
+          { 
+            id: 'gender', 
+            label: 'Gender', 
+            type: 'select', 
+            required: true,
+            options: ['Male', 'Female']
+          },
+          { 
+            id: 'civilStatus', 
+            label: 'Civil Status', 
+            type: 'select', 
+            required: true,
+            options: ['Single', 'Married', 'Widowed', 'Divorced', 'Separated']
+          },
+          { id: 'citizenship', label: 'Citizenship', type: 'text', required: true, placeholder: 'Filipino' },
+          { id: 'purok', label: 'Purok', type: 'text', required: true },
+          { id: 'contact', label: 'Contact Number', type: 'tel', required: true },
+        ]
       default:
         return []
     }
@@ -184,7 +216,31 @@ export default function ClearancesPage() {
         throw new Error('No clearance type selected')
       }
 
-      // Submit to Supabase
+      // For registration, use different submission
+      if (selectedType === 'register') {
+        const response = await fetch('/api/register-resident', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        })
+
+        const result = await response.json()
+
+        if (!response.ok) throw new Error(result.error || 'Registration failed')
+
+        setIsSubmitting(false)
+        setSubmitted(true)
+        
+        // Reset form after 3 seconds
+        setTimeout(() => {
+          setSubmitted(false)
+          setSelectedType(null)
+          setFormData({ name: '' })
+        }, 3000)
+        return
+      }
+
+      // Submit clearance to Supabase
       await submitClearance(selectedType, formData.name, formData)
 
       setIsSubmitting(false)
@@ -198,6 +254,7 @@ export default function ClearancesPage() {
       setNameQuery('')
       setResidents([])
       setShowSuggestions(false)
+      setNameWasSelected(false)
       }, 3000)
     } catch (err) {
       setIsSubmitting(false)
@@ -303,7 +360,8 @@ export default function ClearancesPage() {
                       </div>
                     )}
 
-                    {/* Name field - required for all forms */}
+                    {/* Name field - required for all forms except register */}
+                    {selectedType !== 'register' && (
                     <div className="space-y-2 relative">
                       <label htmlFor="name" className="block text-sm font-semibold text-foreground">
                         {selectedType === 'blotter' ? 'Complainant Name' : 'Name'}
@@ -318,10 +376,14 @@ export default function ClearancesPage() {
                           const value = e.target.value
                           setNameQuery(value)
                           handleInputChange('name', value)
+                          // Reset flag when user types
+                          if (nameWasSelected && value !== formData.name) {
+                            setNameWasSelected(false)
+                          }
                         }}
                         onKeyDown={handleKeyDown}
                         onFocus={() => {
-                          if (residents.length > 0) setShowSuggestions(true)
+                          if (residents.length > 0 && !nameWasSelected) setShowSuggestions(true)
                         }}
                         className="w-full px-4 py-2.5 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
                         placeholder="Start typing to search residents..."
@@ -368,6 +430,7 @@ export default function ClearancesPage() {
                         </div>
                       )}
                     </div>
+                    )}
 
                     {/* Dynamic form fields based on selected type */}
                     {formFields.map((field) => (
@@ -386,18 +449,31 @@ export default function ClearancesPage() {
                             placeholder={`Enter ${field.label.toLowerCase()}`}
                           />
                         ) : field.type === 'select' ? (
+                          <>
                           <select
                             id={field.id}
                             required={field.required}
                             value={formData[field.id] || ''}
                             onChange={(e) => handleInputChange(field.id, e.target.value)}
-                            className="w-full px-4 py-2.5 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                            className="w-full px-4 py-2.5 pr-10 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[right_0.5rem_center] bg-no-repeat"
                           >
                             <option value="">Select an option</option>
                             {field.options?.map((option) => (
                               <option key={option} value={option}>{option}</option>
                             ))}
                           </select>
+                          {formData[field.id] === 'Other' && (
+                            <textarea
+                              id={`${field.id}Details`}
+                              required
+                              value={formData[`${field.id}Details`] || ''}
+                              onChange={(e) => handleInputChange(`${field.id}Details`, e.target.value)}
+                              rows={3}
+                              className="w-full px-4 py-2.5 border border-border rounded-md text-sm bg-background resize-vertical focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors mt-2"
+                              placeholder="Please specify..."
+                            />
+                          )}
+                          </>
                         ) : field.type === 'checkbox' ? (
                           <div className="flex items-center gap-2">
                             <input
@@ -407,7 +483,7 @@ export default function ClearancesPage() {
                               onChange={(e) => handleInputChange(field.id, e.target.checked.toString())}
                               className="w-4 h-4 border border-border rounded focus:ring-2 focus:ring-primary"
                             />
-                            <label htmlFor={field.id} className="text-sm">{field.checkboxLabel}</label>
+                            <label htmlFor={field.id} className="text-sm">{'checkboxLabel' in field ? field.checkboxLabel : field.label}</label>
                           </div>
                         ) : (
                           <input
@@ -417,7 +493,8 @@ export default function ClearancesPage() {
                             value={formData[field.id] || ''}
                             onChange={(e) => handleInputChange(field.id, e.target.value)}
                             className="w-full px-4 py-2.5 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
-                            placeholder={`Enter ${field.label.toLowerCase()}`}
+                            placeholder={'placeholder' in field ? field.placeholder : `Enter ${field.label.toLowerCase()}`}
+                            autoComplete={selectedType === 'register' ? 'off' : undefined}
                           />
                         )}
                       </div>

@@ -1,28 +1,8 @@
 'use client';
 
 import { ProjectCard, Project } from "./project-card"
-import { useState, useEffect } from "react"
 
 export function ProjectsSection() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    fetchProjects();
-  }, []);
-
-  const fetchProjects = async () => {
-    try {
-      const response = await fetch('/api/admin/projects');
-      const data = await response.json();
-      setProjects(data);
-    } catch (error) {
-      console.error('Failed to fetch projects:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const coreAreasProjectsStatic = [
     {
       title: "Financial Administration",
@@ -77,12 +57,6 @@ export function ProjectsSection() {
     },
   ]
 
-
-
-  // Use database projects if available, otherwise fallback to static
-  const coreAreasProjects = projects.length > 0 ? projects.slice(0, 3) : coreAreasProjectsStatic;
-  const essentialAreasProjects = projects.length > 3 ? projects.slice(3, 6) : essentialAreasProjectsStatic;
-
   return (
     <section id="projects" className="min-h-screen py-12 sm:py-16 lg:py-20">
       <div className="w-full max-w-[1600px] mx-auto">
@@ -94,49 +68,35 @@ export function ProjectsSection() {
           </p>
         </div>
 
-        {isLoading ? (
-          <div className="text-center py-12">
-            <p className="text-gray-600">Loading projects...</p>
+        {/* Main Pillars Section */}
+        <div className="mb-12 sm:mb-16 lg:mb-20">
+          <div className="text-center mb-6 sm:mb-8">
+            <h3 className="font-bold text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.25rem, 2.5vw, 2rem)'}}>Main Pillars</h3>
           </div>
-        ) : (
-          <>
-            {/* Main Pillars Section */}
-            <div className="mb-12 sm:mb-16 lg:mb-20">
-              <div className="text-center mb-6 sm:mb-8">
-                <h3 className="font-bold text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.25rem, 2.5vw, 2rem)'}}>Main Pillars</h3>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-                {coreAreasProjects.map((project: Project, index: number) => {
-                  return (
-                    <ProjectCard 
-                      key={project.id || `core-${project.title}-${index}`} 
-                      project={project}
-                      onUpdate={fetchProjects}
-                    />
-                  );
-                })}
-                  </div>
-                </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+            {coreAreasProjectsStatic.map((project: Project, index: number) => (
+              <ProjectCard 
+                key={`core-${project.title}-${index}`} 
+                project={project}
+              />
+            ))}
+          </div>
+        </div>
 
-            {/* Supporting Pillars Section */}
-            <div className="mb-8 sm:mb-10 lg:mb-12">
-              <div className="text-center mb-6 sm:mb-8">
-                <h3 className="font-bold text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.25rem, 2.5vw, 2rem)'}}>Supporting Pillars</h3>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-                {essentialAreasProjects.map((project: Project, index: number) => {
-                  return (
-                    <ProjectCard 
-                      key={project.id || `essential-${project.title}-${index}`} 
-                      project={project}
-                      onUpdate={fetchProjects}
-                    />
-                  );
-                })}
+        {/* Supporting Pillars Section */}
+        <div className="mb-8 sm:mb-10 lg:mb-12">
+          <div className="text-center mb-6 sm:mb-8">
+            <h3 className="font-bold text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.25rem, 2.5vw, 2rem)'}}>Supporting Pillars</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+            {essentialAreasProjectsStatic.map((project: Project, index: number) => (
+              <ProjectCard 
+                key={`essential-${project.title}-${index}`} 
+                project={project}
+              />
+            ))}
+          </div>
         </div>
-        </div>
-          </>
-        )}
       </div>
     </section>
   )
