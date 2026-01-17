@@ -68,6 +68,13 @@ export default function ClearancesPage() {
     return () => clearTimeout(searchTimeout)
   }, [nameQuery, nameWasSelected])
 
+  // Set default citizenship when register type is selected
+  useEffect(() => {
+    if (selectedType === 'register' && !formData.citizenship) {
+      setFormData(prev => ({ ...prev, citizenship: 'Filipino' }))
+    }
+  }, [selectedType])
+
   // Handle selecting a resident from suggestions
   const selectResident = (resident: Resident) => {
     const fullName = `${resident.first_name} ${resident.middle_name ? resident.middle_name + ' ' : ''}${resident.last_name}`.toUpperCase()
@@ -179,7 +186,13 @@ export default function ClearancesPage() {
           { id: 'firstName', label: 'First Name', type: 'text', required: true },
           { id: 'middleName', label: 'Middle Name', type: 'text', required: false },
           { id: 'lastName', label: 'Last Name', type: 'text', required: true },
-          { id: 'suffix', label: 'Suffix', type: 'text', required: false, placeholder: 'Jr., Sr., III, etc.' },
+          { 
+            id: 'suffix', 
+            label: 'Suffix', 
+            type: 'select', 
+            required: false,
+            options: ['None', 'Jr.', 'Sr.', 'II', 'III', 'IV', 'V']
+          },
           { id: 'birthdate', label: 'Birthdate', type: 'date', required: true },
           { 
             id: 'gender', 
@@ -196,7 +209,13 @@ export default function ClearancesPage() {
             options: ['Single', 'Married', 'Widowed', 'Divorced', 'Separated']
           },
           { id: 'citizenship', label: 'Citizenship', type: 'text', required: true, placeholder: 'Filipino' },
-          { id: 'purok', label: 'Purok', type: 'text', required: true },
+          { 
+            id: 'purok', 
+            label: 'Purok', 
+            type: 'select', 
+            required: true,
+            options: ['1', '2', '3', '4', '5', '6']
+          },
           { id: 'contact', label: 'Contact Number', type: 'tel', required: true },
         ]
       default:
@@ -476,11 +495,11 @@ export default function ClearancesPage() {
                           <select
                             id={field.id}
                             required={field.required}
-                            value={formData[field.id] || ''}
-                            onChange={(e) => handleInputChange(field.id, e.target.value)}
+                            value={formData[field.id] || (field.id === 'suffix' ? 'None' : '')}
+                            onChange={(e) => handleInputChange(field.id, e.target.value === 'None' ? '' : e.target.value)}
                             className="w-full px-4 py-2.5 pr-10 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[right_0.5rem_center] bg-no-repeat"
                           >
-                            <option value="">Select an option</option>
+                            {field.id === 'suffix' ? null : <option value="">Select an option</option>}
                             {field.options?.map((option) => (
                               <option key={option} value={option}>{option}</option>
                             ))}
@@ -515,7 +534,12 @@ export default function ClearancesPage() {
                             required={field.required}
                             value={formData[field.id] || ''}
                             onChange={(e) => handleInputChange(field.id, e.target.value)}
-                            className="w-full px-4 py-2.5 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                            onClick={(e) => {
+                              if (field.type === 'date' && (e.target as HTMLInputElement).showPicker) {
+                                (e.target as HTMLInputElement).showPicker()
+                              }
+                            }}
+                            className="w-full px-4 py-2.5 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors cursor-pointer"
                             placeholder={'placeholder' in field ? field.placeholder : `Enter ${field.label.toLowerCase()}`}
                             autoComplete={selectedType === 'register' ? 'off' : undefined}
                           />
