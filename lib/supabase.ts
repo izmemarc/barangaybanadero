@@ -49,20 +49,34 @@ export interface Resident {
 export async function submitClearance(
   clearanceType: ClearanceType,
   name: string,
-  formData: Record<string, any>
+  formData: Record<string, any>,
+  residentId?: string | null
 ) {
+  console.log('[Supabase] Inserting submission:', { 
+    clearanceType, 
+    name, 
+    residentId, 
+    formData 
+  })
+  
   const { data, error } = await supabase
     .from('clearance_submissions')
     .insert({
       clearance_type: clearanceType,
       name: name,
       form_data: formData,
+      resident_id: residentId || null,
       status: 'pending'
     })
     .select()
     .single()
 
-  if (error) throw error
+  if (error) {
+    console.error('[Supabase] Insert error:', error)
+    throw error
+  }
+  
+  console.log('[Supabase] Insert success:', data)
   return data
 }
 

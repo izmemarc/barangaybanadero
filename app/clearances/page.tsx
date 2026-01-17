@@ -46,6 +46,7 @@ export default function ClearancesPage() {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [selectedResidentIndex, setSelectedResidentIndex] = useState(-1)
   const [nameWasSelected, setNameWasSelected] = useState(false)
+  const [selectedResidentId, setSelectedResidentId] = useState<string | null>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
 
   // Search residents when name query changes
@@ -75,6 +76,7 @@ export default function ClearancesPage() {
     setShowSuggestions(false)
     setSelectedResidentIndex(-1)
     setNameWasSelected(true)
+    setSelectedResidentId(resident.id) // Save resident ID
   }
 
   // Keyboard navigation for suggestions
@@ -204,6 +206,12 @@ export default function ClearancesPage() {
 
   const handleInputChange = (id: string, value: string) => {
     setFormData(prev => ({ ...prev, [id]: value }))
+    
+    // If name field is manually changed, clear resident selection
+    if (id === 'name') {
+      setSelectedResidentId(null)
+      setNameWasSelected(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -241,21 +249,24 @@ export default function ClearancesPage() {
       }
 
       // Submit clearance to Supabase
-      await submitClearance(selectedType, formData.name, formData)
+      console.log('[Clearance] Submitting:', { 
+        type: selectedType, 
+        name: formData.name, 
+        residentId: selectedResidentId,
+        formData 
+      })
+      await submitClearance(selectedType, formData.name, formData, selectedResidentId)
 
       setIsSubmitting(false)
-      setSubmitted(true)
       
-      // Reset form after 3 seconds
-      setTimeout(() => {
-      setSubmitted(false)
+      // Reset form immediately without success message
       setSelectedType(null)
       setFormData({ name: '' })
       setNameQuery('')
       setResidents([])
       setShowSuggestions(false)
       setNameWasSelected(false)
-      }, 3000)
+      setSelectedResidentId(null)
     } catch (err) {
       setIsSubmitting(false)
       setError(err instanceof Error ? err.message : 'Failed to submit form. Please try again.')
@@ -326,18 +337,7 @@ export default function ClearancesPage() {
                       </CardHeader>
                       <CardContent className="pt-0">
 
-                {submitted ? (
-                  <div className="text-center py-12">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
-                      <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">Form Submitted Successfully!</h3>
-                    <p className="text-muted-foreground">Your request has been received. We will process it shortly.</p>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Error message */}
                     {error && (
                       <div className="bg-red-50 border border-red-200 rounded-md p-4 text-sm text-red-800">
@@ -523,6 +523,12 @@ export default function ClearancesPage() {
                         variant="outline"
                         onClick={() => {
                           setFormData({ name: '' })
+                          setNameQuery('')
+                          setResidents([])
+                          setShowSuggestions(false)
+                          setNameWasSelected(false)
+                          setSelectedResidentId(null)
+                          setSelectedResidentIndex(-1)
                         }}
                         disabled={isSubmitting}
                         className="min-h-[44px]"
@@ -531,7 +537,6 @@ export default function ClearancesPage() {
                       </Button>
                     </div>
                   </form>
-                )}
                   </CardContent>
                 </Card>
                 {/* Spacer to balance the back button */}

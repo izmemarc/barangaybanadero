@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { generateClearanceDocument } from '@/lib/google-docs'
+import { generateClearanceDocument, insertPhotoIntoDocument } from '@/lib/google-docs'
+import { google } from 'googleapis'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,6 +20,26 @@ const TEMPLATES = {
 }
 
 const OUTPUT_FOLDER_ID = process.env.GOOGLE_DRIVE_OUTPUT_FOLDER_ID!
+const PHOTO_FOLDER_ID = process.env.GOOGLE_DRIVE_PHOTO_FOLDER_ID!
+
+// Helper to get auth client (copied from google-docs.ts)
+function getAuthClient() {
+  const clientId = process.env.GOOGLE_CLIENT_ID || ''
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET || ''
+  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN || ''
+  
+  const oauth2Client = new google.auth.OAuth2(
+    clientId,
+    clientSecret,
+    'http://localhost:3001/api/oauth/callback'
+  )
+
+  oauth2Client.setCredentials({
+    refresh_token: refreshToken
+  })
+
+  return oauth2Client
+}
 
 // Helper to parse full name into parts
 function parseFullName(fullName: string) {
@@ -71,17 +92,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
     }
 
-    // Parse name from submission
-    const nameParts = parseFullName(submission.name)
-
-    // Try to find resident in database for additional data
-    const { data: resident } = await supabase
-      .from('residents')
-      .select('*')
-      .ilike('first_name', `%${nameParts.firstName}%`)
-      .ilike('last_name', `%${nameParts.lastName}%`)
-      .limit(1)
-      .maybeSingle()
+    // Get resident data using resident_id from submission
+    let resident = null
+    let nameParts = { firstName: '', middleName: '', lastName: '', suffix: '' }
+    
+    if (submission.resident_id) {
+      const { data: residentData } = await supabase
+        .from('residents')
+        .select('*')
+        .eq('id', submission.resident_id)
+        .single()
+      
+      resident = residentData
+      
+      if (resident) {
+        // Use exact data from residents table
+        nameParts = {
+          firstName: resident.first_name || '',
+          middleName: resident.middle_name || '',
+          lastName: resident.last_name || '',
+          suffix: resident.suffix || ''
+        }
+      }
+    }
+    
+    // Fallback: parse name if no resident_id
+    if (!resident) {
+      nameParts = parseFullName(submission.name)
+    }
 
     // Current date info
     const today = new Date()
@@ -300,12 +338,61 @@ export async function POST(request: NextRequest) {
 
     const fileName = `${submission.name} - ${submission.clearance_type.replace('-', ' ')} Clearance`
 
-    const { documentUrl } = await generateClearanceDocument(
-      templateId,
-      OUTPUT_FOLDER_ID,
-      replacements,
-      fileName
-    )
+    // Insert photo BEFORE text replacements (so {{picture}} placeholder exists)
+    let documentId: string
+    let documentUrl: string
+    
+    if (resident && nameParts.lastName && nameParts.firstName) {
+      // Generate document first
+      const result = await generateClearanceDocument(
+        templateId,
+        OUTPUT_FOLDER_ID,
+        {},  // No replacements yet
+        fileName
+      )
+      documentId = result.documentId
+      documentUrl = result.documentUrl
+      
+      // Insert photo while placeholder still exists
+      await insertPhotoIntoDocument(
+        documentId,
+        nameParts.lastName,
+        nameParts.firstName,
+        nameParts.middleName,
+        nameParts.suffix,
+        PHOTO_FOLDER_ID
+      )
+      
+      // Now apply text replacements
+      const auth = getAuthClient()
+      const docs = google.docs({ version: 'v1', auth })
+      const requests = Object.entries(replacements).map(([placeholder, value]) => ({
+        replaceAllText: {
+          containsText: {
+            text: `{{${placeholder}}}`,
+            matchCase: false
+          },
+          replaceText: value || ''
+        }
+      }))
+      
+      if (requests.length > 0) {
+        await docs.documents.batchUpdate({
+          documentId,
+          requestBody: { requests }
+        })
+      }
+    } else {
+      // No photo, just do text replacements
+      const result = await generateClearanceDocument(
+        templateId,
+        OUTPUT_FOLDER_ID,
+        replacements,
+        fileName
+      )
+      documentId = result.documentId
+      documentUrl = result.documentUrl
+    }
 
     // Update submission status
     const { error: updateError } = await supabase

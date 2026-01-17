@@ -53,6 +53,17 @@ export default function AdminDashboard() {
     } else {
       fetchRegistrations()
     }
+
+    // Poll every 10 seconds for new submissions
+    const interval = setInterval(() => {
+      if (activeTab === 'clearances') {
+        fetchSubmissions()
+      } else {
+        fetchRegistrations()
+      }
+    }, 10000)
+
+    return () => clearInterval(interval)
   }, [filter, activeTab])
 
   async function fetchSubmissions() {
@@ -107,7 +118,6 @@ export default function AdminDashboard() {
       if (!response.ok) throw new Error(result.error)
 
       await fetchSubmissions()
-      alert('Document generated!')
     } catch (error) {
       alert('Failed to generate document')
     } finally {
@@ -142,7 +152,6 @@ export default function AdminDashboard() {
       if (!response.ok) throw new Error()
 
       await fetchRegistrations()
-      alert('Registration approved!')
     } catch (error) {
       alert('Failed to approve')
     }
@@ -269,9 +278,6 @@ export default function AdminDashboard() {
                             <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
                             <span className="truncate">{submission.name}</span>
                           </CardTitle>
-                          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                            {submission.clearance_type.replace('-', ' ').toUpperCase()}
-                          </p>
                         </div>
                         <div className="flex-shrink-0">
                           {getStatusBadge(submission.status)}
@@ -328,7 +334,6 @@ export default function AdminDashboard() {
                             <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
                             <span className="truncate">{registration.first_name} {registration.middle_name} {registration.last_name} {registration.suffix}</span>
                           </CardTitle>
-                          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Resident Registration</p>
                         </div>
                         <div className="flex-shrink-0">
                           {getStatusBadge(registration.status)}
