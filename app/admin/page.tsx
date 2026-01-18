@@ -382,14 +382,15 @@ export default function AdminDashboard() {
         throw new Error()
       }
 
+      // If this was the last item, set animation flag before removal
+      if (isLastItem) {
+        setAnimateEmptySubmissions(true)
+      }
+      
       // Remove from list after animation completes
       setTimeout(() => {
         setAllSubmissions(prev => {
           const filtered = prev.filter(s => s.id !== submissionId)
-          // If this was the last item, animate the empty state
-          if (isLastItem) {
-            setAnimateEmptySubmissions(true)
-          }
           return filtered
         })
         setRemovingSubmissions(prev => {
@@ -401,7 +402,11 @@ export default function AdminDashboard() {
 
       toast({
         title: 'Status updated',
-        description: 'The submission has been rejected.',
+        description: (
+          <span>
+            The submission has been <span className="text-red-600 font-semibold">rejected</span>.
+          </span>
+        ),
       })
     } catch (error) {
       toast({
@@ -416,6 +421,11 @@ export default function AdminDashboard() {
     try {
       // Check if this is the last item in filtered view
       const isLastItem = registrations.length === 1
+      
+      // If this was the last item, set animation flag before removal
+      if (isLastItem) {
+        setAnimateEmptyRegistrations(true)
+      }
       
       // Store original status and mark for removal - update ref immediately for realtime check
       const registration = registrations.find(r => r.id === registrationId)
@@ -467,7 +477,11 @@ export default function AdminDashboard() {
 
       toast({
         title: 'Registration approved',
-        description: 'The resident has been added to the database.',
+        description: (
+          <span>
+            The resident has been <span className="text-green-600 font-semibold">approved</span> and added to the database.
+          </span>
+        ),
       })
     } catch (error) {
       toast({
@@ -482,6 +496,11 @@ export default function AdminDashboard() {
     try {
       // Check if this is the last item in filtered view
       const isLastItem = registrations.length === 1
+      
+      // If this was the last item, set animation flag before removal
+      if (isLastItem) {
+        setAnimateEmptyRegistrations(true)
+      }
       
       // Store original status and mark for removal - update ref immediately for realtime check
       const registration = registrations.find(r => r.id === registrationId)
@@ -519,10 +538,6 @@ export default function AdminDashboard() {
       setTimeout(() => {
         setAllRegistrations(prev => {
           const filtered = prev.filter(r => r.id !== registrationId)
-          // If this was the last item, animate the empty state
-          if (isLastItem) {
-            setAnimateEmptyRegistrations(true)
-          }
           return filtered
         })
         setRemovingRegistrations(prev => {
@@ -540,7 +555,11 @@ export default function AdminDashboard() {
 
       toast({
         title: 'Registration rejected',
-        description: 'The registration has been rejected.',
+        description: (
+          <span>
+            The registration has been <span className="text-red-600 font-semibold">rejected</span>.
+          </span>
+        ),
       })
     } catch (error) {
       toast({
@@ -640,23 +659,23 @@ export default function AdminDashboard() {
           )}
 
           {activeTab === 'clearances' && (
-            submissions.length === 0 ? (
+            submissions.length === 0 && removingSubmissions.size === 0 ? (
               <div
                 onAnimationEnd={() => animateEmptySubmissions && setAnimateEmptySubmissions(false)}
+                style={{
+                  opacity: animateEmptySubmissions ? 0 : 1,
+                  animation: animateEmptySubmissions ? 'fadeInSlide 0.8s ease-in-out forwards' : 'none'
+                }}
               >
                 <Card 
                   className="bg-white shadow-xl"
-                  style={animateEmptySubmissions ? {
-                    opacity: 0,
-                    animation: 'fadeInSlide 0.8s ease-in-out forwards'
-                  } : {}}
                 >
                 <CardContent className="py-12 text-center text-muted-foreground">
                   No submissions found
                 </CardContent>
               </Card>
               </div>
-            ) : (
+            ) : submissions.length > 0 ? (
               <div className="space-y-4">
                 {submissions.map((submission) => {
                   const isRemoving = removingSubmissions.has(submission.id)
@@ -735,27 +754,27 @@ export default function AdminDashboard() {
                   )
                 })}
               </div>
-            )
+            ) : null
           )}
 
           {(activeTab as 'clearances' | 'registrations') === 'registrations' && (
-            registrations.length === 0 ? (
+            registrations.length === 0 && removingRegistrations.size === 0 ? (
               <div
                 onAnimationEnd={() => animateEmptyRegistrations && setAnimateEmptyRegistrations(false)}
+                style={{
+                  opacity: animateEmptyRegistrations ? 0 : 1,
+                  animation: animateEmptyRegistrations ? 'fadeInSlide 0.8s ease-in-out forwards' : 'none'
+                }}
               >
                 <Card 
                   className="bg-white shadow-xl"
-                  style={animateEmptyRegistrations ? {
-                    opacity: 0,
-                    animation: 'fadeInSlide 0.8s ease-in-out forwards'
-                  } : {}}
                 >
                 <CardContent className="py-12 text-center text-muted-foreground">
                   No registrations found
                 </CardContent>
               </Card>
               </div>
-            ) : (
+            ) : registrations.length > 0 ? (
               <div className="space-y-4">
                 {registrations.map((registration) => {
                   const isRemoving = removingRegistrations.has(registration.id)
@@ -845,7 +864,7 @@ export default function AdminDashboard() {
                   )
                 })}
               </div>
-            )
+            ) : null
           )}
         </div>
       </main>

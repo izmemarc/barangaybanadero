@@ -20,7 +20,6 @@ const TEMPLATES = {
 }
 
 const OUTPUT_FOLDER_ID = process.env.GOOGLE_DRIVE_OUTPUT_FOLDER_ID!
-const PHOTO_FOLDER_ID = process.env.GOOGLE_DRIVE_PHOTO_FOLDER_ID!
 
 // Helper to get auth client (copied from google-docs.ts)
 function getAuthClient() {
@@ -360,7 +359,7 @@ export async function POST(request: NextRequest) {
         nameParts.firstName,
         nameParts.middleName,
         nameParts.suffix,
-        PHOTO_FOLDER_ID
+        supabase
       )
       
       // Now apply text replacements

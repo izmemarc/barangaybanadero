@@ -110,38 +110,44 @@ export async function insertPhotoIntoDocument(
   firstName: string,
   middleName: string,
   suffix: string,
-  photoFolderId: string
+  supabaseClient: any
 ): Promise<void> {
   try {
     const auth = getAuthClient()
     const docs = google.docs({ version: 'v1', auth })
-    const drive = google.drive({ version: 'v3', auth })
 
     console.log(`[Photo] Looking for photo: ${lastName}-${firstName}-${middleName}`)
 
-    // Build expected photo filename
-    const clean = (str: string) => str.toUpperCase().trim().replace(/\s+/g, ' ')
+    // Build expected photo filename patterns
+    // Normalize special characters (ñ -> N, etc.)
+    const normalize = (str: string) => {
+      return str.toUpperCase()
+        .trim()
+        .replace(/\s+/g, ' ')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+        .replace(/Ñ/g, 'N')
+        .replace(/ñ/g, 'N')
+    }
+    
+    const clean = (str: string) => normalize(str)
     const baseName = [clean(lastName), clean(firstName), clean(middleName)]
       .filter(v => v)
       .join('-')
     const fullBase = suffix ? `${baseName}-${clean(suffix)}` : baseName
 
-    // Search for photo in Drive folder
-    const searchQuery = `'${photoFolderId}' in parents and name contains '${fullBase}' and trashed=false and (mimeType='image/jpeg' or mimeType='image/png')`
-    console.log(`[Photo] Search query: ${searchQuery}`)
-    
-    const filesList = await drive.files.list({
-      q: searchQuery,
-      spaces: 'drive',
-      fields: 'files(id, name, mimeType)',
-      pageSize: 10
-    })
+    // Search for photo in Supabase Storage
+    const bucketName = 'extracted_images'
+    const { data: files, error } = await supabaseClient.storage
+      .from(bucketName)
+      .list('', {
+        limit: 1000,
+        sortBy: { column: 'name', order: 'asc' }
+      })
 
-    console.log(`[Photo] Found ${filesList.data.files?.length || 0} files`)
-
-    if (!filesList.data.files || filesList.data.files.length === 0) {
-      console.log(`[Photo] No photo found for ${fullBase}`)
-      // Try to remove placeholder text
+    if (error) {
+      console.error(`[Photo] Error listing files:`, error)
+      // Remove placeholder if error
       await docs.documents.batchUpdate({
         documentId,
         requestBody: {
@@ -159,20 +165,45 @@ export async function insertPhotoIntoDocument(
       return
     }
 
-    const photoFile = filesList.data.files[0]
-    console.log(`[Photo] Using photo: ${photoFile.name} (${photoFile.id})`)
-
-    // Make photo publicly readable temporarily
-    await drive.permissions.create({
-      fileId: photoFile.id!,
-      requestBody: {
-        role: 'reader',
-        type: 'anyone'
-      }
+    // Find matching photo file - normalize both search term and filenames
+    const matchingFile = files?.find((file: any) => {
+      const fileName = normalize(file.name)
+      const searchBase = fullBase.toUpperCase()
+      // Check if filename contains the name pattern (after normalization)
+      return fileName.includes(searchBase) && 
+             (fileName.endsWith('.JPG') || fileName.endsWith('.JPEG') || 
+              fileName.endsWith('.PNG') || fileName.endsWith('.jpg') || 
+              fileName.endsWith('.jpeg') || fileName.endsWith('.png'))
     })
 
-    // Get public URL
-    const photoUrl = `https://drive.google.com/uc?export=view&id=${photoFile.id}`
+    if (!matchingFile) {
+      console.log(`[Photo] No photo found for ${fullBase}`)
+      // Remove placeholder text
+      await docs.documents.batchUpdate({
+        documentId,
+        requestBody: {
+          requests: [{
+            replaceAllText: {
+              containsText: {
+                text: '{{picture}}',
+                matchCase: false
+              },
+              replaceText: ''
+            }
+          }]
+        }
+      })
+      return
+    }
+
+    console.log(`[Photo] Using photo: ${matchingFile.name}`)
+
+    // Get public URL from Supabase Storage
+    const { data: urlData } = supabaseClient.storage
+      .from(bucketName)
+      .getPublicUrl(matchingFile.name)
+
+    const photoUrl = urlData.publicUrl
     console.log(`[Photo] Using URL: ${photoUrl}`)
 
     // Get current document to find placeholder
