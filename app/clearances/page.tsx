@@ -4,8 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, Building2, AlertCircle, Calendar, Award, Heart, Home, ArrowLeft, UserPlus, CheckCircle } from 'lucide-react'
-import { submitClearance, searchResidents, calculateAge, type Resident } from '@/lib/supabase'
+import { FileText, Building2, AlertCircle, Calendar, Award, Heart, Home, ArrowLeft, UserPlus, CheckCircle, User } from 'lucide-react'
+import { submitClearance, searchResidents, calculateAge, type Resident, supabase } from '@/lib/supabase'
 
 type ClearanceType = 
   | 'barangay'
@@ -47,6 +47,10 @@ export default function ClearancesPage() {
   const [selectedResidentIndex, setSelectedResidentIndex] = useState(-1)
   const [nameWasSelected, setNameWasSelected] = useState(false)
   const [selectedResidentId, setSelectedResidentId] = useState<string | null>(null)
+  const [selectedResident, setSelectedResident] = useState<Resident | null>(null)
+  const [residentPhotoUrl, setResidentPhotoUrl] = useState<string | null>(null)
+  const [imageError, setImageError] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
   const nameInputRef = useRef<HTMLInputElement>(null)
 
   // Search residents when name query changes
@@ -75,15 +79,226 @@ export default function ClearancesPage() {
     }
   }, [selectedType])
 
+  // Reset image error and loading state when photo URL changes
+  useEffect(() => {
+    setImageError(false)
+    setImageLoaded(false)
+  }, [residentPhotoUrl])
+
+  // Update resident info when selectedResidentId changes
+  useEffect(() => {
+    if (selectedResidentId && selectedType !== 'register') {
+      const fetchResidentData = async () => {
+        const { data: fullResident } = await supabase
+          .from('residents')
+          .select('*')
+          .eq('id', selectedResidentId)
+          .single()
+        
+        if (fullResident) {
+          setSelectedResident(fullResident as Resident)
+          const photoUrl = await fetchResidentPhoto(fullResident as Resident)
+          setResidentPhotoUrl(photoUrl)
+        }
+      }
+      fetchResidentData()
+    }
+  }, [selectedResidentId, selectedType])
+
+  // Fetch resident photo from Supabase Storage
+  const fetchResidentPhoto = async (resident: Resident) => {
+    try {
+      // Normalize name for filename matching
+      const normalize = (str: string) => {
+        return str.toUpperCase()
+          .trim()
+          .replace(/\s+/g, '-') // Replace spaces with hyphens
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/Ñ/g, 'N')
+          .replace(/ñ/g, 'N')
+          .replace(/-+/g, '-') // Replace multiple hyphens with single
+          .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+      }
+      
+      const clean = (str: string) => normalize(str)
+      const baseName = [
+        clean(resident.last_name), 
+        clean(resident.first_name), 
+        clean(resident.middle_name || '')
+      ]
+        .filter(v => v)
+        .join('-')
+        .replace(/-+/g, '-') // Ensure single hyphens
+        .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+      const fullBase = resident.suffix ? `${baseName}-${clean(resident.suffix)}` : baseName
+
+      // Search for photo in Supabase Storage
+      const bucketName = 'extracted_images'
+      console.log(`[Photo] Attempting to list files from bucket: ${bucketName}`)
+      const { data: files, error } = await supabase.storage
+        .from(bucketName)
+        .list('', {
+          limit: 1000,
+          sortBy: { column: 'name', order: 'asc' }
+        })
+
+      if (error) {
+        console.error('[Photo] Error listing files:', error)
+        console.error('[Photo] Error details:', JSON.stringify(error, null, 2))
+        return null
+      }
+
+      console.log(`[Photo] Searching for: ${fullBase}`)
+      console.log(`[Photo] Found ${files?.length || 0} files in bucket`)
+      
+      // Find matching photo file - try multiple patterns
+      // Normalize file names to replace spaces with hyphens for matching
+      const normalizeFileName = (name: string) => {
+        return name.toUpperCase()
+          .replace(/\s+/g, '-') // Replace spaces with hyphens
+          .replace(/-+/g, '-') // Collapse multiple hyphens
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/Ñ/g, 'N')
+          .replace(/ñ/g, 'N')
+          .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+      }
+      
+      // Also normalize the search base to ensure spaces become hyphens
+      const normalizedSearchBase = fullBase.toUpperCase().replace(/\s+/g, '-').replace(/-+/g, '-')
+      
+      let matchingFile = files?.find((file: any) => {
+        const fileName = normalizeFileName(file.name)
+        const isImage = fileName.endsWith('.JPG') || fileName.endsWith('.JPEG') || 
+                        fileName.endsWith('.PNG') || fileName.endsWith('.jpg') || 
+                        fileName.endsWith('.jpeg') || fileName.endsWith('.png')
+        // Try exact match or starts with pattern
+        const matches = fileName === normalizedSearchBase + '.JPG' ||
+                        fileName === normalizedSearchBase + '.JPEG' ||
+                        fileName === normalizedSearchBase + '.PNG' ||
+                        fileName === normalizedSearchBase + '.jpg' ||
+                        fileName === normalizedSearchBase + '.jpeg' ||
+                        fileName === normalizedSearchBase + '.png' ||
+                        fileName.startsWith(normalizedSearchBase + '.') ||
+                        fileName.includes(normalizedSearchBase)
+        if (matches && isImage) {
+          console.log(`[Photo] Match found: ${file.name} (normalized: ${fileName}, search: ${normalizedSearchBase})`)
+        }
+        return matches && isImage
+      })
+
+      // If no match, try alternative patterns (first-last, last-first, etc.)
+      if (!matchingFile && files) {
+        const altPatterns = [
+          `${clean(resident.first_name)}-${clean(resident.last_name)}`,
+          `${clean(resident.last_name)}-${clean(resident.first_name)}`,
+          `${clean(resident.first_name)}-${clean(resident.middle_name || '')}-${clean(resident.last_name)}`.replace(/-+/g, '-').replace(/^-|-$/g, ''),
+        ]
+        
+        for (const pattern of altPatterns) {
+          matchingFile = files.find((file: any) => {
+            const fileName = normalizeFileName(file.name)
+            const isImage = fileName.endsWith('.JPG') || fileName.endsWith('.JPEG') || 
+                            fileName.endsWith('.PNG') || fileName.endsWith('.jpg') || 
+                            fileName.endsWith('.jpeg') || fileName.endsWith('.png')
+            return fileName.includes(pattern.toUpperCase()) && isImage
+          })
+          if (matchingFile) {
+            console.log(`[Photo] Match found with alternative pattern: ${pattern}`)
+            break
+          }
+        }
+      }
+
+      if (!matchingFile) {
+        console.log(`[Photo] No photo found for ${fullBase}`)
+        console.log(`[Photo] Sample filenames:`, files?.slice(0, 5).map((f: any) => f.name))
+        
+        // Fallback: Try to construct URL directly if listing failed (permissions issue)
+        // Since document generation works, files exist - we just can't list them from client
+        if (files?.length === 0 || !files) {
+          console.log(`[Photo] Bucket listing returned 0 files, trying direct URL construction`)
+          const extensions = ['.jpg', '.jpeg', '.png', '.JPG', '.JPEG', '.PNG']
+          
+          // Try the normalized search base (LAST-FIRST-MIDDLE format)
+          for (const ext of extensions) {
+            const fileName = `${normalizedSearchBase}${ext}`
+            const { data: urlData } = supabase.storage
+              .from(bucketName)
+              .getPublicUrl(fileName)
+            
+            console.log(`[Photo] Trying direct URL: ${urlData.publicUrl} (filename: ${fileName})`)
+            
+            // Return .jpg first as it's most common
+            if (ext === '.jpg' || ext === '.JPG') {
+              return urlData.publicUrl
+            }
+          }
+          
+          // Also try alternative patterns
+          const altPatterns = [
+            `${clean(resident.last_name)}-${clean(resident.first_name)}-${clean(resident.middle_name || '')}`.replace(/-+/g, '-').replace(/^-|-$/g, ''),
+            `${clean(resident.first_name)}-${clean(resident.middle_name || '')}-${clean(resident.last_name)}`.replace(/-+/g, '-').replace(/^-|-$/g, ''),
+          ]
+          
+          for (const pattern of altPatterns) {
+            if (!pattern) continue
+            const fileName = `${pattern.toUpperCase().replace(/\s+/g, '-')}.jpg`
+            const { data: urlData } = supabase.storage
+              .from(bucketName)
+              .getPublicUrl(fileName)
+            console.log(`[Photo] Trying alternative pattern: ${urlData.publicUrl}`)
+            return urlData.publicUrl
+          }
+        }
+        
+        return null
+      }
+
+      console.log(`[Photo] Using photo: ${matchingFile.name}`)
+
+      // Get public URL from Supabase Storage
+      const { data: urlData } = supabase.storage
+        .from(bucketName)
+        .getPublicUrl(matchingFile.name)
+
+      const photoUrl = urlData.publicUrl
+      console.log(`[Photo] Using URL: ${photoUrl}`)
+      return photoUrl
+    } catch (error) {
+      console.error('[Photo] Error fetching photo:', error)
+      return null
+    }
+  }
+
   // Handle selecting a resident from suggestions
-  const selectResident = (resident: Resident) => {
+  const selectResident = async (resident: Resident) => {
     const fullName = `${resident.first_name} ${resident.middle_name ? resident.middle_name + ' ' : ''}${resident.last_name}`.toUpperCase()
     setFormData(prev => ({ ...prev, name: fullName }))
     setNameQuery(fullName)
     setShowSuggestions(false)
     setSelectedResidentIndex(-1)
     setNameWasSelected(true)
-    setSelectedResidentId(resident.id) // Save resident ID
+    setSelectedResidentId(resident.id)
+    
+    // Fetch full resident data including all fields
+    const { data: fullResident } = await supabase
+      .from('residents')
+      .select('*')
+      .eq('id', resident.id)
+      .single()
+    
+    if (fullResident) {
+      setSelectedResident(fullResident as Resident)
+      // Fetch photo
+      const photoUrl = await fetchResidentPhoto(fullResident as Resident)
+      setResidentPhotoUrl(photoUrl)
+    } else {
+      setSelectedResident(resident)
+      const photoUrl = await fetchResidentPhoto(resident)
+      setResidentPhotoUrl(photoUrl)
+    }
   }
 
   // Keyboard navigation for suggestions
@@ -337,8 +552,9 @@ export default function ClearancesPage() {
               })}
             </div>
           ) : (
-            <div className="px-4 sm:px-6">
-              <div className="flex justify-center items-start flex-col sm:flex-row">
+            <div className="px-4 sm:px-6 relative">
+              {/* Mobile: Back button positioned absolutely on left */}
+              <div className="lg:hidden absolute -left-2.5 top-0 z-10">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -346,13 +562,48 @@ export default function ClearancesPage() {
                     setSelectedType(null)
                     setFormData({ name: '' })
                     setSubmitted(false)
+                    setNameQuery('')
+                    setResidents([])
+                    setShowSuggestions(false)
+                    setNameWasSelected(false)
+                    setSelectedResidentId(null)
+                    setSelectedResident(null)
+                    setResidentPhotoUrl(null)
+                    setSelectedResidentIndex(-1)
                   }}
-                  className="gap-2 hover:bg-primary/5 mt-1 flex-shrink-0 mb-3 sm:mb-0 sm:mr-3"
+                  className="hover:bg-primary/5 p-1.5"
                 >
-                  <ArrowLeft className="h-4 w-4" />
-                  Back
+                  <ArrowLeft style={{ width: '20px', height: '20px' }} />
                 </Button>
-                <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98 w-full sm:w-[520px] max-w-full sm:max-w-[520px]">
+              </div>
+              <div className="flex justify-center items-stretch gap-6">
+                {/* Desktop: Back button in flex container for centering */}
+                <div className="hidden lg:block flex-shrink-0 pt-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedType(null)
+                      setFormData({ name: '' })
+                      setSubmitted(false)
+                      setNameQuery('')
+                      setResidents([])
+                      setShowSuggestions(false)
+                      setNameWasSelected(false)
+                      setSelectedResidentId(null)
+                      setSelectedResident(null)
+                      setResidentPhotoUrl(null)
+                      setSelectedResidentIndex(-1)
+                    }}
+                    className="hover:bg-primary/5 p-1.5"
+                  >
+                    <ArrowLeft style={{ width: '24px', height: '24px' }} />
+                  </Button>
+                </div>
+                <div 
+                  className="transition-all duration-500 ease-in-out flex-shrink-0 h-full"
+                >
+                  <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98 w-[144%] sm:w-[520px] max-w-[144%] sm:max-w-[520px] h-full flex flex-col -mx-[22%] sm:mx-0">
                       {!submitted && (
                         <CardHeader className="pb-0 pt-4 text-center">
                           {selectedTypeData && (
@@ -365,7 +616,7 @@ export default function ClearancesPage() {
                           )}
                         </CardHeader>
                       )}
-                      <CardContent className="pt-0">
+                      <CardContent className="pt-0 flex-1 flex flex-col">
 
                 {submitted ? (
                   <div className="text-center py-12 space-y-4">
@@ -421,6 +672,14 @@ export default function ClearancesPage() {
                           // Reset flag when user types
                           if (nameWasSelected && value !== formData.name) {
                             setNameWasSelected(false)
+                            setSelectedResident(null)
+                            setResidentPhotoUrl(null)
+                            setSelectedResidentId(null)
+                          }
+                          // Clear resident info when name is cleared
+                          if (!value) {
+                            setSelectedResident(null)
+                            setResidentPhotoUrl(null)
                           }
                         }}
                         onKeyDown={handleKeyDown}
@@ -575,6 +834,8 @@ export default function ClearancesPage() {
                           setShowSuggestions(false)
                           setNameWasSelected(false)
                           setSelectedResidentId(null)
+                          setSelectedResident(null)
+                          setResidentPhotoUrl(null)
                           setSelectedResidentIndex(-1)
                         }}
                         disabled={isSubmitting}
@@ -587,18 +848,159 @@ export default function ClearancesPage() {
                 )}
                   </CardContent>
                 </Card>
-                {/* Spacer to balance the back button */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="gap-2 mt-1 flex-shrink-0 ml-3 opacity-0 pointer-events-none"
-                  aria-hidden="true"
-                  tabIndex={-1}
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Back
-                </Button>
+                </div>
+
+              {/* Resident Photo & Details Panel - Slides in from right */}
+              <div 
+                className="hidden lg:block transition-all duration-500 ease-in-out flex-shrink-0 h-full"
+                style={{
+                  width: selectedResident && selectedType !== 'register' ? '400px' : '0px',
+                  opacity: selectedResident && selectedType !== 'register' ? 1 : 0,
+                  marginLeft: selectedResident && selectedType !== 'register' ? '0px' : '0px'
+                }}
+              >
+                {selectedResident && selectedType !== 'register' && (
+                  <div className="w-[400px] h-full">
+                    <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98 h-full flex flex-col">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg font-semibold">Resident Information</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4 flex-1 flex flex-col">
+                        <div className="flex justify-center relative w-48 h-48 mx-auto">
+                          {residentPhotoUrl && !imageError ? (
+                            <>
+                              {!imageLoaded && (
+                                <div className="absolute inset-0 flex flex-col justify-center items-center bg-gray-100 rounded-lg border-2 border-gray-200">
+                                  <User className="w-16 h-16 text-gray-400 mb-2" />
+                                  <span className="text-gray-400 text-sm">Loading...</span>
+                                </div>
+                              )}
+                              <img 
+                                src={residentPhotoUrl} 
+                                alt={`${selectedResident.first_name} ${selectedResident.last_name}`}
+                                className={`w-48 h-48 object-cover rounded-lg border-2 border-gray-200 ${imageLoaded ? 'opacity-100' : 'opacity-0 absolute'}`}
+                                onLoad={() => setImageLoaded(true)}
+                                onError={() => setImageError(true)}
+                              />
+                            </>
+                          ) : (
+                            <div className="flex flex-col justify-center items-center w-48 h-48 bg-gray-100 rounded-lg border-2 border-gray-200">
+                              <User className="w-16 h-16 text-gray-400 mb-2" />
+                              <span className="text-gray-400 text-sm">No photo available</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <span className="font-semibold">Name:</span>{' '}
+                            {selectedResident.first_name} {selectedResident.middle_name} {selectedResident.last_name} {selectedResident.suffix || ''}
+                          </div>
+                          {selectedResident.birthdate && (
+                            <div>
+                              <span className="font-semibold">Birthdate:</span>{' '}
+                              {new Date(selectedResident.birthdate).toLocaleDateString()} 
+                              {selectedResident.age && ` (Age: ${selectedResident.age})`}
+                            </div>
+                          )}
+                          {selectedResident.gender && (
+                            <div>
+                              <span className="font-semibold">Gender:</span> {selectedResident.gender}
+                            </div>
+                          )}
+                          {selectedResident.civil_status && (
+                            <div>
+                              <span className="font-semibold">Civil Status:</span> {selectedResident.civil_status}
+                            </div>
+                          )}
+                          {selectedResident.citizenship && (
+                            <div>
+                              <span className="font-semibold">Citizenship:</span> {selectedResident.citizenship}
+                            </div>
+                          )}
+                          {selectedResident.purok && (
+                            <div>
+                              <span className="font-semibold">Purok:</span> {selectedResident.purok}
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
               </div>
+              </div>
+              
+              {/* Mobile: Resident info card below form */}
+              {selectedResident && selectedType !== 'register' && (
+                <div className="lg:hidden mt-6 flex justify-center">
+                  <div className="flex-shrink-0">
+                    <Card className="bg-white/95 backdrop-blur-lg shadow-2xl w-[144%] sm:w-full max-w-[144%] sm:max-w-full flex flex-col -mx-[22%] sm:mx-0">
+                    <CardHeader className="pb-2 px-4">
+                      <CardTitle className="text-base font-semibold">Resident Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3 flex-1 flex flex-col px-4 pb-4">
+                      <div className="flex justify-center relative w-32 h-32 mx-auto">
+                        {residentPhotoUrl && !imageError ? (
+                          <>
+                            {!imageLoaded && (
+                              <div className="absolute inset-0 flex flex-col justify-center items-center bg-gray-100 rounded-lg border-2 border-gray-200">
+                                <User className="w-10 h-10 text-gray-400 mb-1" />
+                                <span className="text-gray-400 text-xs">Loading...</span>
+                              </div>
+                            )}
+                            <img 
+                              src={residentPhotoUrl} 
+                              alt={`${selectedResident.first_name} ${selectedResident.last_name}`}
+                              className={`w-32 h-32 object-cover rounded-lg border-2 border-gray-200 ${imageLoaded ? 'opacity-100' : 'opacity-0 absolute'}`}
+                              onLoad={() => setImageLoaded(true)}
+                              onError={() => setImageError(true)}
+                            />
+                          </>
+                        ) : (
+                          <div className="flex flex-col justify-center items-center w-32 h-32 bg-gray-100 rounded-lg border-2 border-gray-200">
+                            <User className="w-10 h-10 text-gray-400 mb-1" />
+                            <span className="text-gray-400 text-xs">No photo available</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-1.5 text-xs">
+                        <div>
+                          <span className="font-semibold">Name:</span>{' '}
+                          {selectedResident.first_name} {selectedResident.middle_name} {selectedResident.last_name} {selectedResident.suffix || ''}
+                        </div>
+                        {selectedResident.birthdate && (
+                          <div>
+                            <span className="font-semibold">Birthdate:</span>{' '}
+                            {new Date(selectedResident.birthdate).toLocaleDateString()} 
+                            {selectedResident.age && ` (Age: ${selectedResident.age})`}
+                          </div>
+                        )}
+                        {selectedResident.gender && (
+                          <div>
+                            <span className="font-semibold">Gender:</span> {selectedResident.gender}
+                          </div>
+                        )}
+                        {selectedResident.civil_status && (
+                          <div>
+                            <span className="font-semibold">Civil Status:</span> {selectedResident.civil_status}
+                          </div>
+                        )}
+                        {selectedResident.citizenship && (
+                          <div>
+                            <span className="font-semibold">Citizenship:</span> {selectedResident.citizenship}
+                          </div>
+                        )}
+                        {selectedResident.purok && (
+                          <div>
+                            <span className="font-semibold">Purok:</span> {selectedResident.purok}
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -37,6 +37,7 @@ export interface Resident {
   last_name: string
   first_name: string
   middle_name: string | null
+  suffix?: string | null
   birthdate: string | null
   age: number | null
   gender: string | null
