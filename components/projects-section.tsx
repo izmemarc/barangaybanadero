@@ -61,7 +61,7 @@ export function ProjectsSection() {
     <section id="projects" className="min-h-screen py-12 sm:py-16 lg:py-20">
       <div className="w-full max-w-[1600px] mx-auto">
         <div className="text-center mb-8 sm:mb-10 lg:mb-12">
-          <h2 className="font-black text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', marginBottom: 'clamp(0.5rem, 1vh, 0.75rem)'}}>Community Projects</h2>
+          <h2 className="font-black text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', marginBottom: 'clamp(0.5rem, 1vh, 0.75rem)'}}>COMMUNITY PROJECTS</h2>
           <p className="text-gray-600 font-medium" style={{fontSize: 'clamp(0.875rem, 1.5vw, 1rem)'}}>
             Discover the ongoing and completed projects that are transforming our barangay and improving the quality of
             life for all residents.
@@ -71,7 +71,7 @@ export function ProjectsSection() {
         {/* Main Pillars Section */}
         <div className="mb-12 sm:mb-16 lg:mb-20">
           <div className="text-center mb-6 sm:mb-8">
-            <h3 className="font-bold text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.25rem, 2.5vw, 2rem)'}}>Main Pillars</h3>
+            <h3 className="font-bold text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.25rem, 2.5vw, 2rem)'}}>MAIN PILLARS</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {coreAreasProjectsStatic.map((project: Project, index: number) => (
@@ -86,7 +86,7 @@ export function ProjectsSection() {
         {/* Supporting Pillars Section */}
         <div className="mb-8 sm:mb-10 lg:mb-12">
           <div className="text-center mb-6 sm:mb-8">
-            <h3 className="font-bold text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.25rem, 2.5vw, 2rem)'}}>Supporting Pillars</h3>
+            <h3 className="font-bold text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.25rem, 2.5vw, 2rem)'}}>SUPPORTING PILLARS</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {essentialAreasProjectsStatic.map((project: Project, index: number) => (

@@ -32,17 +32,9 @@ Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue
 Remove-Item -Recurse -Force node_modules/.cache -ErrorAction SilentlyContinue
 Remove-Item -Recurse -Force .turbo -ErrorAction SilentlyContinue
 
-Write-Host "Ensuring uploads directory exists..." -ForegroundColor Yellow
-if (!(Test-Path "public/uploads")) {
-    New-Item -ItemType Directory -Path "public/uploads" -Force | Out-Null
-}
-if (!(Test-Path "public/uploads/.gitkeep")) {
-    "# Uploads directory" | Out-File "public/uploads/.gitkeep" -Encoding UTF8
-}
-
 Write-Host "Creating archive..." -ForegroundColor Yellow
 $Archive = "deploy.zip"
-Compress-Archive -Path "app", "components", "contexts", "hooks", "lib", "public", "*.json", "*.mjs", "deployment/nginx-http.conf", "deployment/nginx-https.conf", "deployment/setup-ssl.sh" -DestinationPath $Archive -Force -ErrorAction SilentlyContinue
+Compress-Archive -Path "app", "components", "contexts", "hooks", "lib", "scripts", "public", ".env.local", "*.json", "*.mjs", "deployment/nginx-http.conf", "deployment/nginx-https.conf", "deployment/setup-ssl.sh" -DestinationPath $Archive -Force -ErrorAction SilentlyContinue
 
 if (Test-Path $Archive) {
     Write-Host "Archive created: $Archive" -ForegroundColor Green
@@ -73,11 +65,8 @@ if ($LASTEXITCODE -eq 0) {
         Write-Host "Upload successful!" -ForegroundColor Green
         Write-Host "Deploying application..." -ForegroundColor Cyan
         
-        Write-Host "Backing up uploaded files..." -ForegroundColor Yellow
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && mkdir -p /tmp/barangay-uploads-backup && cp -r public/uploads/* /tmp/barangay-uploads-backup/ 2>/dev/null || true"
-        
         Write-Host "Cleaning old files and caches..." -ForegroundColor Yellow
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && rm -rf app components contexts hooks lib public *.json *.ts *.mjs node_modules .next .turbo"
+        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && rm -rf app components contexts hooks lib scripts public *.json *.ts *.mjs node_modules .next .turbo"
         
         Write-Host "Extracting new files..." -ForegroundColor Yellow
         echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && unzip -o -q deploy.zip && rm deploy.zip"
@@ -108,37 +97,8 @@ if ($LASTEXITCODE -eq 0) {
         
         Write-Host "Dependencies installed successfully!" -ForegroundColor Green
         
-        Write-Host "Setting up uploads directory..." -ForegroundColor Yellow
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && mkdir -p public/uploads && chmod 755 public/uploads"
-        
-        Write-Host "Restoring uploaded files..." -ForegroundColor Yellow
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cp -r /tmp/barangay-uploads-backup/* /root/barangay-website/public/uploads/ 2>/dev/null || true && rm -rf /tmp/barangay-uploads-backup"
-        $restoredCount = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "ls -1 /root/barangay-website/public/uploads/*.webp 2>/dev/null | wc -l"
-        if ($restoredCount -gt 0) {
-            Write-Host "  Restored $restoredCount uploaded file(s)" -ForegroundColor Green
-        } else {
-            Write-Host "  No previous uploads to restore" -ForegroundColor Cyan
-        }
-        
-        Write-Host "Fixing Sharp library for production..." -ForegroundColor Yellow
-        Write-Host "  - Removing existing Sharp..." -ForegroundColor Cyan
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && npm uninstall sharp"
-        
-        Write-Host "  - Installing Sharp with platform-specific build..." -ForegroundColor Cyan
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && npm install --cpu=x64 --os=linux --libc=glibc sharp --legacy-peer-deps 2>&1 | tail -10"
-        
-        Write-Host "  - Verifying Sharp installation..." -ForegroundColor Cyan
-        $sharpCheck = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && node -e `"const sharp = require('sharp'); console.log('Sharp version:', sharp.versions.sharp);`" 2>&1"
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "  Sharp installed successfully: $sharpCheck" -ForegroundColor Green
-        } else {
-            Write-Host "  Sharp installation may have issues: $sharpCheck" -ForegroundColor Yellow
-            Write-Host "  Trying alternative installation method..." -ForegroundColor Yellow
-            echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && npm install --ignore-scripts=false sharp --legacy-peer-deps && npm rebuild sharp"
-        }
-        
         Write-Host "Building application (this may take 1-2 minutes)..." -ForegroundColor Yellow
-        $buildResult = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && npm run build 2>&1"
+        $buildResult = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && NODE_OPTIONS='--max-old-space-size=2048' npm run build 2>&1"
         
         if ($LASTEXITCODE -ne 0) {
             Write-Host "`nBuild failed! Showing last 30 lines of output:" -ForegroundColor Red
@@ -242,6 +202,36 @@ if ($LASTEXITCODE -eq 0) {
         echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo chmod 755 /root && sudo chmod -R 755 /root/barangay-website/public"
         Write-Host "  Permissions set successfully!" -ForegroundColor Green
         
+        Write-Host "Checking for .env.local file..." -ForegroundColor Yellow
+        $envCheck = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "test -f /root/barangay-website/.env.local && echo 'EXISTS' || echo 'MISSING'"
+        if ($envCheck -match "MISSING") {
+            Write-Host "  WARNING: .env.local file not found on server!" -ForegroundColor Red
+            Write-Host "  Create /root/barangay-website/.env.local with the following variables:" -ForegroundColor Yellow
+            Write-Host "    - NEXT_PUBLIC_SUPABASE_URL" -ForegroundColor Cyan
+            Write-Host "    - NEXT_PUBLIC_SUPABASE_ANON_KEY" -ForegroundColor Cyan
+            Write-Host "    - SUPABASE_SERVICE_ROLE_KEY" -ForegroundColor Cyan
+            Write-Host "    - GOOGLE_CLIENT_ID" -ForegroundColor Cyan
+            Write-Host "    - GOOGLE_CLIENT_SECRET" -ForegroundColor Cyan
+            Write-Host "    - GOOGLE_REFRESH_TOKEN" -ForegroundColor Cyan
+            Write-Host "    - Template IDs (BARANGAY_TEMPLATE_ID, etc.)" -ForegroundColor Cyan
+            Write-Host "    - PHILSMS_API_TOKEN (for SMS notifications)" -ForegroundColor Cyan
+            Write-Host "    - PHILSMS_NOTIFICATION_NUMBER (for SMS notifications)" -ForegroundColor Cyan
+            Write-Host "    - PHILSMS_SENDER_ID (optional, defaults to PhilSMS)" -ForegroundColor Cyan
+        } else {
+            Write-Host "  .env.local found" -ForegroundColor Green
+            Write-Host "  Checking for SMS configuration..." -ForegroundColor Cyan
+            $smsCheck = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "grep -q 'PHILSMS_API_TOKEN' /root/barangay-website/.env.local && echo 'SMS_CONFIGURED' || echo 'SMS_MISSING'"
+            if ($smsCheck -match "SMS_MISSING") {
+                Write-Host "    WARNING: SMS notification variables not found in .env.local" -ForegroundColor Yellow
+                Write-Host "    Add these lines to enable SMS notifications:" -ForegroundColor Yellow
+                Write-Host "      PHILSMS_API_TOKEN=your-token" -ForegroundColor Cyan
+                Write-Host "      PHILSMS_NOTIFICATION_NUMBER=639XXXXXXXXX" -ForegroundColor Cyan
+                Write-Host "      PHILSMS_SENDER_ID=YourSenderID" -ForegroundColor Cyan
+            } else {
+                Write-Host "    SMS configuration found" -ForegroundColor Green
+            }
+        }
+        
         Write-Host "Restarting application..." -ForegroundColor Yellow
         $startResult = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "pm2 stop barangay-website > /dev/null 2>&1; pm2 delete barangay-website > /dev/null 2>&1; pm2 flush > /dev/null 2>&1; cd /root/barangay-website && HOSTNAME=0.0.0.0 PORT=3001 ADMIN_PASSWORD='`$2b`$10`$xXCCrkJAX7zbODYyN47Nnev9/dTKZE7001IQW4Cn/heZd9szAn8w.' pm2 start npm --name barangay-website -- start 2>&1 && pm2 save > /dev/null"
         if ($LASTEXITCODE -ne 0) {
@@ -261,41 +251,6 @@ if ($LASTEXITCODE -eq 0) {
             echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "pm2 logs barangay-website --lines 20"
         } else {
             Write-Host "Application is running successfully! HTTP Status: $verifyResult" -ForegroundColor Green
-            
-            Write-Host "`nTesting upload functionality..." -ForegroundColor Yellow
-            $uploadTest = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "curl -s -o /dev/null -w '%{http_code}' http://localhost:3001/api/admin/upload/health"
-            if ($uploadTest -eq "200") {
-                Write-Host "Upload API is accessible! HTTP Status: $uploadTest" -ForegroundColor Green
-            } else {
-                Write-Host "Upload API test failed! HTTP Status: $uploadTest" -ForegroundColor Red
-            }
-            
-            $sharpTest = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "curl -s -o /dev/null -w '%{http_code}' http://localhost:3001/api/admin/test-sharp"
-            if ($sharpTest -eq "200") {
-                Write-Host "Sharp library is working! HTTP Status: $sharpTest" -ForegroundColor Green
-            } else {
-                Write-Host "Sharp library test failed! HTTP Status: $sharpTest" -ForegroundColor Red
-                Write-Host "Upload images may not work correctly" -ForegroundColor Yellow
-            }
-            
-            Write-Host "`nChecking uploaded files..." -ForegroundColor Yellow
-            $filesTest = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "curl -s http://localhost:3001/api/admin/upload/test | head -20"
-            Write-Host "$filesTest" -ForegroundColor Cyan
-            
-            Write-Host "`nTesting if uploaded files are accessible..." -ForegroundColor Yellow
-            $testFile = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "ls /root/barangay-website/public/uploads/*.webp 2>/dev/null | head -1"
-            if (![string]::IsNullOrEmpty($testFile)) {
-                $fileName = Split-Path $testFile -Leaf
-                $fileAccessTest = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "curl -s -o /dev/null -w '%{http_code}' https://banaderolegazpi.online/uploads/$fileName"
-                if ($fileAccessTest -eq "200") {
-                    Write-Host "Uploaded files are accessible! HTTP Status: $fileAccessTest" -ForegroundColor Green
-                } else {
-                    Write-Host "WARNING: Uploaded files return HTTP $fileAccessTest" -ForegroundColor Yellow
-                    Write-Host "This may cause broken image display" -ForegroundColor Yellow
-                }
-            } else {
-                Write-Host "No uploaded files found yet" -ForegroundColor Cyan
-            }
         }
         
         Write-Host "Forcing comprehensive cache update for all users..." -ForegroundColor Yellow
