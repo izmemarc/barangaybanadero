@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { generateClearanceDocument, insertPhotoIntoDocument } from '@/lib/google-docs'
 import { google } from 'googleapis'
+import { notifyDocumentGenerated } from '@/lib/philsms'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -406,6 +407,25 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       throw updateError
+    }
+
+    // Send SMS notification to contact if available
+    const contactNumber = submission.form_data.contact || submission.form_data.contactNumber || submission.form_data.contact_no
+    if (contactNumber) {
+      try {
+        console.log('[SMS] Attempting to send document notification...')
+        const smsResult = await notifyDocumentGenerated(contactNumber, submission.name, submission.clearance_type)
+        if (smsResult?.success) {
+          console.log('[SMS] Document notification sent successfully to:', contactNumber)
+        } else {
+          console.error('[SMS] Failed to send document notification:', smsResult?.error)
+        }
+      } catch (smsError) {
+        console.error('[SMS] Exception sending document notification:', smsError)
+        // Don't fail the request if SMS fails
+      }
+    } else {
+      console.log('[SMS] No contact number found in submission, skipping SMS notification')
     }
 
     return NextResponse.json({ 

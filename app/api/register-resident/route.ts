@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { notifyNewSubmission } from '@/lib/philsms'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -71,6 +72,21 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) throw error
+
+    // Send SMS notification
+    try {
+      console.log('[SMS] Attempting to send notification for registration...')
+      const fullName = `${formData.firstName} ${formData.middleName || ''} ${formData.lastName}`.trim()
+      const smsResult = await notifyNewSubmission('resident-registration', fullName)
+      if (smsResult?.success) {
+        console.log('[SMS] Registration notification sent successfully')
+      } else {
+        console.error('[SMS] Failed to send registration notification:', smsResult?.error)
+      }
+    } catch (smsError) {
+      console.error('[SMS] Exception sending registration notification:', smsError)
+      // Don't fail the request if SMS fails
+    }
 
     return NextResponse.json({
       success: true,

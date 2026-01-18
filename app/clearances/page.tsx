@@ -452,6 +452,10 @@ export default function ClearancesPage() {
     e.preventDefault()
     setIsSubmitting(true)
     setError(null)
+    
+    // Hide resident info immediately when submit is clicked
+    setSelectedResident(null)
+    setResidentPhotoUrl(null)
 
     try {
       if (!selectedType) {
@@ -473,6 +477,11 @@ export default function ClearancesPage() {
         setIsSubmitting(false)
         setSubmitted(true)
         
+        // Clear resident info immediately when success shows
+        setSelectedResident(null)
+        setResidentPhotoUrl(null)
+        setSelectedResidentId(null)
+        
         // Reset form after 3 seconds
         setTimeout(() => {
           setSubmitted(false)
@@ -487,17 +496,39 @@ export default function ClearancesPage() {
         return
       }
 
-      // Submit clearance to Supabase
+      // Submit clearance to Supabase via API (includes SMS notification)
       console.log('[Clearance] Submitting:', { 
         type: selectedType, 
         name: formData.name, 
         residentId: selectedResidentId,
         formData 
       })
-      await submitClearance(selectedType, formData.name, formData, selectedResidentId)
+      
+      const response = await fetch('/api/submit-clearance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          clearanceType: selectedType,
+          name: formData.name,
+          formData,
+          residentId: selectedResidentId,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to submit clearance')
+      }
 
       setIsSubmitting(false)
       setSubmitted(true)
+      
+      // Clear resident info immediately when success shows
+      setSelectedResident(null)
+      setResidentPhotoUrl(null)
+      setSelectedResidentId(null)
       
       // Reset form after 3 seconds
       setTimeout(() => {
@@ -552,7 +583,7 @@ export default function ClearancesPage() {
               })}
             </div>
           ) : (
-            <div className="px-4 sm:px-6 relative">
+            <div className="px-4 sm:px-6 relative" style={{ overflow: 'visible' }}>
               {/* Mobile: Back button positioned absolutely on left */}
               <div className="lg:hidden absolute -left-2.5 top-0 z-10">
                 <Button
@@ -576,7 +607,7 @@ export default function ClearancesPage() {
                   <ArrowLeft style={{ width: '20px', height: '20px' }} />
                 </Button>
               </div>
-              <div className="flex justify-center items-stretch gap-6">
+              <div className="flex justify-center items-stretch gap-6" style={{ overflow: 'visible' }}>
                 {/* Desktop: Back button in flex container for centering */}
                 <div className="hidden lg:block flex-shrink-0 pt-1">
                   <Button
@@ -602,8 +633,9 @@ export default function ClearancesPage() {
                 </div>
                 <div 
                   className="transition-all duration-500 ease-in-out flex-shrink-0 h-full"
+                  style={{ overflow: 'visible' }}
                 >
-                  <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98 w-[144%] sm:w-[520px] max-w-[144%] sm:max-w-[520px] h-full flex flex-col -mx-[22%] sm:mx-0">
+                  <Card className={`bg-white/95 backdrop-blur-lg shadow-2xl hover:bg-white/98 h-full flex flex-col ${submitted ? 'w-[124%] max-w-[124%] -mx-[12%]' : 'w-[144%] max-w-[144%] -mx-[22%]'} sm:w-[520px] sm:max-w-[520px] sm:mx-0`} style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
                       {!submitted && (
                         <CardHeader className="pb-0 pt-4 text-center">
                           {selectedTypeData && (
@@ -854,12 +886,12 @@ export default function ClearancesPage() {
               <div 
                 className="hidden lg:block transition-all duration-500 ease-in-out flex-shrink-0 h-full"
                 style={{
-                  width: selectedResident && selectedType !== 'register' ? '400px' : '0px',
-                  opacity: selectedResident && selectedType !== 'register' ? 1 : 0,
-                  marginLeft: selectedResident && selectedType !== 'register' ? '0px' : '0px'
+                  width: selectedResident && selectedType !== 'register' && !submitted ? '400px' : '0px',
+                  opacity: selectedResident && selectedType !== 'register' && !submitted ? 1 : 0,
+                  marginLeft: selectedResident && selectedType !== 'register' && !submitted ? '0px' : '0px'
                 }}
               >
-                {selectedResident && selectedType !== 'register' && (
+                {selectedResident && selectedType !== 'register' && !submitted && (
                   <div className="w-[400px] h-full">
                     <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98 h-full flex flex-col">
                       <CardHeader className="pb-3">
@@ -931,19 +963,19 @@ export default function ClearancesPage() {
               </div>
               
               {/* Mobile: Resident info card below form */}
-              {selectedResident && selectedType !== 'register' && (
-                <div className="lg:hidden mt-6 flex justify-center">
-                  <div className="flex-shrink-0">
-                    <Card className="bg-white/95 backdrop-blur-lg shadow-2xl w-[144%] sm:w-full max-w-[144%] sm:max-w-full flex flex-col -mx-[22%] sm:mx-0">
+              {selectedResident && selectedType !== 'register' && !submitted && (
+                <div className="lg:hidden mt-6 px-4 sm:px-6">
+                  <div className="flex justify-center">
+                    <Card className="bg-white/95 backdrop-blur-lg shadow-2xl w-[94%] sm:w-full max-w-[94%] sm:max-w-full flex flex-col">
                     <CardHeader className="pb-2 px-4">
                       <CardTitle className="text-base font-semibold">Resident Information</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3 flex-1 flex flex-col px-4 pb-4">
-                      <div className="flex justify-center relative w-32 h-32 mx-auto">
+                      <div className="flex justify-center relative mx-auto flex-shrink-0" style={{ width: '128px', height: '128px', minWidth: '128px', minHeight: '128px' }}>
                         {residentPhotoUrl && !imageError ? (
                           <>
                             {!imageLoaded && (
-                              <div className="absolute inset-0 flex flex-col justify-center items-center bg-gray-100 rounded-lg border-2 border-gray-200">
+                              <div className="absolute inset-0 flex flex-col justify-center items-center bg-gray-100 rounded-lg border-2 border-gray-200 flex-shrink-0" style={{ width: '128px', height: '128px', minWidth: '128px', minHeight: '128px' }}>
                                 <User className="w-10 h-10 text-gray-400 mb-1" />
                                 <span className="text-gray-400 text-xs">Loading...</span>
                               </div>
@@ -951,47 +983,48 @@ export default function ClearancesPage() {
                             <img 
                               src={residentPhotoUrl} 
                               alt={`${selectedResident.first_name} ${selectedResident.last_name}`}
-                              className={`w-32 h-32 object-cover rounded-lg border-2 border-gray-200 ${imageLoaded ? 'opacity-100' : 'opacity-0 absolute'}`}
+                              className={`object-cover rounded-lg border-2 border-gray-200 flex-shrink-0 ${imageLoaded ? 'opacity-100' : 'opacity-0 absolute'}`}
+                              style={{ width: '128px', height: '128px', minWidth: '128px', minHeight: '128px', maxWidth: '128px', maxHeight: '128px' }}
                               onLoad={() => setImageLoaded(true)}
                               onError={() => setImageError(true)}
                             />
                           </>
                         ) : (
-                          <div className="flex flex-col justify-center items-center w-32 h-32 bg-gray-100 rounded-lg border-2 border-gray-200">
+                          <div className="flex flex-col justify-center items-center bg-gray-100 rounded-lg border-2 border-gray-200 flex-shrink-0" style={{ width: '128px', height: '128px', minWidth: '128px', minHeight: '128px' }}>
                             <User className="w-10 h-10 text-gray-400 mb-1" />
                             <span className="text-gray-400 text-xs">No photo available</span>
                           </div>
                         )}
                       </div>
-                      <div className="space-y-1.5 text-xs">
-                        <div>
+                      <div className="space-y-1.5 text-xs w-full">
+                        <div className="break-words">
                           <span className="font-semibold">Name:</span>{' '}
                           {selectedResident.first_name} {selectedResident.middle_name} {selectedResident.last_name} {selectedResident.suffix || ''}
                         </div>
                         {selectedResident.birthdate && (
-                          <div>
+                          <div className="break-words">
                             <span className="font-semibold">Birthdate:</span>{' '}
                             {new Date(selectedResident.birthdate).toLocaleDateString()} 
                             {selectedResident.age && ` (Age: ${selectedResident.age})`}
                           </div>
                         )}
                         {selectedResident.gender && (
-                          <div>
+                          <div className="break-words">
                             <span className="font-semibold">Gender:</span> {selectedResident.gender}
                           </div>
                         )}
                         {selectedResident.civil_status && (
-                          <div>
+                          <div className="break-words">
                             <span className="font-semibold">Civil Status:</span> {selectedResident.civil_status}
                           </div>
                         )}
                         {selectedResident.citizenship && (
-                          <div>
+                          <div className="break-words">
                             <span className="font-semibold">Citizenship:</span> {selectedResident.citizenship}
                           </div>
                         )}
                         {selectedResident.purok && (
-                          <div>
+                          <div className="break-words">
                             <span className="font-semibold">Purok:</span> {selectedResident.purok}
                           </div>
                         )}
