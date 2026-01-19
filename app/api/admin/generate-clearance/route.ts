@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
 
     const clearanceType = submission.clearance_type
 
-    // BARANGAY CLEARANCE
+    // BARANGAY CLEARANCE - Update template to use <placeholder> format
     if (clearanceType === 'barangay') {
       replacements = {
         LastName: nameParts.lastName.toUpperCase(),
@@ -143,7 +143,6 @@ export async function POST(request: NextRequest) {
         Suffix: nameParts.suffix.toUpperCase(),
         Purpose: submission.form_data.purpose || '',
         DateIssued: dateIssued,
-        ClearanceNumber: '', // removed
         Sex: resident?.gender || '',
         MaritalStatus: resident?.civil_status ? toSentenceCase(resident.civil_status) : '',
         Citizenship: resident?.citizenship || '',
@@ -152,7 +151,7 @@ export async function POST(request: NextRequest) {
         Birthdate: resident?.birthdate ? new Date(resident.birthdate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''
       }
     }
-    // BUSINESS CLEARANCE
+    // BUSINESS CLEARANCE - Update template to use <placeholder> format
     else if (clearanceType === 'business') {
       replacements = {
         FirstName: nameParts.firstName.toUpperCase(),
@@ -166,48 +165,46 @@ export async function POST(request: NextRequest) {
         Purok: resident?.purok || '',
         Nationality: resident?.citizenship || '',
         Civil: resident?.civil_status ? toSentenceCase(resident.civil_status) : '',
-        DateIssued: dateIssued,
-        ClearanceNumber: '' // removed
+        DateIssued: dateIssued
       }
     }
-    // BLOTTER
+    // BLOTTER - Uses <placeholder> format
     else if (clearanceType === 'blotter') {
       const submissionTime = today.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
       replacements = {
         date: dateIssued,
-        time: submissionTime,
+        time: submissionTime, // Note: <time> placeholder not in template, but keeping for backward compatibility
         name: submission.form_data.complainantName || '',
         address: submission.form_data.complainantAddress || '',
         contact_no: submission.form_data.complainantContact || '',
         age: submission.form_data.complainantAge || '',
         civil_status: submission.form_data.complainantCivil ? toSentenceCase(submission.form_data.complainantCivil) : '',
         name2: submission.form_data.respondentName || '',
-        address2: '', // would need respondent lookup
-        age2: '',
-        civil_status2: '',
+        address2: submission.form_data.respondentAddress || '',
+        age2: submission.form_data.respondentAge || '',
+        civil_status2: submission.form_data.respondentCivil ? toSentenceCase(submission.form_data.respondentCivil) : '',
         incident: submission.form_data.incident || '',
         incident_description: submission.form_data.incidentDescription || '',
         incident_date: submission.form_data.incidentDate || '',
         incident_place: submission.form_data.incidentPlace || '',
-        incident_time: submission.form_data.incidentTime || '',
-        or: '' // removed
+        incident_time: submission.form_data.incidentTime || ''
       }
     }
-    // FACILITY
+    // FACILITY - Uses <placeholder> format
     else if (clearanceType === 'facility') {
       const submissionTime = today.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
       replacements = {
-        or: '', // removed
+        or: '', // Template has <or> but we're leaving it blank
         date: dateIssued,
         time: submissionTime,
         month: month,
         day: dayNum.toString(),
         year: year,
         name: submission.name.toUpperCase(),
-        address: '',
+        address: resident?.purok || submission.form_data.address || '',
         contact_no: submission.form_data.contact || '',
-        civil_status: '',
-        age: '',
+        civil_status: resident?.civil_status ? toSentenceCase(resident.civil_status) : '',
+        age: resident?.age?.toString() || '',
         facility: submission.form_data.facility || '',
         purpose: submission.form_data.purpose || '',
         usedate: submission.form_data.date || '',
@@ -215,74 +212,41 @@ export async function POST(request: NextRequest) {
         end: submission.form_data.endTime || '',
         number: submission.form_data.participants || '',
         equipment: submission.form_data.equipment || '',
-        amount: '' // could calculate
+        amount: submission.form_data.amount || ''
       }
     }
-    // GOOD MORAL
+    // GOOD MORAL - Uses <placeholder> format (case-sensitive: <first>, <Middle>, <Last>)
     else if (clearanceType === 'good-moral') {
       replacements = {
         first: nameParts.firstName.toUpperCase(),
-        First: nameParts.firstName.toUpperCase(),
-        middle: nameParts.middleName.toUpperCase(),
         Middle: nameParts.middleName.toUpperCase(),
-        last: nameParts.lastName.toUpperCase(),
         Last: nameParts.lastName.toUpperCase(),
         civil: resident?.civil_status || '',
-        Civil: resident?.civil_status || '',
         address: resident?.purok || '',
-        Address: resident?.purok || '',
         day: dayOrd,
-        Day: dayOrd,
         month: month,
-        Month: month,
         year: year,
-        Year: year,
         pay_month: month,
-        PAY_MONTH: month,
         pay_day: dayNum.toString().padStart(2, '0'),
-        PAY_DAY: dayNum.toString().padStart(2, '0'),
-        pay_year: year,
-        PAY_YEAR: year,
-        or: '', // removed
-        OR: '',
-        certno: '',
-        CertNo: ''
+        pay_year: year
       }
     }
-    // INDIGENCY
+    // INDIGENCY - Uses <placeholder> format (exact case: <first>, <Middle>, <Last>, <Purok>)
     else if (clearanceType === 'indigency') {
       replacements = {
         first: nameParts.firstName.toUpperCase(),
-        First: nameParts.firstName.toUpperCase(),
-        middle: nameParts.middleName.toUpperCase(),
         Middle: nameParts.middleName.toUpperCase(),
-        last: nameParts.lastName.toUpperCase(),
         Last: nameParts.lastName.toUpperCase(),
         age: resident?.age?.toString() || '',
-        Age: resident?.age?.toString() || '',
         civil: resident?.civil_status || '',
-        Civil: resident?.civil_status || '',
-        purok: resident?.purok || '',
         Purok: resident?.purok || '',
         day: dayOrd,
-        Day: dayOrd,
         month: month,
-        Month: month,
         year: year,
-        Year: year,
-        contact_no: submission.form_data.contact || '',
-        Contact_No: submission.form_data.contact || '',
-        purpose: submission.form_data.purpose || '',
-        Purpose: submission.form_data.purpose || '',
-        ClearanceNumber: '', // removed
-        or: '',
-        OR: '',
-        certno: '',
-        Certno: '',
-        CertNo: ''
+        purpose: submission.form_data.purpose || ''
       }
     }
-    // RESIDENCY
+    // RESIDENCY - Uses <placeholder> format (exact case: <first>, <Middle>, <Last>)
     else if (clearanceType === 'residency') {
       const yearResided = submission.form_data.yearResided || ''
       let startText = yearResided
@@ -294,38 +258,17 @@ export async function POST(request: NextRequest) {
 
       replacements = {
         first: nameParts.firstName.toUpperCase(),
-        First: nameParts.firstName.toUpperCase(),
-        firstname: nameParts.firstName.toUpperCase(),
-        middle: nameParts.middleName.toUpperCase(),
         Middle: nameParts.middleName.toUpperCase(),
-        middlename: nameParts.middleName.toUpperCase(),
-        mi: nameParts.middleName ? nameParts.middleName.charAt(0).toUpperCase() : '',
-        last: nameParts.lastName.toUpperCase(),
         Last: nameParts.lastName.toUpperCase(),
-        lastname: nameParts.lastName.toUpperCase(),
-        surname: nameParts.lastName.toUpperCase(),
         civil: resident?.civil_status || '',
-        Civil: resident?.civil_status || '',
         address: resident?.purok || '',
-        Address: resident?.purok || '',
         start: startText,
         day: dayOrd,
-        Day: dayOrd,
-        daynum: dayNum.toString(),
         month: month,
-        Month: month,
         year: year,
-        Year: year,
         issued_month: month,
         issued_day: dayNum.toString(),
-        issued_year: year,
-        contact: submission.form_data.contact || '',
-        Contact: submission.form_data.contact || '',
-        dateissued: dateIssued,
-        certno: '', // removed
-        or: '',
-        OR: '',
-        amount: ''
+        issued_year: year
       }
     }
 

@@ -108,19 +108,12 @@ export default function ClearancesPage() {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  // Disable body scroll when not registering (desktop only)
+  // Enable scrolling for all clearances
   useEffect(() => {
-    if (selectedType !== 'register' && !isMobile) {
-      document.body.style.overflow = 'hidden'
-      document.documentElement.style.overflow = 'hidden'
-      document.body.style.height = '100vh'
-      document.documentElement.style.height = '100vh'
-    } else {
-      document.body.style.overflow = 'auto'
-      document.documentElement.style.overflow = 'auto'
-      document.body.style.height = 'auto'
-      document.documentElement.style.height = 'auto'
-    }
+    document.body.style.overflow = 'auto'
+    document.documentElement.style.overflow = 'auto'
+    document.body.style.height = 'auto'
+    document.documentElement.style.height = 'auto'
     
     return () => {
       document.body.style.overflow = 'auto'
@@ -128,7 +121,7 @@ export default function ClearancesPage() {
       document.body.style.height = 'auto'
       document.documentElement.style.height = 'auto'
     }
-  }, [selectedType, isMobile])
+  }, [])
 
   // Reset image error and loading state when photo URL changes
   useEffect(() => {
@@ -715,17 +708,14 @@ export default function ClearancesPage() {
         paddingLeft: '5%', 
         paddingRight: '5%', 
         paddingTop: 'max(100px, min(20vh, 200px))', 
-        paddingBottom: selectedType === 'register' ? (isMobile ? '60px' : '80px') : (isMobile ? '40px' : '40px'), 
-        height: selectedType === 'register' ? 'auto' : (isMobile ? 'auto' : '100vh'),
-        minHeight: selectedType === 'register' ? '100vh' : '100vh',
-        overflow: selectedType === 'register' ? 'visible' : (isMobile ? 'auto' : 'hidden'),
+        paddingBottom: isMobile ? '60px' : '80px',
+        minHeight: '100vh',
+        overflow: 'visible',
         boxSizing: 'border-box'
       }}>
         <div className="w-full max-w-[1600px] mx-auto" style={{ 
-          overflow: selectedType === 'register' ? 'visible' : (isMobile ? 'visible' : 'hidden'), 
-          height: selectedType === 'register' ? 'auto' : (isMobile ? 'auto' : 'calc(100vh - max(100px, min(20vh, 200px)) - 40px)'),
-          maxHeight: selectedType === 'register' ? 'none' : (isMobile ? 'none' : 'calc(100vh - max(100px, min(20vh, 200px)) - 40px)'),
-          paddingBottom: selectedType === 'register' ? '40px' : undefined
+          overflow: 'visible', 
+          paddingBottom: '40px'
         }}>
           <div className="text-center mb-6 sm:mb-8 lg:mb-10">
             <h1 className="font-black text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', marginBottom: 'clamp(0.5rem, 1vh, 0.75rem)'}}>Barangay Clearances & Certificates</h1>

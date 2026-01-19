@@ -8,7 +8,7 @@ export function HeroSection() {
   return (
     <section
       id="hero"
-      className="relative hero-section-1080p w-full"
+      className="relative w-full"
       style={{minHeight: 'auto', paddingTop: 'clamp(5rem, 8vh, 6rem)', paddingBottom: 'clamp(2rem, 4vh, 3rem)'}}
     >
       <div className="w-full max-w-[1600px] mx-auto flex items-start hero-content" style={{paddingTop: 'clamp(1rem, 2vh, 2rem)', minHeight: 'auto'}}>

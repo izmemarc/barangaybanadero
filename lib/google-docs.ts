@@ -74,13 +74,14 @@ export async function generateClearanceDocument(
     console.log(`[Google Docs] Created document: ${documentId}`)
 
     // Build replacement requests - exclude 'picture' as it's handled separately
+    // Uses <placeholder> format for all templates
     const requests = Object.entries(replacements)
       .filter(([placeholder]) => placeholder.toLowerCase() !== 'picture')
       .map(([placeholder, value]) => ({
         replaceAllText: {
           containsText: {
-            text: `{{${placeholder}}}`,
-            matchCase: false
+            text: `<${placeholder}>`,
+            matchCase: true  // Keep case-sensitive to match exact placeholder names
           },
           replaceText: value || ''
         }
@@ -154,7 +155,7 @@ export async function insertPhotoIntoDocument(
           requests: [{
             replaceAllText: {
               containsText: {
-                text: '{{picture}}',
+                text: '<picture>',
                 matchCase: false
               },
               replaceText: ''
@@ -185,7 +186,7 @@ export async function insertPhotoIntoDocument(
           requests: [{
             replaceAllText: {
               containsText: {
-                text: '{{picture}}',
+                text: '<picture>',
                 matchCase: false
               },
               replaceText: ''
@@ -213,14 +214,14 @@ export async function insertPhotoIntoDocument(
     let placeholderStart: number | null = null
     let placeholderEnd: number | null = null
     
-    // Search for {{picture}} in document (including tables)
+    // Search for <picture> in document (including tables)
     const searchInElements = (elements: any[]): boolean => {
       for (const element of elements) {
         if (element.paragraph) {
           for (const textElement of element.paragraph.elements || []) {
             const text = textElement.textRun?.content || ''
             const lowerText = text.toLowerCase()
-            if (lowerText.includes('{{picture}}') || lowerText.includes('{{ picture }}')) {
+            if (lowerText.includes('<picture>') || lowerText.includes('< picture >')) {
               placeholderStart = textElement.startIndex!
               placeholderEnd = textElement.endIndex!
               console.log(`[Photo] Found placeholder at ${placeholderStart}-${placeholderEnd}, text: "${text}"`)
@@ -245,7 +246,7 @@ export async function insertPhotoIntoDocument(
     searchInElements(content)
 
     if (placeholderStart === null) {
-      console.log('[Photo] No {{picture}} placeholder found in document')
+      console.log('[Photo] No <picture> placeholder found in document')
       return
     }
 
@@ -258,7 +259,7 @@ export async function insertPhotoIntoDocument(
           for (const te of element.paragraph.elements || []) {
             const text = te.textRun?.content || ''
             const lowerText = text.toLowerCase()
-            if (lowerText.includes('{{picture}}') || lowerText.includes('{{ picture }}')) {
+            if (lowerText.includes('<picture>') || lowerText.includes('< picture >')) {
               textElement = te
               console.log(`[Photo] Found text element with content: "${text}"`)
               return true
@@ -285,57 +286,23 @@ export async function insertPhotoIntoDocument(
       return
     }
 
-    const offset = textElement.textRun.content.toLowerCase().indexOf('{{picture}}')
+    // Find <picture> placeholder position
+    const lowerContent = textElement.textRun.content.toLowerCase()
+    let offset = lowerContent.indexOf('<picture>')
+    let length = 9 // '<picture>'.length
+    
     if (offset === -1) {
-      // Try with spaces
-      const offsetWithSpaces = textElement.textRun.content.toLowerCase().indexOf('{{ picture }}')
-      if (offsetWithSpaces === -1) {
-        console.log(`[Photo] Could not find {{picture}} in text: "${textElement.textRun.content}"`)
-        return
-      }
-      const actualStart = placeholderStart! + offsetWithSpaces
-      const actualEnd = actualStart + 13 // '{{ picture }}'.length
-      console.log(`[Photo] Found with spaces, replacing at ${actualStart}-${actualEnd}`)
-      
-      await docs.documents.batchUpdate({
-        documentId,
-        requestBody: {
-          requests: [
-            {
-              deleteContentRange: {
-                range: {
-                  startIndex: Number(actualStart),
-                  endIndex: Number(actualEnd)
-                }
-              }
-            },
-            {
-              insertInlineImage: {
-                location: {
-                  index: Number(actualStart)
-                },
-                uri: photoUrl,
-                objectSize: {
-                  height: {
-                    magnitude: 90,
-                    unit: 'PT'
-                  },
-                  width: {
-                    magnitude: 90,
-                    unit: 'PT'
-                  }
-                }
-              }
-            }
-          ]
-        }
-      })
-      console.log('[Photo] Photo inserted successfully')
+      offset = lowerContent.indexOf('< picture >')
+      length = 11 // '< picture >'.length
+    }
+    
+    if (offset === -1) {
+      console.log(`[Photo] Could not find <picture> placeholder in text: "${textElement.textRun.content}"`)
       return
     }
     
     const actualStart = placeholderStart! + offset
-    const actualEnd = actualStart + 11 // '{{picture}}'.length
+    const actualEnd = actualStart + length
 
     console.log(`[Photo] Replacing text at ${actualStart}-${actualEnd}`)
 

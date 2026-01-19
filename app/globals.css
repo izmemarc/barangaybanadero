@@ -31,7 +31,10 @@ body {
   padding: 0;
   width: 100%;
   height: auto !important;
-  overflow: visible;
+  min-height: 100vh !important;
+  max-height: none !important;
+  overflow-y: auto;
+  overflow-x: hidden;
   position: relative;
 }
 
@@ -60,7 +63,8 @@ body::-webkit-scrollbar {
   width: 100%;
   transform-origin: top left;
   pointer-events: none;
-  padding-bottom: 2rem;
+  padding-bottom: 0;
+  margin-bottom: 0;
 }
 
 /* Allow pointer events on all children of page-wrapper */
@@ -74,13 +78,14 @@ body {
 }
 
 /* Remove excess white space */
-body, main, section, footer {
+body, footer {
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
 }
 
 main {
   display: block;
+  padding-bottom: 4vh;
 }
 
 footer {
