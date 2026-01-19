@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileText, Calendar, MapPin, Phone, Mail, Briefcase, AlertCircle } from "lucide-react"
+import { FileText, Calendar, MapPin, Phone, Mail, Briefcase, AlertCircle, UserPlus } from "lucide-react"
 
 export function HeroSection() {
   return (
@@ -148,7 +148,7 @@ export function HeroSection() {
                 </CardTitle>
               </CardHeader>
                   <CardContent className="space-y-1.5 pb-3 px-3 sm:px-6 pt-0 mt-0.5">
-                <a href="https://forms.gle/vTf6DqyxMA2besto6" target="_blank" rel="noopener noreferrer" className="w-full block -mt-2">
+                <a href="/clearances?type=barangay" className="w-full block -mt-2">
                   <Button
                     variant="outline"
                     className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
@@ -158,7 +158,7 @@ export function HeroSection() {
                     Barangay Clearance
                   </Button>
                 </a>
-                <a href="https://docs.google.com/forms/d/e/1FAIpQLSe4yR6BKatbd4eSfzidaIQXbrnqxM_kE33x8hF-PDqlNMAbHg/viewform?fbzx=-8760112926224005484" target="_blank" rel="noopener noreferrer" className="w-full block">
+                <a href="/clearances?type=business" className="w-full block">
                   <Button
                     variant="outline"
                     className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
@@ -168,7 +168,7 @@ export function HeroSection() {
                     Business Clearance
                   </Button>
                 </a>
-                <a href="https://docs.google.com/forms/d/e/1FAIpQLSd-HShEKWNL2y-ycpWGidjVQnQUuDtA5iaotSirX1KGLKABeQ/viewform" target="_blank" rel="noopener noreferrer" className="w-full block">
+                <a href="/clearances?type=blotter" className="w-full block">
                   <Button
                     variant="outline"
                     className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
@@ -178,7 +178,7 @@ export function HeroSection() {
                     Blotter
                   </Button>
                 </a>
-                <a href="https://docs.google.com/forms/d/e/1FAIpQLSdpiey70Vj9zLeaRKvZ_2kG7rxhcKhiZWa-Cw2UO6BpInslEQ/viewform" target="_blank" rel="noopener noreferrer" className="w-full block">
+                <a href="/clearances?type=facility" className="w-full block">
                   <Button
                     variant="outline"
                     className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
@@ -188,7 +188,7 @@ export function HeroSection() {
                     Facility Use
                   </Button>
                 </a>
-                <a href="https://docs.google.com/forms/d/e/1FAIpQLSexW6TC0zNe9V2FejpKzKJ3TeFGnWtTQjGuopwoQQPLwvpcgg/viewform?usp=header" target="_blank" rel="noopener noreferrer" className="w-full block">
+                <a href="/clearances?type=good-moral" className="w-full block">
                   <Button
                     variant="outline"
                     className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
@@ -198,7 +198,7 @@ export function HeroSection() {
                     Certificate of Good Moral
                   </Button>
                 </a>
-                <a href="https://docs.google.com/forms/d/e/1FAIpQLSe4UiZDpxAuCyxxmh52Db67DRKfxP2w6gnEyehceyqmtVhGNg/viewform?usp=header" target="_blank" rel="noopener noreferrer" className="w-full block">
+                <a href="/clearances?type=indigency" className="w-full block">
                   <Button
                     variant="outline"
                     className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
@@ -208,7 +208,7 @@ export function HeroSection() {
                     Certificate of Indigency
                   </Button>
                 </a>
-                <a href="https://docs.google.com/forms/d/e/1FAIpQLSdcXnix_r_TTxx23SRpWesRHZMHoUfUFmAdLNGF030jZJysJQ/viewform?usp=header" target="_blank" rel="noopener noreferrer" className="w-full block">
+                <a href="/clearances?type=residency" className="w-full block">
                   <Button
                     variant="outline"
                     className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
@@ -216,6 +216,16 @@ export function HeroSection() {
                   >
                     <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
                     Certificate of Residency
+                  </Button>
+                </a>
+                <a href="/clearances?type=register" className="w-full block">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
+                    aria-label="Register as Resident"
+                  >
+                    <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
+                    Register as Resident
                   </Button>
                 </a>
               </CardContent>

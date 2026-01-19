@@ -127,7 +127,7 @@ export async function notifyDocumentGenerated(contactNumber: string, name: strin
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
 
-  const message = `Your ${formattedType} document has been generated and is ready. Please visit the barangay office to claim it. - Barangay ${process.env.PHILSMS_SENDER_ID || 'Office'}`
+  const message = `Your ${formattedType} document has been printed. Please visit the barangay office to claim it.`
 
   console.log('[SMS] Sending document notification to:', normalizedNumber)
   return await sendSMS(normalizedNumber, message)

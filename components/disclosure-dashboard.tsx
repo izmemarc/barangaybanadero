@@ -13,32 +13,32 @@ export function DisclosureDashboard() {
   const dashboardItems: DashboardItem[] = [
     {
       title: "BARANGAY BUDGET",
-      year2025Link: "#",
-      year2026Link: "#",
-    },
-    {
-      title: "SUMMARY OF INCOME AND EXPENDITURE",
-      year2025Link: "#",
-      year2026Link: "#",
-    },
-    {
-      title: "20% COMPONENT OF THE IRA UTILIZATION",
-      year2025Link: "#",
-      year2026Link: "#",
-    },
-    {
-      title: "ANNUAL PROCUREMENT PLAN OR PROCUREMENT LIST",
-      year2025Link: "#",
-      year2026Link: "#",
-    },
-    {
-      title: "LIST OF NOTICES AND AWARD",
-      year2025Link: "#",
+      year2025Link: "https://drive.google.com/drive/folders/121etfvbTpLLquL77To0xJZV0jzq1kcHf?usp=sharing",
       year2026Link: "#",
     },
     {
       title: "ITEMIZED MONTHLY COLLECTIONS AND DISBURSEMENT",
-      year2025Link: "#",
+      year2025Link: "https://drive.google.com/drive/folders/1ElMdyxF30fn4PMpC2Wif5zAxmqN9OyLR?usp=sharing",
+      year2026Link: "#",
+    },
+    {
+      title: "20% COMPONENT OF THE IRA UTILIZATION",
+      year2025Link: "https://drive.google.com/drive/folders/1O8X6pdRLTWAKXXp9CUHdwAA51a1OyqAG?usp=sharing",
+      year2026Link: "#",
+    },
+    {
+      title: "ANNUAL PROCUREMENT PLAN OR PROCUREMENT LIST",
+      year2025Link: "https://drive.google.com/drive/folders/1Z93bcBni_oootieGwXTWuc9_MEfmfnwW?usp=sharing",
+      year2026Link: "#",
+    },
+    {
+      title: "LIST OF NOTICES AND AWARD",
+      year2025Link: "https://drive.google.com/drive/folders/1qsDlL2MZAGOxt-SV5IQ5WGlg5ixlJbEI?usp=sharing",
+      year2026Link: "#",
+    },
+    {
+      title: "SUMMARY OF INCOME AND EXPENDITURE",
+      year2025Link: "https://drive.google.com/drive/folders/1FqAIzQkX3PsE2T2_q6tqpELHEA6vdPGP?usp=sharing",
       year2026Link: "#",
     },
   ]
@@ -70,6 +70,8 @@ export function DisclosureDashboard() {
                 {/* 2025 Folder - Blue */}
                 <a
                   href={item.year2025Link}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg border-2 border-blue-300 bg-blue-100 hover:bg-blue-200 hover:border-blue-400 transition-all duration-200"
                 >
                   <div className="flex-shrink-0">
@@ -83,6 +85,8 @@ export function DisclosureDashboard() {
                 {/* 2026 Folder - Yellow */}
                 <a
                   href={item.year2026Link}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg border-2 border-yellow-300 bg-yellow-100 hover:bg-yellow-200 hover:border-yellow-400 transition-all duration-200"
                 >
                   <div className="flex-shrink-0">

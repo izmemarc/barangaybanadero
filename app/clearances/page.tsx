@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, Building2, AlertCircle, Calendar, Award, Heart, Home, ArrowLeft, UserPlus, CheckCircle, User } from 'lucide-react'
+import { FileText, Building2, AlertCircle, Calendar, Award, Heart, Home, ArrowLeft, UserPlus, CheckCircle, User, Camera, X } from 'lucide-react'
 import { submitClearance, searchResidents, calculateAge, type Resident, supabase } from '@/lib/supabase'
 
 type ClearanceType = 
@@ -34,6 +35,8 @@ const clearanceTypes = [
 ]
 
 export default function ClearancesPage() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const [selectedType, setSelectedType] = useState<ClearanceType | null>(null)
   const [formData, setFormData] = useState<FormData>({ name: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -52,6 +55,22 @@ export default function ClearancesPage() {
   const [imageError, setImageError] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
   const nameInputRef = useRef<HTMLInputElement>(null)
+  
+  // Camera capture state for registration
+  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null)
+  const [isCameraOpen, setIsCameraOpen] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Read type from URL parameter on mount
+  useEffect(() => {
+    const typeParam = searchParams.get('type')
+    if (typeParam && clearanceTypes.some(t => t.id === typeParam)) {
+      setSelectedType(typeParam as ClearanceType)
+    }
+  }, [searchParams])
 
   // Search residents when name query changes
   useEffect(() => {
@@ -79,6 +98,38 @@ export default function ClearancesPage() {
     }
   }, [selectedType])
 
+  // Detect mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Disable body scroll when not registering (desktop only)
+  useEffect(() => {
+    if (selectedType !== 'register' && !isMobile) {
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+      document.body.style.height = '100vh'
+      document.documentElement.style.height = '100vh'
+    } else {
+      document.body.style.overflow = 'auto'
+      document.documentElement.style.overflow = 'auto'
+      document.body.style.height = 'auto'
+      document.documentElement.style.height = 'auto'
+    }
+    
+    return () => {
+      document.body.style.overflow = 'auto'
+      document.documentElement.style.overflow = 'auto'
+      document.body.style.height = 'auto'
+      document.documentElement.style.height = 'auto'
+    }
+  }, [selectedType, isMobile])
+
   // Reset image error and loading state when photo URL changes
   useEffect(() => {
     setImageError(false)
@@ -99,6 +150,11 @@ export default function ClearancesPage() {
           setSelectedResident(fullResident as Resident)
           const photoUrl = await fetchResidentPhoto(fullResident as Resident)
           setResidentPhotoUrl(photoUrl)
+          
+          // If no photo exists, clear captured photo to allow new capture
+          if (!photoUrl) {
+            setCapturedPhoto(null)
+          }
         }
       }
       fetchResidentData()
@@ -271,6 +327,85 @@ export default function ClearancesPage() {
       return null
     }
   }
+
+  // Camera functions for registration photo capture
+  const openCamera = async () => {
+    setIsCameraOpen(true)
+    try {
+      console.log('[Camera] Requesting camera access...')
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'user', width: 640, height: 640 } 
+      })
+      console.log('[Camera] Stream obtained:', stream)
+      streamRef.current = stream
+      
+      // Wait for video element to be in DOM
+      requestAnimationFrame(() => {
+        if (videoRef.current) {
+          console.log('[Camera] Setting video srcObject')
+          videoRef.current.srcObject = stream
+          videoRef.current.play().catch(err => {
+            console.error('[Camera] Error playing video:', err)
+          })
+        } else {
+          console.error('[Camera] Video ref is null')
+        }
+      })
+    } catch (error) {
+      console.error('[Camera] Error accessing camera:', error)
+      setError('Unable to access camera. Please check permissions.')
+      setIsCameraOpen(false)
+    }
+  }
+
+  const closeCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current = null
+    }
+    setIsCameraOpen(false)
+  }
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const canvas = canvasRef.current
+      const video = videoRef.current
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        ctx.drawImage(video, 0, 0)
+        const photoData = canvas.toDataURL('image/jpeg', 0.8)
+        setCapturedPhoto(photoData)
+        closeCamera()
+      }
+    }
+  }
+
+  const retakePhoto = () => {
+    setCapturedPhoto(null)
+    openCamera()
+  }
+
+  const removePhoto = () => {
+    setCapturedPhoto(null)
+  }
+
+  // Cleanup camera on unmount
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop())
+      }
+    }
+  }, [])
+
+  // Set video stream when camera opens
+  useEffect(() => {
+    if (isCameraOpen && streamRef.current && videoRef.current) {
+      videoRef.current.srcObject = streamRef.current
+    }
+  }, [isCameraOpen])
 
   // Handle selecting a resident from suggestions
   const selectResident = async (resident: Resident) => {
@@ -464,10 +599,20 @@ export default function ClearancesPage() {
 
       // For registration, use different submission
       if (selectedType === 'register') {
+        // Check if photo is captured
+        if (!capturedPhoto) {
+          setIsSubmitting(false)
+          setError('Please capture a photo before submitting')
+          return
+        }
+
         const response = await fetch('/api/register-resident', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+          body: JSON.stringify({
+            ...formData,
+            photo: capturedPhoto
+          })
         })
 
         const result = await response.json()
@@ -481,6 +626,7 @@ export default function ClearancesPage() {
         setSelectedResident(null)
         setResidentPhotoUrl(null)
         setSelectedResidentId(null)
+        setCapturedPhoto(null)
         
         // Reset form after 3 seconds
         setTimeout(() => {
@@ -496,12 +642,20 @@ export default function ClearancesPage() {
         return
       }
 
+      // For other clearances, check if resident has photo or if photo was captured
+      if (selectedResidentId && (!residentPhotoUrl || imageError) && !capturedPhoto) {
+        setIsSubmitting(false)
+        setError('Please capture a photo of the resident before submitting')
+        return
+      }
+
       // Submit clearance to Supabase via API (includes SMS notification)
       console.log('[Clearance] Submitting:', { 
         type: selectedType, 
         name: formData.name, 
         residentId: selectedResidentId,
-        formData 
+        formData,
+        hasCapturedPhoto: !!capturedPhoto
       })
       
       const response = await fetch('/api/submit-clearance', {
@@ -514,6 +668,7 @@ export default function ClearancesPage() {
           name: formData.name,
           formData,
           residentId: selectedResidentId,
+          capturedPhoto: capturedPhoto || null,
         }),
       })
 
@@ -529,6 +684,7 @@ export default function ClearancesPage() {
       setSelectedResident(null)
       setResidentPhotoUrl(null)
       setSelectedResidentId(null)
+      setCapturedPhoto(null)
       
       // Reset form after 3 seconds
       setTimeout(() => {
@@ -540,6 +696,7 @@ export default function ClearancesPage() {
         setShowSuggestions(false)
         setNameWasSelected(false)
         setSelectedResidentId(null)
+        setCapturedPhoto(null)
       }, 3000)
     } catch (err) {
       setIsSubmitting(false)
@@ -554,8 +711,22 @@ export default function ClearancesPage() {
   return (
     <>
       <Header />
-      <main style={{ paddingLeft: '5%', paddingRight: '5%', paddingTop: 'max(100px, min(20vh, 200px))', paddingBottom: '40px', minHeight: '100vh', overflow: 'visible' }}>
-        <div className="w-full max-w-[1600px] mx-auto" style={{ overflow: 'visible' }}>
+      <main style={{ 
+        paddingLeft: '5%', 
+        paddingRight: '5%', 
+        paddingTop: 'max(100px, min(20vh, 200px))', 
+        paddingBottom: selectedType === 'register' ? (isMobile ? '60px' : '80px') : (isMobile ? '40px' : '40px'), 
+        height: selectedType === 'register' ? 'auto' : (isMobile ? 'auto' : '100vh'),
+        minHeight: selectedType === 'register' ? '100vh' : '100vh',
+        overflow: selectedType === 'register' ? 'visible' : (isMobile ? 'auto' : 'hidden'),
+        boxSizing: 'border-box'
+      }}>
+        <div className="w-full max-w-[1600px] mx-auto" style={{ 
+          overflow: selectedType === 'register' ? 'visible' : (isMobile ? 'visible' : 'hidden'), 
+          height: selectedType === 'register' ? 'auto' : (isMobile ? 'auto' : 'calc(100vh - max(100px, min(20vh, 200px)) - 40px)'),
+          maxHeight: selectedType === 'register' ? 'none' : (isMobile ? 'none' : 'calc(100vh - max(100px, min(20vh, 200px)) - 40px)'),
+          paddingBottom: selectedType === 'register' ? '40px' : undefined
+        }}>
           <div className="text-center mb-6 sm:mb-8 lg:mb-10">
             <h1 className="font-black text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', marginBottom: 'clamp(0.5rem, 1vh, 0.75rem)'}}>Barangay Clearances & Certificates</h1>
             <p className="text-gray-600 font-medium" style={{fontSize: 'clamp(0.875rem, 1.5vw, 1rem)'}}>
@@ -564,7 +735,7 @@ export default function ClearancesPage() {
           </div>
 
           {!selectedType ? (
-            <div className="flex flex-col lg:flex-row lg:flex-nowrap justify-center items-center gap-6 px-4 lg:overflow-x-visible lg:max-w-full py-8" style={{ margin: '0 auto', overflow: 'visible' }}>
+            <div className="flex flex-col lg:flex-row lg:flex-nowrap justify-center items-center gap-6 px-4 lg:overflow-x-visible lg:max-w-full py-8" style={{ margin: '0 auto', overflow: 'visible', paddingBottom: isMobile ? '100px' : '32px' }}>
               {clearanceTypes.map((type) => {
                 const Icon = type.icon
                 return (
@@ -586,21 +757,11 @@ export default function ClearancesPage() {
             <div className="px-4 sm:px-6 relative" style={{ overflow: 'visible' }}>
               {/* Mobile: Back button positioned absolutely on left */}
               <div className="lg:hidden absolute -left-2.5 top-0 z-10">
-                <Button
+                  <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    setSelectedType(null)
-                    setFormData({ name: '' })
-                    setSubmitted(false)
-                    setNameQuery('')
-                    setResidents([])
-                    setShowSuggestions(false)
-                    setNameWasSelected(false)
-                    setSelectedResidentId(null)
-                    setSelectedResident(null)
-                    setResidentPhotoUrl(null)
-                    setSelectedResidentIndex(-1)
+                    router.push('/#hero')
                   }}
                   className="hover:bg-primary/5 p-1.5"
                 >
@@ -614,17 +775,7 @@ export default function ClearancesPage() {
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      setSelectedType(null)
-                      setFormData({ name: '' })
-                      setSubmitted(false)
-                      setNameQuery('')
-                      setResidents([])
-                      setShowSuggestions(false)
-                      setNameWasSelected(false)
-                      setSelectedResidentId(null)
-                      setSelectedResident(null)
-                      setResidentPhotoUrl(null)
-                      setSelectedResidentIndex(-1)
+                      router.push('/#hero')
                     }}
                     className="hover:bg-primary/5 p-1.5"
                   >
@@ -635,7 +786,7 @@ export default function ClearancesPage() {
                   className="transition-all duration-500 ease-in-out flex-shrink-0 h-full"
                   style={{ overflow: 'visible' }}
                 >
-                  <Card className={`bg-white/95 backdrop-blur-lg shadow-2xl hover:bg-white/98 h-full flex flex-col ${submitted ? 'w-[124%] max-w-[124%] -mx-[12%]' : 'w-[144%] max-w-[144%] -mx-[22%]'} sm:w-[520px] sm:max-w-[520px] sm:mx-0`} style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
+                  <Card className={`bg-white/95 backdrop-blur-lg shadow-2xl hover:bg-white/98 h-full flex flex-col ${selectedType === 'register' ? (submitted ? 'w-[124%] max-w-[124%] -mx-[12%]' : 'w-[124%] max-w-[124%] -mx-[12%]') : (submitted ? 'w-[124%] max-w-[124%] -mx-[12%]' : 'w-[144%] max-w-[144%] -mx-[22%]')} sm:w-[520px] sm:max-w-[520px] sm:mx-0`} style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', marginBottom: selectedType === 'register' ? '40px' : undefined }}>
                       {!submitted && (
                         <CardHeader className="pb-0 pt-4 text-center">
                           {selectedTypeData && (
@@ -648,7 +799,7 @@ export default function ClearancesPage() {
                           )}
                         </CardHeader>
                       )}
-                      <CardContent className="pt-0 flex-1 flex flex-col">
+                      <CardContent className="pt-0 flex-1 flex flex-col" style={{ paddingBottom: selectedType === 'register' ? '40px' : undefined }}>
 
                 {submitted ? (
                   <div className="text-center py-12 space-y-4">
@@ -765,6 +916,89 @@ export default function ClearancesPage() {
                     </div>
                     )}
 
+                    {/* Camera capture for registration */}
+                    {selectedType === 'register' && (
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-foreground">
+                          Photo <span className="text-red-500">*</span>
+                        </label>
+                        
+                        {!capturedPhoto && !isCameraOpen && (
+                          <div 
+                            className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-8 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                            onClick={openCamera}
+                          >
+                            <Camera className="h-12 w-12 text-gray-400 mb-3" />
+                            <p className="text-sm text-gray-600">Click to take a photo of the resident</p>
+                          </div>
+                        )}
+
+                        {isCameraOpen && (
+                          <div className="space-y-3">
+                            <div className="relative rounded-lg overflow-hidden bg-black">
+                              <video
+                                ref={videoRef}
+                                autoPlay
+                                playsInline
+                                className="w-full h-auto"
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                type="button"
+                                onClick={capturePhoto}
+                                className="flex-1"
+                              >
+                                <Camera className="h-4 w-4 mr-2" />
+                                Capture Photo
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={closeCamera}
+                              >
+                                <X className="h-4 w-4 mr-2" />
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        {capturedPhoto && (
+                          <div className="space-y-3">
+                            <div className="relative rounded-lg overflow-hidden border-2 border-gray-200">
+                              <img
+                                src={capturedPhoto}
+                                alt="Captured resident photo"
+                                className="w-full h-auto"
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={retakePhoto}
+                                className="flex-1"
+                              >
+                                <Camera className="h-4 w-4 mr-2" />
+                                Retake Photo
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={removePhoto}
+                              >
+                                <X className="h-4 w-4 mr-2" />
+                                Remove
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                        
+                        <canvas ref={canvasRef} style={{ display: 'none' }} />
+                      </div>
+                    )}
+
                     {/* Dynamic form fields based on selected type */}
                     {formFields.map((field) => (
                       <div key={field.id} className="space-y-2">
@@ -841,7 +1075,11 @@ export default function ClearancesPage() {
                     <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-border">
                       <Button
                         type="submit"
-                        disabled={isSubmitting}
+                        disabled={
+                          isSubmitting || 
+                          (selectedType === 'register' && !capturedPhoto) ||
+                          (selectedType !== 'register' && selectedResidentId !== null && (!residentPhotoUrl || imageError) && !capturedPhoto)
+                        }
                         className="flex-1 min-h-[44px]"
                       >
                         {isSubmitting ? (
@@ -869,6 +1107,8 @@ export default function ClearancesPage() {
                           setSelectedResident(null)
                           setResidentPhotoUrl(null)
                           setSelectedResidentIndex(-1)
+                          setCapturedPhoto(null)
+                          closeCamera()
                         }}
                         disabled={isSubmitting}
                         className="min-h-[44px]"
@@ -899,7 +1139,13 @@ export default function ClearancesPage() {
                       </CardHeader>
                       <CardContent className="space-y-4 flex-1 flex flex-col">
                         <div className="flex justify-center relative w-48 h-48 mx-auto">
-                          {residentPhotoUrl && !imageError ? (
+                          {capturedPhoto ? (
+                            <img 
+                              src={capturedPhoto} 
+                              alt="Captured photo"
+                              className="w-48 h-48 object-cover rounded-lg border-2 border-gray-200"
+                            />
+                          ) : residentPhotoUrl && !imageError ? (
                             <>
                               {!imageLoaded && (
                                 <div className="absolute inset-0 flex flex-col justify-center items-center bg-gray-100 rounded-lg border-2 border-gray-200">
@@ -916,9 +1162,13 @@ export default function ClearancesPage() {
                               />
                             </>
                           ) : (
-                            <div className="flex flex-col justify-center items-center w-48 h-48 bg-gray-100 rounded-lg border-2 border-gray-200">
-                              <User className="w-16 h-16 text-gray-400 mb-2" />
-                              <span className="text-gray-400 text-sm">No photo available</span>
+                            <div 
+                              className="flex flex-col justify-center items-center w-48 h-48 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 cursor-pointer hover:bg-gray-50 transition-colors"
+                              onClick={openCamera}
+                            >
+                              <Camera className="w-12 h-12 text-gray-400 mb-2" />
+                              <span className="text-gray-500 text-sm font-medium">Take Photo</span>
+                              <span className="text-gray-400 text-xs mt-1">Click to open camera</span>
                             </div>
                           )}
                         </div>
@@ -964,7 +1214,7 @@ export default function ClearancesPage() {
               
               {/* Mobile: Resident info card below form */}
               {selectedResident && selectedType !== 'register' && !submitted && (
-                <div className="lg:hidden mt-6 px-4 sm:px-6">
+                <div className="lg:hidden mt-6 mb-8 px-4 sm:px-6">
                   <div className="flex justify-center">
                     <Card className="bg-white/95 backdrop-blur-lg shadow-2xl w-[94%] sm:w-full max-w-[94%] sm:max-w-full flex flex-col">
                     <CardHeader className="pb-2 px-4">
@@ -972,7 +1222,14 @@ export default function ClearancesPage() {
                     </CardHeader>
                     <CardContent className="space-y-3 flex-1 flex flex-col px-4 pb-4">
                       <div className="flex justify-center relative mx-auto flex-shrink-0" style={{ width: '128px', height: '128px', minWidth: '128px', minHeight: '128px' }}>
-                        {residentPhotoUrl && !imageError ? (
+                        {capturedPhoto ? (
+                          <img 
+                            src={capturedPhoto} 
+                            alt="Captured photo"
+                            className="object-cover rounded-lg border-2 border-gray-200 flex-shrink-0"
+                            style={{ width: '128px', height: '128px', minWidth: '128px', minHeight: '128px', maxWidth: '128px', maxHeight: '128px' }}
+                          />
+                        ) : residentPhotoUrl && !imageError ? (
                           <>
                             {!imageLoaded && (
                               <div className="absolute inset-0 flex flex-col justify-center items-center bg-gray-100 rounded-lg border-2 border-gray-200 flex-shrink-0" style={{ width: '128px', height: '128px', minWidth: '128px', minHeight: '128px' }}>
@@ -990,9 +1247,13 @@ export default function ClearancesPage() {
                             />
                           </>
                         ) : (
-                          <div className="flex flex-col justify-center items-center bg-gray-100 rounded-lg border-2 border-gray-200 flex-shrink-0" style={{ width: '128px', height: '128px', minWidth: '128px', minHeight: '128px' }}>
-                            <User className="w-10 h-10 text-gray-400 mb-1" />
-                            <span className="text-gray-400 text-xs">No photo available</span>
+                          <div 
+                            className="flex flex-col justify-center items-center bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex-shrink-0 cursor-pointer hover:bg-gray-50 transition-colors"
+                            style={{ width: '128px', height: '128px', minWidth: '128px', minHeight: '128px' }}
+                            onClick={openCamera}
+                          >
+                            <Camera className="w-8 h-8 text-gray-400 mb-1" />
+                            <span className="text-gray-500 text-xs font-medium">Take Photo</span>
                           </div>
                         )}
                       </div>
@@ -1037,6 +1298,57 @@ export default function ClearancesPage() {
             </div>
           )}
         </div>
+
+        {/* Camera Modal */}
+        {isCameraOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={closeCamera} style={{ alignItems: 'flex-start', paddingTop: '20vh' }}>
+            <div className="relative bg-white rounded-lg p-4 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-base font-semibold">Take Photo</h3>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={closeCamera}
+                  className="h-6 w-6 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <div className="relative w-full aspect-square bg-black rounded-lg overflow-hidden mb-3">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  onClick={capturePhoto}
+                  className="flex-1"
+                  size="sm"
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  Capture
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={closeCamera}
+                  size="sm"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+            <canvas ref={canvasRef} style={{ display: 'none' }} />
+          </div>
+        )}
       </main>
     </>
   )

@@ -343,6 +343,11 @@ export default function AdminDashboard() {
           : s
       ))
 
+      // Open document in new tab
+      if (result.documentUrl) {
+        window.open(result.documentUrl, '_blank')
+      }
+
       toast({
         title: 'Document generated',
         description: 'The clearance document has been generated successfully.',

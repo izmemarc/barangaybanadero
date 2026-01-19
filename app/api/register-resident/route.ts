@@ -19,6 +19,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate photo is present
+    if (!formData.photo) {
+      return NextResponse.json(
+        { error: 'Photo is required' },
+        { status: 400 }
+      )
+    }
+
     // Check for duplicate (same first, last, birthdate)
     const { data: existing } = await supabase
       .from('residents')
@@ -51,6 +59,61 @@ export async function POST(request: NextRequest) {
       age--
     }
 
+    // Upload photo to Supabase Storage
+    let photoPath: string | null = null
+    if (formData.photo) {
+      try {
+        // Convert base64 to buffer
+        const base64Data = formData.photo.replace(/^data:image\/\w+;base64,/, '')
+        const buffer = Buffer.from(base64Data, 'base64')
+        
+        // Generate filename: LASTNAME-FIRSTNAME-MIDDLENAME.jpg
+        const normalize = (str: string) => {
+          return str.toUpperCase()
+            .trim()
+            .replace(/\s+/g, '-')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/Ñ/g, 'N')
+            .replace(/ñ/g, 'N')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '')
+        }
+        
+        const nameParts = [
+          normalize(formData.lastName),
+          normalize(formData.firstName),
+          formData.middleName ? normalize(formData.middleName) : ''
+        ].filter(v => v).join('-')
+        
+        const filename = formData.suffix 
+          ? `${nameParts}-${normalize(formData.suffix)}.jpg`
+          : `${nameParts}.jpg`
+        
+        // Upload to extracted_images bucket
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('extracted_images')
+          .upload(filename, buffer, {
+            contentType: 'image/jpeg',
+            upsert: true
+          })
+        
+        if (uploadError) {
+          console.error('[Photo] Upload error:', uploadError)
+          throw new Error('Failed to upload photo')
+        }
+        
+        photoPath = uploadData.path
+        console.log('[Photo] Uploaded successfully:', photoPath)
+      } catch (photoError) {
+        console.error('[Photo] Error processing photo:', photoError)
+        return NextResponse.json(
+          { error: 'Failed to process photo' },
+          { status: 500 }
+        )
+      }
+    }
+
     // Save to pending registrations table (not residents yet)
     const { data, error } = await supabase
       .from('pending_registrations')
@@ -66,7 +129,8 @@ export async function POST(request: NextRequest) {
         citizenship: formData.citizenship || 'Filipino',
         purok: formData.purok,
         contact: formData.contact || null,
-        status: 'pending'
+        status: 'pending',
+        photo_path: photoPath
       })
       .select()
       .single()

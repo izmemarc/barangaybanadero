@@ -38,19 +38,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Duplicate resident already exists' }, { status: 409 })
     }
 
-    // Add to residents table
+    // Add to residents table (include suffix and contact from pending_registrations)
     const { error: insertError } = await supabase
       .from('residents')
       .insert({
         first_name: registration.first_name,
         middle_name: registration.middle_name,
         last_name: registration.last_name,
+        suffix: registration.suffix || null,
         birthdate: registration.birthdate,
         age: registration.age,
         gender: registration.gender,
         civil_status: registration.civil_status,
         citizenship: registration.citizenship,
-        purok: registration.purok
+        purok: registration.purok,
+        contact: registration.contact || null
       })
 
     if (insertError) throw insertError
