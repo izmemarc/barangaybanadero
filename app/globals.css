@@ -30,9 +30,7 @@ body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: auto !important;
-  min-height: 100vh !important;
-  max-height: none !important;
+  min-height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
   position: relative;
@@ -42,7 +40,7 @@ body::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
 
-/* Modal root - fixed positioning outside scaled content */
+/* Modal root for portaled content like toasts/dialogs */
 #modal-root {
   position: fixed;
   top: 0;
@@ -57,40 +55,19 @@ body::-webkit-scrollbar {
   pointer-events: auto;
 }
 
-/* Page wrapper for scaled content */
-#page-wrapper {
-  position: relative;
-  width: 100%;
-  transform-origin: top left;
-  pointer-events: none;
-  padding-bottom: 0;
-  margin-bottom: 0;
-}
-
-/* Allow pointer events on all children of page-wrapper */
-#page-wrapper > * {
-  pointer-events: auto;
-}
-
 body {
   background-image: radial-gradient(circle, rgba(0, 0, 0, 0.2) 1px, transparent 1px);
   background-size: 15px 15px;
 }
 
-/* Remove excess white space */
-body, footer {
-  margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
-}
-
 main {
   display: block;
-  padding-bottom: 4vh;
+  padding-bottom: clamp(2rem, 4vh, 3rem);
 }
 
 footer {
-  height: auto !important;
-  max-height: fit-content !important;
+  margin: 0;
+  padding: 0;
 }
 
 
