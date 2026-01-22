@@ -31,20 +31,28 @@ const services = [
   { id: 4, title: "Environment", description: "Clean and green initiatives for a sustainable community", icon: "Leaf" },
 ];
 
-const events = [
-  { id: 1, title: "Barangay Assembly", date: "Monthly", time: "9:00 AM", location: "Barangay Hall", type: "Assembly" },
-  { id: 2, title: "Health Day", date: "Every Saturday", time: "8:00 AM - 12:00 PM", location: "Health Center", type: "Health" },
-];
+const events: Array<{ id: number; title: string; date: string; time: string; location: string; type: string }> = [];
 
 const officeHours = [
   { id: 1, day: "Monday - Friday", hours: "8:00 AM - 5:00 PM", is_closed: false },
-  { id: 2, day: "Saturday", hours: "8:00 AM - 12:00 PM", is_closed: false },
+  { id: 2, day: "Saturday", hours: "Closed", is_closed: true },
   { id: 3, day: "Sunday", hours: "Closed", is_closed: true },
 ];
 
 const contacts = [
-  { id: 1, name: "Barangay Hall", number: "(052) 123-4567" },
-  { id: 2, name: "Emergency Hotline", number: "0917-XXX-XXXX" },
+  { id: 1, name: "Barangay Emergency", number: "0917 555 3323" },
+  { id: 2, name: "Medical Emergency", number: "911" },
+  { id: 3, name: "Fire Department", number: "0919 992 5484 / 0917 185 9984" },
+  { id: 4, name: "UST Hospital", number: "0917 626 3621" },
+  { id: 5, name: "BRTTH", number: "(052) 732 5555" },
+  { id: 6, name: "Legazpi PNP", number: "0998 598 5926 / 0926 625 6247" },
+  { id: 7, name: "Philippine Red Cross - Albay", number: "(052) 742-2199" },
+  { id: 8, name: "Mental Health", number: "0917-899-8727" },
+  { id: 9, name: "PDEA", number: "0998 598 5926" },
+  { id: 10, name: "Legazpi 911", number: "0977 772 3909" },
+  { id: 11, name: "ALECO", number: "0908 677 3393" },
+  { id: 12, name: "LCWD", number: "0932 878 6141" },
+  { id: 13, name: "CDRRMO", number: "0920 952 8188" },
 ];
 
 const officials = [
@@ -143,30 +151,40 @@ export function CommunitySection() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {events.map((event) => (
-                  <div key={event.id} className="border-l-4 border-primary pl-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge variant="secondary" className="text-xs">
-                        {event.type}
-                      </Badge>
+                {events.length > 0 ? (
+                  events.map((event) => (
+                    <div key={event.id} className="border-l-4 border-primary pl-4">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="secondary" className="text-xs">
+                          {event.type}
+                        </Badge>
+                      </div>
+                      <h4 className="font-semibold text-balance text-sm">{event.title}</h4>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-3 w-3" />
+                          <span>{event.date}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-3 w-3" />
+                          <span>{event.time}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-3 w-3" />
+                          <span>{event.location}</span>
+                        </div>
+                      </div>
                     </div>
-                    <h4 className="font-semibold text-balance text-sm">{event.title}</h4>
-                    <div className="text-xs text-muted-foreground space-y-1">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-3 w-3" />
-                        <span>{event.date}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-3 w-3" />
-                        <span>{event.time}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-3 w-3" />
-                        <span>{event.location}</span>
-                      </div>
+                  ))
+                ) : (
+                  <div className="flex items-center justify-center py-4 text-center">
+                    <div>
+                      <Calendar className="h-8 w-8 text-primary mx-auto mb-2" />
+                      <p className="text-sm">No events scheduled</p>
+                      <p className="text-xs mt-1">Check back later for upcoming events</p>
                     </div>
                   </div>
-                ))}
+                )}
               </CardContent>
             </Card>
 

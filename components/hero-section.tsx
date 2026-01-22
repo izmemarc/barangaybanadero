@@ -282,20 +282,18 @@ export function HeroSection() {
 
             {/* Barangay Council Section */}
             <div className="w-full">
-              <div className="w-full relative pb-[66.67%] sm:pb-0 sm:h-48 md:h-56 lg:h-64 xl:h-72 rounded-lg overflow-hidden shadow-lg">
-                <div className="absolute top-0 left-0 w-full h-full">
-                  <img
-                    src="/group.webp"
-                    alt="Barangay Council"
-                    data-critical="true"
-                    loading="eager"
-                    fetchPriority="high"
-                    decoding="async"
-                    className="w-full h-full object-cover object-center sm:object-[center_30%]"
-                    width={400}
-                    height={300}
-                  />
-                </div>
+              <div className="w-full rounded-lg shadow-lg overflow-visible">
+                <img
+                  src="/group.webp"
+                  alt="Barangay Council"
+                  data-critical="true"
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
+                  className="w-full h-auto object-contain"
+                  width={400}
+                  height={300}
+                />
               </div>
               <h3 className="text-primary text-sm sm:text-base md:text-lg font-semibold text-center mt-3 px-2">
                 Barangay Council

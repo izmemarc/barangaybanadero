@@ -56,6 +56,9 @@ export default function ClearancesPage() {
   const [imageLoaded, setImageLoaded] = useState(false)
   const nameInputRef = useRef<HTMLInputElement>(null)
   
+  // Image caching
+  const photoUrlCacheRef = useRef<Map<string, string | null>>(new Map())
+  
   // Camera capture state for registration
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null)
   const [isCameraOpen, setIsCameraOpen] = useState(false)
@@ -82,6 +85,18 @@ export default function ClearancesPage() {
         const results = await searchResidents(nameQuery)
         setResidents(results as Resident[])
         setShowSuggestions(results.length > 0)
+        
+        // Prefetch images for top 5 results in background (non-blocking)
+        if (results.length > 0) {
+          results.slice(0, 5).forEach((resident) => {
+            // Only prefetch if not already in cache
+            if (!photoUrlCacheRef.current.has(resident.id)) {
+              fetchResidentPhoto(resident as Resident).catch(() => {
+                // Silently fail - this is just prefetching
+              })
+            }
+          })
+        }
       } else {
         setResidents([])
         setShowSuggestions(false)
@@ -142,7 +157,7 @@ export default function ClearancesPage() {
         if (fullResident) {
           setSelectedResident(fullResident as Resident)
           const photoUrl = await fetchResidentPhoto(fullResident as Resident)
-          setResidentPhotoUrl(photoUrl)
+          setResidentPhotoUrl(photoUrl || null)
           
           // If no photo exists, clear captured photo to allow new capture
           if (!photoUrl) {
@@ -155,8 +170,18 @@ export default function ClearancesPage() {
   }, [selectedResidentId, selectedType])
 
   // Fetch resident photo from Supabase Storage
-  const fetchResidentPhoto = async (resident: Resident) => {
+  const fetchResidentPhoto = async (resident: Resident, skipCache = false) => {
+    // Define cache key outside try-catch for error handling
+    const cacheKey = resident.id
+    
     try {
+      // Check cache first
+      if (!skipCache && photoUrlCacheRef.current.has(cacheKey)) {
+        const cachedUrl = photoUrlCacheRef.current.get(cacheKey)
+        console.log(`[Photo] Using cached URL for ${resident.first_name} ${resident.last_name}`)
+        return cachedUrl
+      }
+      
       // Normalize name for filename matching
       const normalize = (str: string) => {
         return str.toUpperCase()
@@ -314,9 +339,15 @@ export default function ClearancesPage() {
 
       const photoUrl = urlData.publicUrl
       console.log(`[Photo] Using URL: ${photoUrl}`)
+      
+      // Cache the result
+      photoUrlCacheRef.current.set(cacheKey, photoUrl)
+      
       return photoUrl
     } catch (error) {
       console.error('[Photo] Error fetching photo:', error)
+      // Cache null result to avoid repeated failed fetches
+      photoUrlCacheRef.current.set(cacheKey, null)
       return null
     }
   }
@@ -421,11 +452,11 @@ export default function ClearancesPage() {
       setSelectedResident(fullResident as Resident)
       // Fetch photo
       const photoUrl = await fetchResidentPhoto(fullResident as Resident)
-      setResidentPhotoUrl(photoUrl)
+      setResidentPhotoUrl(photoUrl ?? null)
     } else {
       setSelectedResident(resident)
       const photoUrl = await fetchResidentPhoto(resident)
-      setResidentPhotoUrl(photoUrl)
+      setResidentPhotoUrl(photoUrl ?? null)
     }
   }
 
@@ -704,18 +735,19 @@ export default function ClearancesPage() {
   return (
     <>
       <Header />
-      <main style={{ 
-        paddingLeft: '5%', 
-        paddingRight: '5%', 
+      <main className="px-4 sm:px-[5%]" style={{ 
         paddingTop: 'max(100px, min(20vh, 200px))', 
         paddingBottom: isMobile ? '60px' : '80px',
         minHeight: '100vh',
         overflow: 'visible',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        width: '100%',
+        maxWidth: '100%'
       }}>
         <div className="w-full max-w-[1600px] mx-auto" style={{ 
           overflow: 'visible', 
-          paddingBottom: '40px'
+          paddingBottom: '40px',
+          maxWidth: '100%'
         }}>
           <div className="text-center mb-6 sm:mb-8 lg:mb-10">
             <h1 className="font-black text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', marginBottom: 'clamp(0.5rem, 1vh, 0.75rem)'}}>Barangay Clearances & Certificates</h1>
@@ -744,52 +776,53 @@ export default function ClearancesPage() {
               })}
             </div>
           ) : (
-            <div className="px-4 sm:px-6 relative" style={{ overflow: 'visible' }}>
-              <div className="flex justify-center items-stretch gap-6" style={{ overflow: 'visible' }}>
-                {/* Desktop: Back button in flex container for centering */}
-                <div className="hidden lg:block flex-shrink-0 pt-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      router.push('/#hero')
+            <div className="relative mx-auto" style={{ overflow: 'visible', width: '100%', maxWidth: '100%' }}>
+              {/* Fixed width container to prevent shifting */}
+              <div 
+                className="mx-auto transition-all duration-500 ease-in-out"
+                style={{ 
+                  width: selectedResident && selectedType !== 'register' && !submitted 
+                    ? 'calc(475px + 400px + 24px)' 
+                    : '475px',
+                  maxWidth: '100%',
+                  overflow: 'visible'
+                }}
+              >
+                <div className="flex justify-start items-start gap-6" style={{ overflow: 'visible' }}>
+                  <div 
+                    className="flex-shrink-0 w-full lg:w-auto"
+                    style={{ 
+                      overflow: 'visible', 
+                      minWidth: 0,
+                      maxWidth: '100%'
                     }}
-                    className="hover:bg-primary/5 p-1.5"
                   >
-                    <ArrowLeft style={{ width: '24px', height: '24px' }} />
-                  </Button>
-                </div>
-                <div 
-                  className="transition-all duration-500 ease-in-out flex-shrink-0 h-full"
-                  style={{ overflow: 'visible' }}
-                >
-                  <Card className={`bg-white/95 backdrop-blur-lg shadow-2xl hover:bg-white/98 h-full flex flex-col relative ${selectedType === 'register' ? (submitted ? 'w-[124%] max-w-[124%] -mx-[12%]' : 'w-[124%] max-w-[124%] -mx-[12%]') : (submitted ? 'w-[124%] max-w-[124%] -mx-[12%]' : 'w-[144%] max-w-[144%] -mx-[22%]')} sm:w-[520px] sm:max-w-[520px] sm:mx-0`} style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', marginBottom: selectedType === 'register' ? '40px' : undefined }}>
-                      {/* Mobile: Back button inside card at top left */}
-                      <div className="lg:hidden absolute top-2 left-2 z-10">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            router.push('/#hero')
-                          }}
-                          className="hover:bg-primary/5 p-1.5"
-                        >
-                          <ArrowLeft style={{ width: '20px', height: '20px' }} />
-                        </Button>
-                      </div>
+                  <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hover:bg-white/98 h-full flex flex-col relative w-full lg:w-[475px]" style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', marginBottom: selectedType === 'register' ? '40px' : undefined, minWidth: 0, overflow: 'visible', maxWidth: '100%' }}>
                       {!submitted && (
-                        <CardHeader className="pb-0 pt-4 text-center">
-                          {selectedTypeData && (
-                            <CardTitle className="flex items-center justify-center gap-2 text-primary text-2xl font-bold">
-                              {selectedTypeData.icon && (
-                                <selectedTypeData.icon className="h-5 w-5" />
-                              )}
-                              {selectedTypeData.label}
-                            </CardTitle>
-                          )}
+                        <CardHeader className="pb-0 pt-3 lg:pt-4 lg:px-6 px-4">
+                          <div className="relative flex items-center justify-center">
+                            {/* Back button on left side for all screen sizes */}
+                            <div className="absolute left-0 flex-shrink-0">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  router.push('/#hero')
+                                }}
+                                className="hover:bg-primary/5 p-2.5 lg:p-1.5"
+                              >
+                                <ArrowLeft className="lg:w-6 lg:h-6 w-5 h-5" />
+                              </Button>
+                            </div>
+                            {selectedTypeData && (
+                              <CardTitle className="w-full text-center text-primary text-2xl font-bold">
+                                {selectedTypeData.label}
+                              </CardTitle>
+                            )}
+                          </div>
                         </CardHeader>
                       )}
-                      <CardContent className="pt-0 flex-1 flex flex-col" style={{ paddingBottom: selectedType === 'register' ? '40px' : undefined }}>
+                      <CardContent className="pt-0 flex-1 flex flex-col" style={{ paddingBottom: selectedType === 'register' ? '40px' : undefined, minWidth: 0, maxWidth: '100%', overflow: 'visible', boxSizing: 'border-box' }}>
 
                 {submitted ? (
                   <div className="text-center py-12 space-y-4">
@@ -803,7 +836,7 @@ export default function ClearancesPage() {
                     </p>
                   </div>
                 ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6" style={{ minWidth: 0, maxWidth: '100%', overflow: 'visible', boxSizing: 'border-box' }}>
                     {/* Error message */}
                     {error && (
                       <div className="bg-red-50 border border-red-200 rounded-md p-4 text-sm text-red-800">
@@ -813,9 +846,9 @@ export default function ClearancesPage() {
 
                     {/* Facility terms */}
                     {selectedType === 'facility' && (
-                      <div className="bg-gray-50 border border-gray-200 rounded-md p-4 text-xs space-y-2">
+                      <div className="bg-gray-50 border border-gray-200 rounded-md p-4 text-xs space-y-2 break-words" style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
                         <h4 className="font-bold text-sm">TERMS AND CONDITIONS</h4>
-                        <ul className="list-disc pl-4 space-y-1 text-gray-700">
+                        <ul className="list-disc pl-4 space-y-1 text-gray-700 break-words">
                           <li>The facility/equipment shall be used exclusively for the approved purpose indicated in the request form.</li>
                           <li>The requestor is responsible for maintaining cleanliness, orderliness, and proper conduct within the facility at all times.</li>
                           <li>Any damage, loss, or misuse of barangay property shall be charged to the requestor, who will be held accountable for repair or replacement costs.</li>
@@ -859,7 +892,8 @@ export default function ClearancesPage() {
                         onFocus={() => {
                           if (residents.length > 0 && !nameWasSelected) setShowSuggestions(true)
                         }}
-                        className="w-full px-4 py-2.5 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                        className="w-full max-w-full px-4 py-2.5 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                        style={{ boxSizing: 'border-box' }}
                         placeholder="Start typing to search residents..."
                         autoComplete="off"
                       />
@@ -991,7 +1025,7 @@ export default function ClearancesPage() {
 
                     {/* Dynamic form fields based on selected type */}
                     {formFields.map((field) => (
-                      <div key={field.id} className="space-y-2">
+                      <div key={field.id} className="space-y-2" style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
                         <label htmlFor={field.id} className="block text-sm font-semibold text-foreground">
                           {field.label}
                         </label>
@@ -1002,7 +1036,8 @@ export default function ClearancesPage() {
                             value={formData[field.id] || ''}
                             onChange={(e) => handleInputChange(field.id, e.target.value)}
                             rows={4}
-                            className="w-full px-4 py-2.5 border border-border rounded-md text-sm bg-background resize-vertical focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                            className="w-full max-w-full px-4 py-2.5 border border-border rounded-md text-sm bg-background resize-vertical focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                            style={{ boxSizing: 'border-box', wordWrap: 'break-word', overflowWrap: 'break-word' }}
                             placeholder={`Enter ${field.label.toLowerCase()}`}
                           />
                         ) : field.type === 'select' ? (
@@ -1012,7 +1047,8 @@ export default function ClearancesPage() {
                             required={field.required}
                             value={formData[field.id] || (field.id === 'suffix' ? 'None' : '')}
                             onChange={(e) => handleInputChange(field.id, e.target.value === 'None' ? '' : e.target.value)}
-                            className="w-full px-4 py-2.5 pr-10 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[right_0.5rem_center] bg-no-repeat"
+                            className="w-full max-w-full px-4 py-2.5 pr-10 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[right_0.5rem_center] bg-no-repeat"
+                            style={{ boxSizing: 'border-box' }}
                           >
                             {field.id === 'suffix' ? null : <option value="">Select an option</option>}
                             {field.options?.map((option) => (
@@ -1026,7 +1062,8 @@ export default function ClearancesPage() {
                               value={formData[`${field.id}Details`] || ''}
                               onChange={(e) => handleInputChange(`${field.id}Details`, e.target.value)}
                               rows={3}
-                              className="w-full px-4 py-2.5 border border-border rounded-md text-sm bg-background resize-vertical focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors mt-2"
+                              className="w-full max-w-full px-4 py-2.5 border border-border rounded-md text-sm bg-background resize-vertical focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors mt-2"
+                              style={{ boxSizing: 'border-box', wordWrap: 'break-word', overflowWrap: 'break-word' }}
                               placeholder="Please specify..."
                             />
                           )}
@@ -1054,7 +1091,8 @@ export default function ClearancesPage() {
                                 (e.target as HTMLInputElement).showPicker()
                               }
                             }}
-                            className="w-full px-4 py-2.5 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors cursor-pointer"
+                            className="w-full max-w-full px-4 py-2.5 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors cursor-pointer"
+                            style={{ boxSizing: 'border-box' }}
                             placeholder={'placeholder' in field ? field.placeholder : `Enter ${field.label.toLowerCase()}`}
                             autoComplete={selectedType === 'register' ? 'off' : undefined}
                           />
@@ -1112,18 +1150,18 @@ export default function ClearancesPage() {
                 </Card>
                 </div>
 
-              {/* Resident Photo & Details Panel - Slides in from right */}
-              <div 
-                className="hidden lg:block transition-all duration-500 ease-in-out flex-shrink-0 h-full"
-                style={{
-                  width: selectedResident && selectedType !== 'register' && !submitted ? '400px' : '0px',
-                  opacity: selectedResident && selectedType !== 'register' && !submitted ? 1 : 0,
-                  marginLeft: selectedResident && selectedType !== 'register' && !submitted ? '0px' : '0px'
-                }}
-              >
-                {selectedResident && selectedType !== 'register' && !submitted && (
-                  <div className="w-[400px] h-full">
-                    <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98 h-full flex flex-col">
+                {/* Resident Photo & Details Panel - Slides in from right */}
+                <div 
+                  className="hidden lg:block transition-all duration-500 ease-in-out flex-shrink-0"
+                  style={{
+                    width: selectedResident && selectedType !== 'register' && !submitted ? '400px' : '0px',
+                    opacity: selectedResident && selectedType !== 'register' && !submitted ? 1 : 0,
+                    overflow: 'hidden'
+                  }}
+                >
+                  {selectedResident && selectedType !== 'register' && !submitted && (
+                    <div className="w-[400px] h-full">
+                      <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98 h-full flex flex-col">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-lg font-semibold">Resident Information</CardTitle>
                       </CardHeader>
@@ -1146,7 +1184,11 @@ export default function ClearancesPage() {
                               <img 
                                 src={residentPhotoUrl} 
                                 alt={`${selectedResident.first_name} ${selectedResident.last_name}`}
-                                className={`w-48 h-48 object-cover rounded-lg border-2 border-gray-200 ${imageLoaded ? 'opacity-100' : 'opacity-0 absolute'}`}
+                                className={`w-48 h-48 object-cover rounded-lg border-2 border-gray-200 transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0 absolute'}`}
+                                width={192}
+                                height={192}
+                                loading="eager"
+                                decoding="async"
                                 onLoad={() => setImageLoaded(true)}
                                 onError={() => setImageError(true)}
                               />
@@ -1199,14 +1241,15 @@ export default function ClearancesPage() {
                     </Card>
                   </div>
                 )}
+                </div>
               </div>
               </div>
               
               {/* Mobile: Resident info card below form */}
               {selectedResident && selectedType !== 'register' && !submitted && (
-                <div className="lg:hidden mt-6 mb-8 px-4 sm:px-6">
+                <div className="lg:hidden mt-6 mb-8">
                   <div className="flex justify-center">
-                    <Card className="bg-white/95 backdrop-blur-lg shadow-2xl w-[94%] sm:w-full max-w-[94%] sm:max-w-full flex flex-col">
+                    <Card className="bg-white/95 backdrop-blur-lg shadow-2xl w-full max-w-full flex flex-col">
                     <CardHeader className="pb-2 px-4">
                       <CardTitle className="text-base font-semibold">Resident Information</CardTitle>
                     </CardHeader>
@@ -1230,8 +1273,12 @@ export default function ClearancesPage() {
                             <img 
                               src={residentPhotoUrl} 
                               alt={`${selectedResident.first_name} ${selectedResident.last_name}`}
-                              className={`object-cover rounded-lg border-2 border-gray-200 flex-shrink-0 ${imageLoaded ? 'opacity-100' : 'opacity-0 absolute'}`}
+                              className={`object-cover rounded-lg border-2 border-gray-200 flex-shrink-0 transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0 absolute'}`}
                               style={{ width: '128px', height: '128px', minWidth: '128px', minHeight: '128px', maxWidth: '128px', maxHeight: '128px' }}
+                              width={128}
+                              height={128}
+                              loading="eager"
+                              decoding="async"
                               onLoad={() => setImageLoaded(true)}
                               onError={() => setImageError(true)}
                             />

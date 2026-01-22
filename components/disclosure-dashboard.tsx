@@ -59,14 +59,17 @@ export function DisclosureDashboard() {
           {dashboardItems.map((item, index) => (
             <Card 
               key={index}
-              className="bg-white/95 backdrop-blur-lg shadow-[0_4px_12px_rgba(0,0,0,0.08)] sm:shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98 flex flex-col"
+              className="bg-white/95 backdrop-blur-lg shadow-[0_4px_12px_rgba(0,0,0,0.08)] sm:shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98 flex flex-col h-full"
             >
-              <CardHeader className="pb-2 pt-3 px-3 sm:px-6 gap-0 flex-shrink-0" style={{ minHeight: '2.5rem' }}>
-                <CardTitle className="text-primary text-sm sm:text-base lg:text-lg font-black text-center leading-tight">
+              {/* TITLE - Fixed height for consistent alignment */}
+              <div className="h-[3.5rem] sm:h-[4rem] flex items-center justify-center text-center px-3 sm:px-6 pt-3 pb-2 flex-shrink-0">
+                <h3 className="text-primary text-sm sm:text-base lg:text-lg font-black leading-tight line-clamp-2">
                   {item.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 pb-3 px-3 sm:px-6 pt-2 flex-1 flex flex-col justify-center">
+                </h3>
+              </div>
+
+              {/* BUTTONS - Pushed to bottom with mt-auto */}
+              <CardContent className="space-y-3 pb-3 px-3 sm:px-6 pt-2 flex-1 flex flex-col mt-auto">
                 {/* 2025 Folder - Blue */}
                 <a
                   href={item.year2025Link}

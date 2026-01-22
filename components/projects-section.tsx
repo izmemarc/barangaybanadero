@@ -73,12 +73,18 @@ export function ProjectsSection() {
           <div className="text-center mb-6 sm:mb-8">
             <h3 className="font-bold text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.25rem, 2.5vw, 2rem)'}}>MAIN PILLARS</h3>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 sm:auto-rows-fr">
             {coreAreasProjectsStatic.map((project: Project, index: number) => (
-              <ProjectCard 
-                key={`core-${project.title}-${index}`} 
-                project={project}
-              />
+              <div 
+                key={`core-${project.title}-${index}`}
+                className={index === 2 ? "sm:col-start-1 sm:col-end-3 sm:flex sm:justify-center lg:col-start-auto lg:col-end-auto lg:block h-full" : "h-full"}
+              >
+                <div className={index === 2 ? "sm:w-full sm:max-w-md lg:max-w-none lg:w-full h-full" : "w-full h-full"}>
+                  <ProjectCard 
+                    project={project}
+                  />
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -88,12 +94,18 @@ export function ProjectsSection() {
           <div className="text-center mb-6 sm:mb-8">
             <h3 className="font-bold text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.25rem, 2.5vw, 2rem)'}}>SUPPORTING PILLARS</h3>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 sm:auto-rows-fr">
             {essentialAreasProjectsStatic.map((project: Project, index: number) => (
-              <ProjectCard 
-                key={`essential-${project.title}-${index}`} 
-                project={project}
-              />
+              <div 
+                key={`essential-${project.title}-${index}`}
+                className={index === 2 ? "sm:col-start-1 sm:col-end-3 sm:flex sm:justify-center lg:col-start-auto lg:col-end-auto lg:block h-full" : "h-full"}
+              >
+                <div className={index === 2 ? "sm:w-full sm:max-w-md lg:max-w-none lg:w-full h-full" : "w-full h-full"}>
+                  <ProjectCard 
+                    project={project}
+                  />
+                </div>
+              </div>
             ))}
           </div>
         </div>
