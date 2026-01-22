@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileText, Calendar, MapPin, Phone, Mail, Briefcase, AlertCircle, UserPlus } from "lucide-react"
+import { FileText, Calendar, MapPin, Phone, Mail, Briefcase, AlertCircle, UserPlus, CreditCard, Award } from "lucide-react"
 
 export function HeroSection() {
   return (
@@ -226,6 +226,26 @@ export function HeroSection() {
                   >
                     <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
                     Register as Resident
+                  </Button>
+                </a>
+                <a href="/clearances?type=barangay-id" className="w-full block">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
+                    aria-label="Request Barangay ID"
+                  >
+                    <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
+                    Barangay ID
+                  </Button>
+                </a>
+                <a href="/clearances?type=cso-accreditation" className="w-full block">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
+                    aria-label="Request CSO Accreditation"
+                  >
+                    <Award className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
+                    CSO Accreditation
                   </Button>
                 </a>
               </CardContent>

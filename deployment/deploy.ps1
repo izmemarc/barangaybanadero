@@ -34,7 +34,7 @@ Remove-Item -Recurse -Force .turbo -ErrorAction SilentlyContinue
 
 Write-Host "Creating archive..." -ForegroundColor Yellow
 $Archive = "deploy.zip"
-Compress-Archive -Path "app", "components", "contexts", "hooks", "lib", "scripts", "public", ".env.local", "*.json", "*.mjs", "deployment/nginx-http.conf", "deployment/nginx-https.conf", "deployment/setup-ssl.sh" -DestinationPath $Archive -Force -ErrorAction SilentlyContinue
+Compress-Archive -Path "app", "components", "hooks", "lib", "public", ".env.local", "*.json", "*.mjs", "deployment/nginx-http.conf", "deployment/nginx-https.conf", "deployment/setup-ssl.sh" -DestinationPath $Archive -Force -ErrorAction SilentlyContinue
 
 if (Test-Path $Archive) {
     Write-Host "Archive created: $Archive" -ForegroundColor Green
@@ -66,7 +66,7 @@ if ($LASTEXITCODE -eq 0) {
         Write-Host "Deploying application..." -ForegroundColor Cyan
         
         Write-Host "Cleaning old files and caches..." -ForegroundColor Yellow
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && rm -rf app components contexts hooks lib scripts public *.json *.ts *.mjs node_modules .next .turbo"
+        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && rm -rf app components hooks lib public *.json *.ts *.mjs node_modules .next .turbo"
         
         Write-Host "Extracting new files..." -ForegroundColor Yellow
         echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && unzip -o -q deploy.zip && rm deploy.zip"

@@ -745,19 +745,6 @@ export default function ClearancesPage() {
             </div>
           ) : (
             <div className="px-4 sm:px-6 relative" style={{ overflow: 'visible' }}>
-              {/* Mobile: Back button positioned absolutely on left */}
-              <div className="lg:hidden absolute -left-2.5 top-0 z-10">
-                  <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    router.push('/#hero')
-                  }}
-                  className="hover:bg-primary/5 p-1.5"
-                >
-                  <ArrowLeft style={{ width: '20px', height: '20px' }} />
-                </Button>
-              </div>
               <div className="flex justify-center items-stretch gap-6" style={{ overflow: 'visible' }}>
                 {/* Desktop: Back button in flex container for centering */}
                 <div className="hidden lg:block flex-shrink-0 pt-1">
@@ -776,7 +763,20 @@ export default function ClearancesPage() {
                   className="transition-all duration-500 ease-in-out flex-shrink-0 h-full"
                   style={{ overflow: 'visible' }}
                 >
-                  <Card className={`bg-white/95 backdrop-blur-lg shadow-2xl hover:bg-white/98 h-full flex flex-col ${selectedType === 'register' ? (submitted ? 'w-[124%] max-w-[124%] -mx-[12%]' : 'w-[124%] max-w-[124%] -mx-[12%]') : (submitted ? 'w-[124%] max-w-[124%] -mx-[12%]' : 'w-[144%] max-w-[144%] -mx-[22%]')} sm:w-[520px] sm:max-w-[520px] sm:mx-0`} style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', marginBottom: selectedType === 'register' ? '40px' : undefined }}>
+                  <Card className={`bg-white/95 backdrop-blur-lg shadow-2xl hover:bg-white/98 h-full flex flex-col relative ${selectedType === 'register' ? (submitted ? 'w-[124%] max-w-[124%] -mx-[12%]' : 'w-[124%] max-w-[124%] -mx-[12%]') : (submitted ? 'w-[124%] max-w-[124%] -mx-[12%]' : 'w-[144%] max-w-[144%] -mx-[22%]')} sm:w-[520px] sm:max-w-[520px] sm:mx-0`} style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', marginBottom: selectedType === 'register' ? '40px' : undefined }}>
+                      {/* Mobile: Back button inside card at top left */}
+                      <div className="lg:hidden absolute top-2 left-2 z-10">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            router.push('/#hero')
+                          }}
+                          className="hover:bg-primary/5 p-1.5"
+                        >
+                          <ArrowLeft style={{ width: '20px', height: '20px' }} />
+                        </Button>
+                      </div>
                       {!submitted && (
                         <CardHeader className="pb-0 pt-4 text-center">
                           {selectedTypeData && (

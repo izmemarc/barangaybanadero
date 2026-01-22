@@ -15,9 +15,8 @@ html {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   overflow-x: hidden;
-  overflow-y: scroll;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
 }
@@ -30,12 +29,8 @@ body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: auto !important;
-  min-height: 100vh !important;
-  max-height: none !important;
-  overflow-y: auto;
+  min-height: 100vh;
   overflow-x: hidden;
-  position: relative;
 }
 
 body::-webkit-scrollbar {
@@ -57,19 +52,19 @@ body::-webkit-scrollbar {
   pointer-events: auto;
 }
 
-/* Page wrapper for scaled content */
+/* Page wrapper - fixed width with zoom scaling for desktop, full width for mobile */
 #page-wrapper {
   position: relative;
-  width: 100%;
-  transform-origin: top left;
-  pointer-events: none;
-  padding-bottom: 0;
-  margin-bottom: 0;
+  width: 1440px;
+  margin: 0 auto;
 }
 
-/* Allow pointer events on all children of page-wrapper */
-#page-wrapper > * {
-  pointer-events: auto;
+/* Mobile: full width responsive layout */
+@media (max-width: 899px) {
+  #page-wrapper {
+    width: 100%;
+    max-width: 100%;
+  }
 }
 
 body {
@@ -77,20 +72,53 @@ body {
   background-size: 15px 15px;
 }
 
-/* Remove excess white space */
-body, footer {
-  margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
-}
-
 main {
   display: block;
-  padding-bottom: 4vh;
 }
 
-footer {
-  height: auto !important;
-  max-height: fit-content !important;
+/* Zoom-based responsive scaling - Desktop only */
+/* Mobile devices (below 900px) use default zoom: 1.0 with responsive layout */
+
+/* 1440p at 100% Windows scaling (2560x1440) */
+@media (min-width: 2400px) {
+  html {
+    zoom: 1.25;
+  }
+}
+
+/* 1440p at 125% Windows scaling (~2048x1152) */
+@media (min-width: 1900px) and (max-width: 2399px) {
+  html {
+    zoom: 1.0;
+  }
+}
+
+/* 1080p at 100% Windows scaling (1920x1080) */
+@media (min-width: 1850px) and (max-width: 1899px) {
+  html {
+    zoom: 0.93;
+  }
+}
+
+/* 1080p at 125% Windows scaling (~1536x864) */
+@media (min-width: 1450px) and (max-width: 1849px) {
+  html {
+    zoom: 0.73;
+  }
+}
+
+/* 768p at 100% Windows scaling (1366x768) */
+@media (min-width: 1250px) and (max-width: 1449px) {
+  html {
+    zoom: 0.57;
+  }
+}
+
+/* 768p at 125% Windows scaling (~1092x614) */
+@media (min-width: 900px) and (max-width: 1249px) {
+  html {
+    zoom: 0.46;
+  }
 }
 
 
