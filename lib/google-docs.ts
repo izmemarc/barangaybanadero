@@ -98,8 +98,16 @@ export async function generateClearanceDocument(
     const documentUrl = `https://docs.google.com/document/d/${documentId}/edit`
 
     return { documentId, documentUrl }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error generating document:', error)
+    
+    // Check if it's an OAuth error
+    if (error.code === 400 || error.message?.includes('invalid_grant')) {
+      console.error('❌ OAUTH TOKEN EXPIRED OR INVALID!')
+      console.error('👉 Regenerate token at: http://localhost:3001/api/oauth/setup')
+      console.error('👉 Or visit: https://banaderolegazpi.online/api/oauth/setup')
+    }
+    
     throw error
   }
 }

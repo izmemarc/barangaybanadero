@@ -312,8 +312,8 @@ export async function POST(request: NextRequest) {
       const requests = Object.entries(replacements).map(([placeholder, value]) => ({
         replaceAllText: {
           containsText: {
-            text: `{{${placeholder}}}`,
-            matchCase: false
+            text: `<${placeholder}>`,
+            matchCase: true
           },
           replaceText: value || ''
         }
@@ -377,7 +377,10 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error generating clearance:', error)
+    console.error('=== ERROR GENERATING CLEARANCE ===')
+    console.error('Error:', error)
+    console.error('Stack:', error instanceof Error ? error.stack : 'No stack trace')
+    console.error('===================================')
     return NextResponse.json(
       { error: 'Failed to generate document', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

@@ -1,4 +1,4 @@
-﻿Write-Host "Barangay Website Deployment" -ForegroundColor Cyan
+Write-Host "Barangay Website Deployment" -ForegroundColor Cyan
 
 # Add error handling to prevent instant crashes
 trap {
@@ -97,8 +97,8 @@ if ($LASTEXITCODE -eq 0) {
         
         Write-Host "Dependencies installed successfully!" -ForegroundColor Green
         
-        Write-Host "Building application (this may take 1-2 minutes)..." -ForegroundColor Yellow
-        $buildResult = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && NODE_OPTIONS='--max-old-space-size=2048' npm run build 2>&1"
+        Write-Host "Building application (this may take 2-3 minutes)..." -ForegroundColor Yellow
+        $buildResult = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && NODE_OPTIONS='--max-old-space-size=3072' npm run build 2>&1"
         
         if ($LASTEXITCODE -ne 0) {
             Write-Host "`nBuild failed! Showing last 30 lines of output:" -ForegroundColor Red
@@ -110,8 +110,9 @@ if ($LASTEXITCODE -eq 0) {
         
         Write-Host "Build completed successfully!" -ForegroundColor Green
         
-        Write-Host "Installing production dependencies..." -ForegroundColor Yellow
-        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && npm install --production --legacy-peer-deps --no-audit --no-fund"
+        Write-Host "Pruning devDependencies to save space..." -ForegroundColor Yellow
+        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && npm prune --production --legacy-peer-deps"
+        Write-Host "  DevDependencies removed (build artifacts retained)" -ForegroundColor Green
         
         Write-Host "Opening firewall ports..." -ForegroundColor Yellow
         echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo ufw allow 80/tcp && sudo ufw allow 443/tcp && sudo ufw allow 22/tcp"
@@ -232,8 +233,11 @@ if ($LASTEXITCODE -eq 0) {
             }
         }
         
-        Write-Host "Restarting application..." -ForegroundColor Yellow
-        $startResult = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "pm2 stop barangay-website > /dev/null 2>&1; pm2 delete barangay-website > /dev/null 2>&1; pm2 flush > /dev/null 2>&1; cd /root/barangay-website && HOSTNAME=0.0.0.0 PORT=3001 ADMIN_PASSWORD='`$2b`$10`$xXCCrkJAX7zbODYyN47Nnev9/dTKZE7001IQW4Cn/heZd9szAn8w.' pm2 start npm --name barangay-website -- start 2>&1 && pm2 save > /dev/null"
+        Write-Host "Clearing PM2 logs and stopping old instance..." -ForegroundColor Yellow
+        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "pm2 stop barangay-website > /dev/null 2>&1; pm2 delete barangay-website > /dev/null 2>&1; pm2 flush > /dev/null 2>&1"
+        
+        Write-Host "Starting application with PM2..." -ForegroundColor Yellow
+        $startResult = echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "cd /root/barangay-website && HOSTNAME=0.0.0.0 PORT=3001 ADMIN_PASSWORD='`$2b`$10`$xXCCrkJAX7zbODYyN47Nnev9/dTKZE7001IQW4Cn/heZd9szAn8w.' pm2 start npm --name barangay-website -- start 2>&1 && pm2 save > /dev/null"
         if ($LASTEXITCODE -ne 0) {
             Write-Host "Failed to start application! Error output:" -ForegroundColor Red
             Write-Host $startResult -ForegroundColor Red
@@ -258,6 +262,10 @@ if ($LASTEXITCODE -eq 0) {
         # Clear server-side caches
         Write-Host "Clearing server-side caches..." -ForegroundColor Cyan
         echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "pm2 flush"
+        
+        # Restart nginx to clear any proxy caches
+        Write-Host "Restarting nginx to clear proxy cache..." -ForegroundColor Cyan
+        echo y | plink -ssh -pw "$Password" "${Username}@${ServerIP}" "sudo systemctl restart nginx"
         
         Write-Host "`nDeployment complete!" -ForegroundColor Green
         Write-Host "Website: https://banaderolegazpi.online" -ForegroundColor Cyan
