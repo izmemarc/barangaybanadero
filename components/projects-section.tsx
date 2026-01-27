@@ -110,136 +110,139 @@ export function ProjectsSection() {
           </div>
         </div>
 
-        {/* Land for All Project Section */}
-        <div className="w-full">
-          <div className="bg-white/95 backdrop-blur-lg border-0 shadow-xl rounded-lg overflow-hidden">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
-              {/* Image Section */}
-              <div className="relative h-64 sm:h-80 lg:h-full lg:min-h-[500px]">
-                <img
-                  src="/cap.png"
-                  alt="Barangay Captain - Land for All Project"
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-              
-              {/* Content Section */}
-              <div className="p-8 sm:p-10 lg:p-12 xl:p-16 flex flex-col justify-center space-y-6" style={{paddingLeft: 'calc(2rem - 5%)'}}>
-                <div className="space-y-3">
-                  <h3 className="font-black text-center lg:text-left tracking-tight leading-tight" style={{fontSize: 'clamp(1.75rem, 3.5vw, 2.75rem)', letterSpacing: '-0.02em', color: '#1E40AF'}}>
-                    BARANGAY 6, BANADERO
-                  </h3>
-                  <h4 className="font-bold text-gray-800 text-center lg:text-left leading-snug" style={{fontSize: 'clamp(1.125rem, 2vw, 1.5rem)'}}>
-                    LAND FOR ALL: Affordable Lots for the Informal Settlers / Renters
-                  </h4>
-                </div>
-                
-                <div className="space-y-5 pt-2">
-                  <h5 className="font-bold tracking-wide" style={{fontSize: 'clamp(1rem, 1.3vw, 1.125rem)', letterSpacing: '0.05em', color: '#1E40AF'}}>
+          {/* Land for All Section */}
+        <div className="mb-12 sm:mb-16 lg:mb-20">
+          <div className="text-center mb-6 sm:mb-8">
+            <h3 className="font-black text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.75rem, 3.5vw, 2.75rem)', marginBottom: 'clamp(0.5rem, 1vh, 0.75rem)'}}>
+              BARANGAY 6, BANADERO
+            </h3>
+            <h4 className="font-bold text-gray-800 leading-snug" style={{fontSize: 'clamp(1.125rem, 2vw, 1.5rem)'}}>
+              LAND FOR ALL: Affordable Lots for the Informal Settlers / Renters
+            </h4>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 sm:auto-rows-fr">
+            {/* Project Background Card */}
+            <div className="h-full">
+              <div className="w-full h-full">
+                <div className="bg-white/95 backdrop-blur-lg border-0 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-lg overflow-hidden h-full flex flex-col p-6 sm:p-8">
+                  <h5 className="font-black tracking-tight mb-4" style={{fontSize: 'clamp(1.125rem, 1.8vw, 1.375rem)', letterSpacing: '-0.02em', color: '#1E40AF'}}>
                     PROJECT BACKGROUND & OBJECTIVES
                   </h5>
-                  <div className="space-y-4">
-                    <p className="text-gray-700 leading-relaxed" style={{fontSize: 'clamp(0.9375rem, 1.3vw, 1.0625rem)', lineHeight: '1.75'}}>
-                      The Land for All: Affordable Lots for Informal Settlers project is a Barangay-initiated housing assistance program, funded through a loan from Veterans Bank – Legazpi Branch. The primary goal is to provide secure, affordable residential lots to qualified, landless residents of Barangay 6, Banadero, currently residing as informal settlers or renters.
+                  <div className="flex-1 space-y-4">
+                    <p className="text-gray-700 leading-relaxed text-justify" style={{fontSize: 'clamp(0.875rem, 1.2vw, 0.9375rem)', lineHeight: '1.7', textIndent: '2.5em'}}>
+                      <span className="font-bold text-black">The Land for All:</span> Affordable Lots for Informal Settlers project is a Barangay-initiated housing assistance program, funded through a loan from Veterans Bank – Legazpi Branch. The primary goal is to provide secure, affordable residential lots to qualified, landless residents of Barangay 6, Banadero, currently residing as informal settlers or renters.
                     </p>
-                    <p className="text-gray-700 leading-relaxed" style={{fontSize: 'clamp(0.9375rem, 1.3vw, 1.0625rem)', lineHeight: '1.75'}}>
+                    <p className="text-gray-700 leading-relaxed text-justify" style={{fontSize: 'clamp(0.875rem, 1.2vw, 0.9375rem)', lineHeight: '1.7', textIndent: '2.5em'}}>
                       To assist low-income beneficiaries in fulfilling their monthly payment obligations, the Barangay shall work in partnership with the Barangay Accredited Cooperative, the Banadero Consumers' Cooperative (BCC)/Empowered Women Association of Barangay Banadero (EWABB), which will serve as an ally organization tasked with mobilizing fund drive activities and capacity-building to ensure prompt amortization payments.
                     </p>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Eligibility Criteria and Terms Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mt-6 lg:mt-8">
-          {/* Eligibility Criteria Card */}
-          <div className="bg-white/95 backdrop-blur-lg border-0 shadow-xl rounded-lg overflow-hidden p-8 sm:p-10 lg:p-12">
-            <h3 className="font-black mb-4 tracking-tight" style={{fontSize: 'clamp(1.5rem, 2.5vw, 2rem)', letterSpacing: '-0.02em', color: '#1E40AF'}}>
-              ELIGIBILITY CRITERIA FOR BENEFICIARIES
-            </h3>
-            <p className="text-black mb-3 leading-snug" style={{fontSize: 'clamp(0.9375rem, 1.3vw, 1.0625rem)', lineHeight: '1.5'}}>
-              To qualify as a beneficiary under the Land for All program, applicants must:
-            </p>
-            <ul className="space-y-2">
-              <li className="flex gap-2">
-                <span className="font-bold flex-shrink-0" style={{color: '#1E40AF'}}>•</span>
-                <span className="text-gray-700 leading-snug" style={{fontSize: 'clamp(0.9375rem, 1.3vw, 1.0625rem)', lineHeight: '1.5'}}>
-                  Be landless and living in an informal or rental housing situation.
-                </span>
-              </li>
-              <li className="flex gap-2">
-                <span className="font-bold flex-shrink-0" style={{color: '#1E40AF'}}>•</span>
-                <span className="text-gray-700 leading-snug" style={{fontSize: 'clamp(0.9375rem, 1.3vw, 1.0625rem)', lineHeight: '1.5'}}>
-                  Be a bonafide resident of Barangay 6, Banadero, Legazpi City or a Registered Voter and/or BCC-EWABB Member is an advantage.
-                </span>
-              </li>
-              <li className="flex gap-2">
-                <span className="font-bold flex-shrink-0" style={{color: '#1E40AF'}}>•</span>
-                <span className="text-gray-700 leading-snug" style={{fontSize: 'clamp(0.9375rem, 1.3vw, 1.0625rem)', lineHeight: '1.5'}}>
-                  Not have previously availed of any government-funded housing program.
-                </span>
-              </li>
-              <li className="flex gap-2">
-                <span className="font-bold flex-shrink-0" style={{color: '#1E40AF'}}>•</span>
-                <span className="text-gray-700 leading-snug" style={{fontSize: 'clamp(0.9375rem, 1.3vw, 1.0625rem)', lineHeight: '1.5'}}>
-                  Be willing to cooperate with the support mechanisms facilitated by the cooperative, including community fund drives and educational sessions.
-                </span>
-              </li>
-              <li className="flex gap-2">
-                <span className="font-bold flex-shrink-0" style={{color: '#1E40AF'}}>•</span>
-                <span className="text-gray-700 leading-snug" style={{fontSize: 'clamp(0.9375rem, 1.3vw, 1.0625rem)', lineHeight: '1.5'}}>
-                  Commit to paying the monthly amortization on time for the full term of the agreement.
-                </span>
-              </li>
-            </ul>
-          </div>
+            {/* Eligibility Criteria Card */}
+            <div className="h-full">
+              <div className="w-full h-full">
+                <div className="bg-white/95 backdrop-blur-lg border-0 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-lg overflow-hidden h-full flex flex-col p-6 sm:p-8">
+                  <h5 className="font-black tracking-tight mb-4" style={{fontSize: 'clamp(1.125rem, 1.8vw, 1.375rem)', letterSpacing: '-0.02em', color: '#1E40AF'}}>
+                    ELIGIBILITY CRITERIA FOR BENEFICIARIES
+                  </h5>
+                  <div className="flex-1 space-y-3">
+                    <p className="text-gray-800 leading-snug font-medium" style={{fontSize: 'clamp(0.875rem, 1.2vw, 0.9375rem)', lineHeight: '1.6'}}>
+                      To qualify as a beneficiary under the Land for All program, applicants must:
+                    </p>
+                    <ul className="space-y-2">
+                      <li className="flex gap-2">
+                        <span className="font-bold flex-shrink-0" style={{color: '#1E40AF'}}>•</span>
+                        <span className="text-gray-700 leading-snug" style={{fontSize: 'clamp(0.875rem, 1.2vw, 0.9375rem)', lineHeight: '1.6'}}>
+                          Be landless and living in an informal or rental housing situation.
+                        </span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="font-bold flex-shrink-0" style={{color: '#1E40AF'}}>•</span>
+                        <span className="text-gray-700 leading-snug" style={{fontSize: 'clamp(0.875rem, 1.2vw, 0.9375rem)', lineHeight: '1.6'}}>
+                          Be a bonafide resident of Barangay 6, Banadero, Legazpi City or a Registered Voter and/or BCC-EWABB Member is an advantage.
+                        </span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="font-bold flex-shrink-0" style={{color: '#1E40AF'}}>•</span>
+                        <span className="text-gray-700 leading-snug" style={{fontSize: 'clamp(0.875rem, 1.2vw, 0.9375rem)', lineHeight: '1.6'}}>
+                          Not have previously availed of any government-funded housing program.
+                        </span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="font-bold flex-shrink-0" style={{color: '#1E40AF'}}>•</span>
+                        <span className="text-gray-700 leading-snug" style={{fontSize: 'clamp(0.875rem, 1.2vw, 0.9375rem)', lineHeight: '1.6'}}>
+                          Be willing to cooperate with the support mechanisms facilitated by the cooperative, including community fund drives and educational sessions.
+                        </span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="font-bold flex-shrink-0" style={{color: '#1E40AF'}}>•</span>
+                        <span className="text-gray-700 leading-snug" style={{fontSize: 'clamp(0.875rem, 1.2vw, 0.9375rem)', lineHeight: '1.6'}}>
+                          Commit to paying the monthly amortization on time for the full term of the agreement.
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-          {/* Terms and Conditions Card */}
-          <div className="bg-white/95 backdrop-blur-lg border-0 shadow-xl rounded-lg overflow-hidden p-8 sm:p-10 lg:p-12">
-            <h3 className="font-black mb-6 tracking-tight" style={{fontSize: 'clamp(1.5rem, 2.5vw, 2rem)', letterSpacing: '-0.02em', color: '#1E40AF'}}>
-              TERMS AND CONDITIONS OF LOT ACQUISITION
-            </h3>
-            <div className="space-y-6">
-              <div>
-                <h4 className="font-bold mb-4 tracking-wide text-gray-800" style={{fontSize: 'clamp(1rem, 1.3vw, 1.125rem)', letterSpacing: '0.05em'}}>
-                  LOT COST AND FINANCING
-                </h4>
-                <div className="space-y-0">
-                  <div className="flex justify-between items-center py-3 border-b border-gray-200">
-                    <span className="text-gray-700 font-medium" style={{fontSize: 'clamp(0.9375rem, 1.3vw, 1.0625rem)'}}>
-                      Total cost per lot:
-                    </span>
-                    <span className="font-bold text-black" style={{fontSize: 'clamp(1.0625rem, 1.5vw, 1.25rem)'}}>
-                      ₱119,250.00
-                    </span>
+            {/* Terms and Conditions Card */}
+            <div className="h-full sm:col-start-1 sm:col-end-3 sm:flex sm:justify-center lg:col-start-auto lg:col-end-auto lg:block">
+              <div className="sm:w-full sm:max-w-md lg:max-w-none lg:w-full h-full">
+                <div className="bg-white/95 backdrop-blur-lg border-0 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-lg overflow-hidden h-full flex flex-col p-6 sm:p-8">
+                  <h5 className="font-black tracking-tight mb-4" style={{fontSize: 'clamp(1.125rem, 1.8vw, 1.375rem)', letterSpacing: '-0.02em', color: '#1E40AF'}}>
+                    TERMS AND CONDITIONS OF LOT ACQUISITION
+                  </h5>
+                  <div className="flex-1 space-y-6">
+                    <div>
+                      <h6 className="font-bold mb-4 tracking-wide text-gray-800" style={{fontSize: 'clamp(0.9375rem, 1.3vw, 1rem)', letterSpacing: '0.05em'}}>
+                        LOT COST AND FINANCING
+                      </h6>
+                      <div className="space-y-0">
+                        <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                          <span className="text-gray-700 font-medium" style={{fontSize: 'clamp(0.875rem, 1.2vw, 0.9375rem)'}}>
+                            Total cost per lot:
+                          </span>
+                          <span className="font-bold text-black" style={{fontSize: 'clamp(1rem, 1.4vw, 1.125rem)'}}>
+                            ₱119,250.00
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                          <span className="text-gray-700 font-medium" style={{fontSize: 'clamp(0.875rem, 1.2vw, 0.9375rem)'}}>
+                            Monthly amortization:
+                          </span>
+                          <span className="font-bold text-black" style={{fontSize: 'clamp(1rem, 1.4vw, 1.125rem)'}}>
+                            ₱1,987.50
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                          <span className="text-gray-700 font-medium" style={{fontSize: 'clamp(0.875rem, 1.2vw, 0.9375rem)'}}>
+                            Lot size:
+                          </span>
+                          <span className="font-bold text-black" style={{fontSize: 'clamp(1rem, 1.4vw, 1.125rem)'}}>
+                            50 sq. meters
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-3">
+                          <span className="text-gray-700 font-medium" style={{fontSize: 'clamp(0.875rem, 1.2vw, 0.9375rem)'}}>
+                            Term:
+                          </span>
+                          <span className="font-bold text-black" style={{fontSize: 'clamp(1rem, 1.4vw, 1.125rem)'}}>
+                            60 months (5 years)
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-gray-700 leading-relaxed mt-4" style={{fontSize: 'clamp(0.875rem, 1.2vw, 0.9375rem)', lineHeight: '1.7'}}>
+                        Financing is covered by the Barangay's loan with Veterans Bank and beneficiaries' payments will go towards paying this loan.
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center py-3 border-b border-gray-200">
-                    <span className="text-gray-700 font-medium" style={{fontSize: 'clamp(0.9375rem, 1.3vw, 1.0625rem)'}}>
-                      Monthly amortization:
-                    </span>
-                    <span className="font-bold text-black" style={{fontSize: 'clamp(1.0625rem, 1.5vw, 1.25rem)'}}>
-                      ₱1,987.50
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-3 border-b border-gray-200">
-                    <span className="text-gray-700 font-medium" style={{fontSize: 'clamp(0.9375rem, 1.3vw, 1.0625rem)'}}>
-                      Lot size:
-                    </span>
-                    <span className="font-bold text-black" style={{fontSize: 'clamp(1.0625rem, 1.5vw, 1.25rem)'}}>
-                      50 sq. meters
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-3">
-                    <span className="text-gray-700 font-medium" style={{fontSize: 'clamp(0.9375rem, 1.3vw, 1.0625rem)'}}>
-                      Term:
-                    </span>
-                    <span className="font-bold text-black" style={{fontSize: 'clamp(1.0625rem, 1.5vw, 1.25rem)'}}>
-                      60 months (5 years)
-                    </span>
-                  </div>
+                  <p className="text-gray-700 font-medium mt-6 text-right" style={{fontSize: 'clamp(0.875rem, 1.2vw, 0.9375rem)'}}>
+                    - PB Arthur R Marco
+                  </p>
                 </div>
               </div>
             </div>

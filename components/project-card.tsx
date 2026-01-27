@@ -44,7 +44,7 @@ export function ProjectCard({ project }: { project: Project }) {
         {project.subtitle && (
           <h3 className="font-semibold text-gray-800 leading-tight mb-3" style={{fontSize: 'clamp(0.9rem, 1.2vw, 1rem)'}}>{project.subtitle}</h3>
         )}
-        <p className="text-gray-600 font-medium text-pretty leading-relaxed flex-1" style={{fontSize: 'clamp(0.8rem, 1.1vw, 0.9rem)'}}>{project.description}</p>
+        <p className="text-gray-600 font-medium text-pretty leading-relaxed flex-1 text-justify" style={{fontSize: 'clamp(0.8rem, 1.1vw, 0.9rem)'}}>{project.description}</p>
 
         <div className="space-y-3 mt-4">
           <div className="flex items-center gap-2">
