@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, Building2, AlertCircle, Calendar, Award, Heart, Home, ArrowLeft, UserPlus, CheckCircle, User, Camera, X } from 'lucide-react'
+import { FileText, Building2, AlertCircle, Calendar, Award, Heart, Home, ArrowLeft, UserPlus, CheckCircle, User, Camera, X, Users, Leaf, CreditCard } from 'lucide-react'
 import { submitClearance, searchResidents, calculateAge, type Resident, supabase } from '@/lib/supabase'
 
 type ClearanceType = 
@@ -17,6 +17,9 @@ type ClearanceType =
   | 'indigency'
   | 'residency'
   | 'register'
+  | 'cso-accreditation'
+  | 'luntian'
+  | 'barangay-id'
 
 interface FormData {
   name: string
@@ -29,15 +32,82 @@ const clearanceTypes = [
   { id: 'blotter' as ClearanceType, label: 'Blotter', icon: AlertCircle },
   { id: 'facility' as ClearanceType, label: 'Facility Use', icon: Calendar },
   { id: 'good-moral' as ClearanceType, label: 'Certificate of Good Moral', icon: Award },
-  { id: 'indigency' as ClearanceType, label: 'Certificate of Indigency', icon: Heart },
+  { id: 'indigency' as ClearanceType, label: 'Certificate of Indigency', icon: Heart }, 
   { id: 'residency' as ClearanceType, label: 'Certificate of Residency', icon: Home },
+  { id: 'barangay-id' as ClearanceType, label: 'Barangay ID', icon: CreditCard },
   { id: 'register' as ClearanceType, label: 'Register as Resident', icon: UserPlus },
+  { id: 'cso-accreditation' as ClearanceType, label: 'CSO/NGO Accreditation', icon: Users },
+  { id: 'luntian' as ClearanceType, label: 'Luntian Request Form', icon: Leaf },
 ]
+
+// Custom Dropdown Component for multi-line text
+function MultiSelectCheckboxes({ 
+  id, 
+  value, 
+  options, 
+  onChange, 
+  required
+}: { 
+  id: string
+  value: string
+  options: string[]
+  onChange: (value: string) => void
+  required?: boolean
+}) {
+  // Parse selected values from comma-separated string
+  const selectedValues = value ? value.split(', ').filter(v => v) : []
+
+  const toggleOption = (option: string) => {
+    let newSelected: string[]
+    if (selectedValues.includes(option)) {
+      newSelected = selectedValues.filter(v => v !== option)
+    } else {
+      newSelected = [...selectedValues, option]
+    }
+    onChange(newSelected.join(', '))
+  }
+
+  return (
+    <div className="w-full border border-border rounded-md p-3 bg-background">
+      <div className="space-y-2.5">
+        {options.map((option) => (
+          <label
+            key={option}
+            className="flex items-start gap-3 cursor-pointer hover:bg-muted/50 p-2 rounded transition-colors"
+          >
+            <input
+              type="checkbox"
+              checked={selectedValues.includes(option)}
+              onChange={() => toggleOption(option)}
+              className="mt-0.5 w-4 h-4 border border-border rounded focus:ring-2 focus:ring-primary flex-shrink-0"
+            />
+            <span className="text-sm whitespace-normal break-words flex-1 font-sans font-normal" style={{ lineHeight: '1.4', fontWeight: 'normal', letterSpacing: 'normal' }}>
+              {option}
+            </span>
+          </label>
+        ))}
+      </div>
+      <input
+        type="hidden"
+        id={id}
+        value={value}
+        required={required}
+      />
+    </div>
+  )
+}
 
 export default function ClearancesPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const [selectedType, setSelectedType] = useState<ClearanceType | null>(null)
+  
+  // Read type from URL parameter immediately (not in useEffect to avoid flash)
+  const typeParam = searchParams.get('type')
+  const initialType = typeParam && clearanceTypes.some(t => t.id === typeParam) 
+    ? (typeParam as ClearanceType) 
+    : null
+  
+  const [selectedType, setSelectedType] = useState<ClearanceType | null>(initialType)
   const [formData, setFormData] = useState<FormData>({ name: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -67,11 +137,17 @@ export default function ClearancesPage() {
   const streamRef = useRef<MediaStream | null>(null)
   const [isMobile, setIsMobile] = useState(false)
 
-  // Read type from URL parameter on mount
+  // Mark page as loaded and sync selectedType with URL changes
   useEffect(() => {
-    const typeParam = searchParams.get('type')
-    if (typeParam && clearanceTypes.some(t => t.id === typeParam)) {
-      setSelectedType(typeParam as ClearanceType)
+    // Mark clearances page as loaded to skip loading screen next time
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('clearances-loaded', 'true')
+    }
+    
+    // Update selectedType if URL param changes
+    const newTypeParam = searchParams.get('type')
+    if (newTypeParam && clearanceTypes.some(t => t.id === newTypeParam)) {
+      setSelectedType(newTypeParam as ClearanceType)
     }
   }, [searchParams])
 
@@ -101,7 +177,7 @@ export default function ClearancesPage() {
         setResidents([])
         setShowSuggestions(false)
       }
-    }, 300) // Debounce 300ms
+    }, 200) // Debounce 200ms
 
     return () => clearTimeout(searchTimeout)
   }, [nameQuery, nameWasSelected])
@@ -146,7 +222,7 @@ export default function ClearancesPage() {
 
   // Update resident info when selectedResidentId changes
   useEffect(() => {
-    if (selectedResidentId && selectedType !== 'register') {
+    if (selectedResidentId && selectedType !== 'register' && selectedType !== 'cso-accreditation' && selectedType !== 'luntian') {
       const fetchResidentData = async () => {
         const { data: fullResident } = await supabase
           .from('residents')
@@ -159,8 +235,8 @@ export default function ClearancesPage() {
           const photoUrl = await fetchResidentPhoto(fullResident as Resident)
           setResidentPhotoUrl(photoUrl || null)
           
-          // If no photo exists, clear captured photo to allow new capture
-          if (!photoUrl) {
+          // If no photo exists, clear captured photo to allow new capture (but NOT for barangay-id)
+          if (!photoUrl && selectedType !== 'barangay-id') {
             setCapturedPhoto(null)
           }
         }
@@ -493,6 +569,10 @@ export default function ClearancesPage() {
           },
           { id: 'contact', label: 'Contact Number', type: 'tel', required: true },
         ]
+      case 'barangay-id':
+        return [
+          { id: 'contact', label: 'Contact Number', type: 'tel', required: true },
+        ]
       case 'business':
         return [
           { id: 'businessName', label: 'Business Name', type: 'text', required: true },
@@ -592,6 +672,123 @@ export default function ClearancesPage() {
           },
           { id: 'contact', label: 'Contact Number', type: 'tel', required: true },
         ]
+      case 'cso-accreditation':
+        return [
+          // Organization Information
+          { id: 'orgName', label: 'Complete Name of Organization', type: 'text', required: true },
+          { id: 'orgAcronym', label: 'Acronym (if any)', type: 'text', required: false },
+          { 
+            id: 'orgType', 
+            label: 'Type of Organization', 
+            type: 'select', 
+            required: true,
+            options: [
+              'Non-Government Organization',
+              'People\'s Organization',
+              'Sectoral Organization',
+              'Faith-Based Organization',
+              'Others'
+            ]
+          },
+          { 
+            id: 'orgNature', 
+            label: 'Nature of Organization', 
+            type: 'select', 
+            required: true,
+            options: [
+              'Non-stock',
+              'Non-profit',
+              'Non-government',
+              'Non-partisan',
+              'Stock Corporation',
+              'Profit Organization',
+              'Government Organization',
+              'Other'
+            ]
+          },
+          
+          // Registration Information
+          { 
+            id: 'registeringAgency', 
+            label: 'Registering Agency', 
+            type: 'select', 
+            required: true,
+            options: ['SEC', 'CDA', 'DOLE', 'Barangay (for community-based organizations)']
+          },
+          { id: 'registrationNo', label: 'Registration No.', type: 'text', required: true },
+          { id: 'registrationDate', label: 'Date of Registration', type: 'date', required: true },
+          
+          // Office Address and Contact
+          { id: 'officeAddress', label: 'Office Address', type: 'text', required: true },
+          { id: 'contact', label: 'Contact Number', type: 'tel', required: true },
+          { id: 'email', label: 'Email Address (if any)', type: 'email', required: false },
+          
+          // Officers (simplified for form - will be a table in actual display)
+          { id: 'president', label: 'President Name', type: 'text', required: true },
+          { id: 'vicePresident', label: 'Vice President Name', type: 'text', required: true },
+          { id: 'secretary', label: 'Secretary Name', type: 'text', required: true },
+          { id: 'treasurer', label: 'Treasurer Name', type: 'text', required: true },
+          { id: 'auditor', label: 'Auditor Name', type: 'text', required: true },
+          
+          // Membership
+          { id: 'totalMembers', label: 'Total Number of Members', type: 'number', required: true },
+          { id: 'barangayMembers', label: 'Number of Members Residing in the Barangay', type: 'number', required: true },
+          
+          // Track Record/Areas of Advocacy
+          { 
+            id: 'advocacy', 
+            label: 'Track Record/Areas of Advocacy', 
+            type: 'select', 
+            required: true,
+            options: [
+              'Social Welfare and Development',
+              'Health and Nutrition',
+              'Education and Youth Development',
+              'Peace and Order/Public Safety',
+              'Disaster Risk Reduction and Management',
+              'Environmental Protection',
+              'Livelihood/Economic Development',
+              'Women/Children/PWD/Senior Citizens',
+              'Others'
+            ]
+          },
+          
+          // Local Special Bodies
+          { 
+            id: 'specialBody', 
+            label: 'Local Special Bodies/BBIs for Representation', 
+            type: 'select', 
+            required: true,
+            options: [
+              'Barangay Development Council',
+              'Barangay Peace and Order Council',
+              'Barangay Disaster Risk Reduction and Management Committee',
+              'Barangay Council for the Protection of Children',
+              'Barangay Anti-Drug Abuse Council',
+              'Barangay Nutrition Committee',
+              'Other Barangay-Based Institution'
+            ]
+          },
+        ]
+      case 'luntian':
+        return [
+          { id: 'dateOfRequest', label: 'Date of Request', type: 'date', required: true },
+          { 
+            id: 'requestedItems', 
+            label: 'Requested Items', 
+            type: 'select', 
+            required: true,
+            options: [
+              'Vegetable seeds',
+              'Gardening materials / pots',
+              'Organic fertilizer / compost',
+              'Cleaning tools / waste segregation materials',
+              'Others'
+            ]
+          },
+          { id: 'purposeOfRequest', label: 'Purpose of Request', type: 'textarea', required: true },
+          { id: 'contact', label: 'Contact Number', type: 'tel', required: true },
+        ]
       default:
         return []
     }
@@ -621,7 +818,7 @@ export default function ClearancesPage() {
         throw new Error('No clearance type selected')
       }
 
-      // For registration, use different submission
+      // For registration and CSO accreditation, skip photo requirement
       if (selectedType === 'register') {
         // Check if photo is captured
         if (!capturedPhoto) {
@@ -666,12 +863,83 @@ export default function ClearancesPage() {
         return
       }
 
-      // For other clearances, check if resident has photo or if photo was captured
-      if (selectedResidentId && (!residentPhotoUrl || imageError) && !capturedPhoto) {
+      // For CSO accreditation, use separate handling (no photo required)
+      if (selectedType === 'cso-accreditation') {
+        const response = await fetch('/api/submit-clearance', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            clearanceType: selectedType,
+            name: formData.orgName || 'CSO Application',
+            formData,
+            residentId: null,
+            capturedPhoto: null,
+          }),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to submit CSO accreditation')
+        }
+
         setIsSubmitting(false)
-        setError('Please capture a photo of the resident before submitting')
+        setSubmitted(true)
+        
+        // Reset form after 3 seconds
+        setTimeout(() => {
+          setSubmitted(false)
+          setSelectedType(null)
+          setFormData({ name: '' })
+        }, 3000)
         return
       }
+
+      // For Luntian request form, use separate handling (no photo required)
+      if (selectedType === 'luntian') {
+        const response = await fetch('/api/submit-clearance', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            clearanceType: selectedType,
+            name: formData.name || 'Luntian Request',
+            formData,
+            residentId: selectedResidentId,
+            capturedPhoto: null,
+          }),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to submit Luntian request')
+        }
+
+        setIsSubmitting(false)
+        setSubmitted(true)
+        
+        // Reset form after 3 seconds
+        setTimeout(() => {
+          setSubmitted(false)
+          setSelectedType(null)
+          setFormData({ name: '' })
+          setNameQuery('')
+          setResidents([])
+          setShowSuggestions(false)
+          setNameWasSelected(false)
+          setSelectedResidentId(null)
+        }, 3000)
+        return
+      }
+
+                      // For other clearances (except barangay-id), check if resident has photo or if photo was captured
+                      if (selectedType !== 'barangay-id' && selectedResidentId && (!residentPhotoUrl || imageError) && !capturedPhoto) {
+                        setIsSubmitting(false)
+                        setError('Please capture a photo of the resident before submitting')
+                        return
+                      }
 
       // Submit clearance to Supabase via API (includes SMS notification)
       console.log('[Clearance] Submitting:', { 
@@ -737,7 +1005,7 @@ export default function ClearancesPage() {
       <Header />
       <main className="px-4 sm:px-[5%]" style={{ 
         paddingTop: 'max(100px, min(20vh, 200px))', 
-        paddingBottom: isMobile ? '60px' : '80px',
+        paddingBottom: selectedType && selectedType !== 'register' ? (isMobile ? '40px' : '60px') : (isMobile ? '60px' : '80px'),
         minHeight: '100vh',
         overflow: 'visible',
         boxSizing: 'border-box',
@@ -746,7 +1014,7 @@ export default function ClearancesPage() {
       }}>
         <div className="w-full max-w-[1600px] mx-auto" style={{ 
           overflow: 'visible', 
-          paddingBottom: '40px',
+          paddingBottom: selectedType && selectedType !== 'register' ? '20px' : '40px',
           maxWidth: '100%'
         }}>
           <div className="text-center mb-6 sm:mb-8 lg:mb-10">
@@ -757,20 +1025,20 @@ export default function ClearancesPage() {
           </div>
 
           {!selectedType ? (
-            <div className="flex flex-col lg:flex-row lg:flex-nowrap justify-center items-center gap-6 px-4 lg:overflow-x-visible lg:max-w-full py-8" style={{ margin: '0 auto', overflow: 'visible', paddingBottom: isMobile ? '100px' : '32px' }}>
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10 p-8 lg:p-12 justify-items-center" style={{ margin: '0 auto', overflow: 'visible', maxWidth: '1600px' }}>
               {clearanceTypes.map((type) => {
                 const Icon = type.icon
                 return (
                   <div
                     key={type.id}
-                    className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98 cursor-pointer rounded-lg border flex flex-col items-center justify-center text-center p-4 flex-shrink-0"
-                    style={{ width: '160px', height: '160px', minWidth: '160px', minHeight: '160px', maxWidth: '160px', maxHeight: '160px' }}
+                    className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98 cursor-pointer rounded-lg border flex flex-col items-center justify-center text-center p-5"
+                    style={{ width: '170px', height: '170px' }}
                     onClick={() => setSelectedType(type.id)}
                   >
-                    <div className="flex items-center justify-center flex-shrink-0 mb-2">
-                      <Icon className="h-12 w-12 text-primary" />
+                    <div className="flex items-center justify-center flex-shrink-0 mb-3">
+                      <Icon className="h-14 w-14 text-primary" />
                     </div>
-                    <h3 className="font-semibold text-xs leading-tight line-clamp-2">{type.label}</h3>
+                    <h3 className="font-semibold text-sm leading-tight line-clamp-2">{type.label}</h3>
                   </div>
                 )
               })}
@@ -781,7 +1049,7 @@ export default function ClearancesPage() {
               <div 
                 className="mx-auto transition-all duration-500 ease-in-out"
                 style={{ 
-                  width: selectedResident && selectedType !== 'register' && !submitted 
+                  width: selectedResident && selectedType !== 'register' && selectedType !== 'cso-accreditation' && selectedType !== 'luntian' && !submitted 
                     ? 'calc(475px + 400px + 24px)' 
                     : '475px',
                   maxWidth: '100%',
@@ -807,7 +1075,7 @@ export default function ClearancesPage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => {
-                                  router.push('/#hero')
+                                  router.push('/')
                                 }}
                                 className="hover:bg-primary/5 p-2.5 lg:p-1.5"
                               >
@@ -832,6 +1100,10 @@ export default function ClearancesPage() {
                     <p className="text-gray-600 text-lg">
                       {selectedType === 'register' 
                         ? 'Your registration has been submitted successfully. Pending admin approval.'
+                        : selectedType === 'cso-accreditation'
+                        ? 'CSO accreditation application submitted successfully. Pending admin approval.'
+                        : selectedType === 'luntian'
+                        ? 'Luntian request submitted successfully. Pending admin approval.'
                         : 'Form submitted successfully.'}
                     </p>
                   </div>
@@ -859,8 +1131,8 @@ export default function ClearancesPage() {
                       </div>
                     )}
 
-                    {/* Name field - required for all forms except register */}
-                    {selectedType !== 'register' && (
+                    {/* Name field - required for all forms except register, cso-accreditation, and luntian */}
+                    {selectedType !== 'register' && selectedType !== 'cso-accreditation' && selectedType !== 'luntian' && (
                     <div className="space-y-2 relative">
                       <label htmlFor="name" className="block text-sm font-semibold text-foreground">
                         {selectedType === 'blotter' ? 'Complainant Name' : 'Name'}
@@ -1042,20 +1314,59 @@ export default function ClearancesPage() {
                           />
                         ) : field.type === 'select' ? (
                           <>
-                          <select
-                            id={field.id}
-                            required={field.required}
-                            value={formData[field.id] || (field.id === 'suffix' ? 'None' : '')}
-                            onChange={(e) => handleInputChange(field.id, e.target.value === 'None' ? '' : e.target.value)}
-                            className="w-full max-w-full px-4 py-2.5 pr-10 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[right_0.5rem_center] bg-no-repeat"
-                            style={{ boxSizing: 'border-box' }}
-                          >
-                            {field.id === 'suffix' ? null : <option value="">Select an option</option>}
-                            {field.options?.map((option) => (
-                              <option key={option} value={option}>{option}</option>
-                            ))}
-                          </select>
-                          {formData[field.id] === 'Other' && (
+                          {field.id === 'specialBody' || field.id === 'advocacy' || field.id === 'requestedItems' || field.id === 'vegetableSeeds' ? (
+                            <>
+                            <MultiSelectCheckboxes
+                              id={field.id}
+                              value={formData[field.id] || ''}
+                              options={field.options || []}
+                              onChange={(value) => handleInputChange(field.id, value)}
+                              required={field.required}
+                            />
+                            {/* Vegetable seeds sub-selection within the same box */}
+                            {field.id === 'requestedItems' && formData.requestedItems && formData.requestedItems.includes('Vegetable seeds') && (
+                              <div className="mt-3 pl-6 border-l-2 border-primary/30">
+                                <label className="block text-sm font-semibold text-foreground mb-2">
+                                  Select Vegetable Seeds:
+                                </label>
+                                <MultiSelectCheckboxes
+                                  id="vegetableSeeds"
+                                  value={formData.vegetableSeeds || ''}
+                                  options={['Pechay', 'Kangkong', 'Eggplant', 'Tomato', 'Others']}
+                                  onChange={(value) => handleInputChange('vegetableSeeds', value)}
+                                  required={false}
+                                />
+                                {formData.vegetableSeeds && formData.vegetableSeeds.includes('Others') && (
+                                  <textarea
+                                    id="vegetableSeedsDetails"
+                                    required
+                                    value={formData.vegetableSeedsDetails || ''}
+                                    onChange={(e) => handleInputChange('vegetableSeedsDetails', e.target.value)}
+                                    rows={2}
+                                    className="w-full max-w-full px-4 py-2.5 border border-border rounded-md text-sm bg-background resize-vertical focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors mt-2"
+                                    style={{ boxSizing: 'border-box', wordWrap: 'break-word', overflowWrap: 'break-word' }}
+                                    placeholder="Please specify other vegetable seeds..."
+                                  />
+                                )}
+                              </div>
+                            )}
+                            </>
+                          ) : (
+                            <select
+                              id={field.id}
+                              required={field.required}
+                              value={formData[field.id] || (field.id === 'suffix' ? 'None' : '')}
+                              onChange={(e) => handleInputChange(field.id, e.target.value === 'None' ? '' : e.target.value)}
+                              className="w-full max-w-full px-4 py-2.5 pr-10 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[right_0.5rem_center] bg-no-repeat"
+                              style={{ boxSizing: 'border-box' }}
+                            >
+                              {field.id === 'suffix' ? null : <option value="">Select an option</option>}
+                              {field.options?.map((option) => (
+                                <option key={option} value={option}>{option}</option>
+                              ))}
+                            </select>
+                          )}
+                          {(formData[field.id] === 'Other' || formData[field.id] === 'Others' || (formData[field.id] && formData[field.id].includes('Others'))) && (
                             <textarea
                               id={`${field.id}Details`}
                               required
@@ -1106,7 +1417,7 @@ export default function ClearancesPage() {
                         disabled={
                           isSubmitting || 
                           (selectedType === 'register' && !capturedPhoto) ||
-                          (selectedType !== 'register' && selectedResidentId !== null && (!residentPhotoUrl || imageError) && !capturedPhoto)
+                          (selectedType !== 'register' && selectedType !== 'cso-accreditation' && selectedType !== 'luntian' && selectedType !== 'barangay-id' && selectedResidentId !== null && (!residentPhotoUrl || imageError) && !capturedPhoto)
                         }
                         className="flex-1 min-h-[44px]"
                       >
@@ -1154,12 +1465,12 @@ export default function ClearancesPage() {
                 <div 
                   className="hidden lg:block transition-all duration-500 ease-in-out flex-shrink-0"
                   style={{
-                    width: selectedResident && selectedType !== 'register' && !submitted ? '400px' : '0px',
-                    opacity: selectedResident && selectedType !== 'register' && !submitted ? 1 : 0,
+                    width: selectedResident && selectedType !== 'register' && selectedType !== 'cso-accreditation' && selectedType !== 'luntian' && !submitted ? '400px' : '0px',
+                    opacity: selectedResident && selectedType !== 'register' && selectedType !== 'cso-accreditation' && selectedType !== 'luntian' && !submitted ? 1 : 0,
                     overflow: 'hidden'
                   }}
                 >
-                  {selectedResident && selectedType !== 'register' && !submitted && (
+                  {selectedResident && selectedType !== 'register' && selectedType !== 'cso-accreditation' && selectedType !== 'luntian' && !submitted && (
                     <div className="w-[400px] h-full">
                       <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98 h-full flex flex-col">
                       <CardHeader className="pb-3">
@@ -1193,7 +1504,7 @@ export default function ClearancesPage() {
                                 onError={() => setImageError(true)}
                               />
                             </>
-                          ) : (
+                          ) : selectedType !== 'barangay-id' ? (
                             <div 
                               className="flex flex-col justify-center items-center w-48 h-48 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 cursor-pointer hover:bg-gray-50 transition-colors"
                               onClick={openCamera}
@@ -1201,6 +1512,11 @@ export default function ClearancesPage() {
                               <Camera className="w-12 h-12 text-gray-400 mb-2" />
                               <span className="text-gray-500 text-sm font-medium">Take Photo</span>
                               <span className="text-gray-400 text-xs mt-1">Click to open camera</span>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col justify-center items-center w-48 h-48 bg-gray-100 rounded-lg border-2 border-gray-200">
+                              <User className="w-16 h-16 text-gray-400 mb-2" />
+                              <span className="text-gray-400 text-sm">No photo available</span>
                             </div>
                           )}
                         </div>
@@ -1246,7 +1562,7 @@ export default function ClearancesPage() {
               </div>
               
               {/* Mobile: Resident info card below form */}
-              {selectedResident && selectedType !== 'register' && !submitted && (
+              {selectedResident && selectedType !== 'register' && selectedType !== 'cso-accreditation' && selectedType !== 'luntian' && !submitted && (
                 <div className="lg:hidden mt-6 mb-8">
                   <div className="flex justify-center">
                     <Card className="bg-white/95 backdrop-blur-lg shadow-2xl w-full max-w-full flex flex-col">
@@ -1283,7 +1599,7 @@ export default function ClearancesPage() {
                               onError={() => setImageError(true)}
                             />
                           </>
-                        ) : (
+                        ) : selectedType !== 'barangay-id' ? (
                           <div 
                             className="flex flex-col justify-center items-center bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex-shrink-0 cursor-pointer hover:bg-gray-50 transition-colors"
                             style={{ width: '128px', height: '128px', minWidth: '128px', minHeight: '128px' }}
@@ -1291,6 +1607,11 @@ export default function ClearancesPage() {
                           >
                             <Camera className="w-8 h-8 text-gray-400 mb-1" />
                             <span className="text-gray-500 text-xs font-medium">Take Photo</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col justify-center items-center bg-gray-100 rounded-lg border-2 border-gray-200 flex-shrink-0" style={{ width: '128px', height: '128px', minWidth: '128px', minHeight: '128px' }}>
+                            <User className="w-10 h-10 text-gray-400 mb-1" />
+                            <span className="text-gray-400 text-xs">No photo available</span>
                           </div>
                         )}
                       </div>

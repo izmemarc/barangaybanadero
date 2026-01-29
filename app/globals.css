@@ -446,3 +446,13 @@ svg text {
   opacity: 1;
 }
 
+/* Multi-line dropdown options */
+select option {
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  padding: 8px 12px;
+  min-height: 44px;
+  line-height: 1.4;
+}
+

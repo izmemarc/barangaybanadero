@@ -1,15 +1,16 @@
 "use client"
 
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileText, Calendar, MapPin, Phone, Mail, Briefcase, AlertCircle, UserPlus, CreditCard, Award } from "lucide-react"
+import { FileText, Calendar, MapPin, Phone, Mail, Briefcase, AlertCircle, UserPlus, CreditCard, Award, Leaf } from "lucide-react"
 
 export function HeroSection() {
   return (
     <section
       id="hero"
       className="relative w-full"
-      style={{minHeight: 'auto', paddingTop: 'clamp(5rem, 8vh, 6rem)', paddingBottom: 'clamp(2rem, 4vh, 3rem)'}}
+      style={{minHeight: 'auto', paddingTop: 'clamp(4rem, 6vh, 5rem)', paddingBottom: 'clamp(2rem, 4vh, 3rem)'}}
     >
       <div className="w-full max-w-[1600px] mx-auto flex items-start hero-content" style={{paddingTop: 'clamp(1rem, 2vh, 2rem)', minHeight: 'auto'}}>
         <div className="grid grid-cols-1 lg:grid-cols-3 w-full hero-grid gap-4 sm:gap-6 lg:gap-8" style={{paddingTop: 'clamp(1rem, 2vh, 2rem)', paddingBottom: 'clamp(1rem, 2vh, 2rem)'}}>
@@ -39,8 +40,8 @@ export function HeroSection() {
                   </div>
                   
                   {/* Title Section */}
-                  <div className="flex-1 text-center lg:text-left hero-text-section" style={{paddingLeft: 'clamp(0.5rem, 1vw, 1rem)', paddingRight: 'clamp(1rem, 2vw, 2rem)', paddingTop: 'clamp(1rem, 2vh, 2rem)', paddingBottom: 'clamp(1rem, 2vh, 2rem)'}}>
-                     <h1 className="font-black text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.75rem, 3.6vw, 2.25rem)', marginBottom: 'clamp(0.5rem, 1vh, 0.75rem)'}}>
+                  <div className="flex-1 text-center lg:text-left hero-text-section" style={{paddingLeft: 'clamp(1rem, 2vw, 2rem)', paddingRight: 'clamp(1rem, 2vw, 2rem)', paddingTop: 'clamp(1rem, 2vh, 2rem)', paddingBottom: 'clamp(1rem, 2vh, 2rem)'}}>
+                     <h1 className="font-black text-primary leading-none tracking-tight whitespace-nowrap" style={{fontSize: 'clamp(2rem, 4vw, 2.75rem)', marginBottom: 'clamp(0.5rem, 1vh, 0.75rem)'}}>
                        Barangay 6, Bañadero
                      </h1>
                      <h2 className="font-bold text-primary leading-none" style={{fontSize: 'clamp(1.5rem, 3.2vw, 2rem)', marginBottom: 'clamp(0.75rem, 1.5vh, 1rem)'}}>
@@ -50,62 +51,16 @@ export function HeroSection() {
                       <p>Republic of the Philippines</p>
                       <p>Province of Albay</p>
                     </div>
-                  </div>
-
-                  {/* Contact Section - Hidden on mobile, shown on larger screens */}
-                  <div className="hidden lg:flex flex-shrink-0 p-4 sm:p-6 lg:p-8 min-w-[250px] xl:min-w-[280px]">
-                    <div className="w-full">
-                      <h3 className="text-sm sm:text-sm font-bold text-primary mb-3 sm:mb-4 uppercase tracking-wider">Contact Information</h3>
-                      <div className="space-y-2 sm:space-y-3">
-                        <div className="flex items-start gap-2 sm:gap-3">
-                          <div className="w-4 h-4 sm:w-5 sm:h-5 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
-                          </div>
-                          <div>
-                           <p className="text-sm sm:text-sm font-medium text-gray-700">4PQH+WXJ, Old Albay District</p>
-                           <p className="text-sm sm:text-sm text-gray-600">Legazpi City, Albay</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <div className="w-4 h-4 sm:w-5 sm:h-5 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Phone className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
-                          </div>
-                           <span className="text-sm sm:text-sm font-medium text-gray-700">0917 555 3323</span>
-                        </div>
-                        <div className="flex items-start gap-2 sm:gap-3">
-                          <div className="w-4 h-4 sm:w-5 sm:h-5 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <Mail className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
-                          </div>
-                           <span className="text-sm font-medium text-gray-700 break-all">brgy6banadero@gmail.com</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Mobile Contact Section */}
-                <div className="lg:hidden p-4 sm:p-6 bg-gray-50/50">
-                  <h3 className="text-sm font-bold text-primary mb-3 uppercase tracking-wider text-center">Contact Information</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
-                    <div className="flex flex-col items-center">
-                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mb-2">
-                        <MapPin className="h-4 w-4 text-primary" />
-                      </div>
-                       <p className="text-sm font-medium text-gray-700">4PQH+WXJ, Old Albay District</p>
-                       <p className="text-sm text-gray-600">Legazpi City, Albay</p>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mb-2">
+                    <div className="flex items-center justify-start gap-4 sm:gap-6 mt-3 flex-wrap">
+                      <div className="flex items-center gap-2">
                         <Phone className="h-4 w-4 text-primary" />
+                        <span className="text-sm text-gray-700 font-medium">0917 555 3323</span>
                       </div>
-                       <span className="text-sm font-medium text-gray-700">0917 555 3323</span>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mb-2">
+                      <div className="flex items-center gap-2">
                         <Mail className="h-4 w-4 text-primary" />
+                        <span className="text-sm text-gray-700 font-medium">brgy6banadero@gmail.com</span>
                       </div>
-                       <span className="text-sm font-medium text-gray-700 break-all">brgy6banadero@gmail.com</span>
-                    </div>
+                        </div>
                   </div>
                 </div>
               </CardContent>
@@ -120,7 +75,7 @@ export function HeroSection() {
                     <CardTitle className="text-primary text-sm sm:text-base lg:text-lg font-semibold">Our Mission</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-1.5 pb-3 px-3 sm:px-6 pt-0">
-                     <p className="text-sm sm:text-sm lg:text-base text-pretty leading-snug -mt-2">
+                     <p className="text-sm sm:text-sm lg:text-base text-pretty text-justify leading-snug -mt-2">
                        With the inspiration and guidance of the Almighty God, we are committed to adopt state-of-the-art technologies, plan and implement programs, projects and activities using the Community Driven Development (CDD) strategy to promptly deliver quality basic services for the total improvement of the barangay.
                      </p>
                   </CardContent>
@@ -131,7 +86,7 @@ export function HeroSection() {
                     <CardTitle className="text-primary text-sm sm:text-base lg:text-lg font-semibold">Our Vision</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-1.5 pb-3 px-3 sm:px-6 pt-0">
-                     <p className="text-sm sm:text-sm lg:text-base text-pretty leading-snug -mt-2">
+                     <p className="text-sm sm:text-sm lg:text-base text-pretty text-justify leading-snug -mt-2">
                        A self-reliant community enjoying a progressive and even-handed economy, disaster resilient, drug-free, well-managed solid wastes, peaceful and ecologically balanced environment with God-loving people guided by a responsive, participatory, transparent and accountable leadership and governance.
                      </p>
                   </CardContent>
@@ -148,7 +103,7 @@ export function HeroSection() {
                 </CardTitle>
               </CardHeader>
                   <CardContent className="space-y-1.5 pb-3 px-3 sm:px-6 pt-0 mt-0.5">
-                <a href="/clearances?type=barangay" className="w-full block -mt-2">
+                <Link href="/clearances?type=barangay" className="w-full block -mt-2">
                   <Button
                     variant="outline"
                     className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
@@ -157,8 +112,8 @@ export function HeroSection() {
                     <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
                     Barangay Clearance
                   </Button>
-                </a>
-                <a href="/clearances?type=business" className="w-full block">
+                </Link>
+                <Link href="/clearances?type=business" className="w-full block">
                   <Button
                     variant="outline"
                     className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
@@ -167,8 +122,8 @@ export function HeroSection() {
                     <Briefcase className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
                     Business Clearance
                   </Button>
-                </a>
-                <a href="/clearances?type=blotter" className="w-full block">
+                </Link>
+                <Link href="/clearances?type=blotter" className="w-full block">
                   <Button
                     variant="outline"
                     className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
@@ -177,8 +132,8 @@ export function HeroSection() {
                     <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
                     Blotter
                   </Button>
-                </a>
-                <a href="/clearances?type=facility" className="w-full block">
+                </Link>
+                <Link href="/clearances?type=facility" className="w-full block">
                   <Button
                     variant="outline"
                     className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
@@ -187,8 +142,8 @@ export function HeroSection() {
                     <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
                     Facility Use
                   </Button>
-                </a>
-                <a href="/clearances?type=good-moral" className="w-full block">
+                </Link>
+                <Link href="/clearances?type=good-moral" className="w-full block">
                   <Button
                     variant="outline"
                     className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
@@ -197,8 +152,8 @@ export function HeroSection() {
                     <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
                     Certificate of Good Moral
                   </Button>
-                </a>
-                <a href="/clearances?type=indigency" className="w-full block">
+                </Link>
+                <Link href="/clearances?type=indigency" className="w-full block">
                   <Button
                     variant="outline"
                     className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
@@ -207,8 +162,8 @@ export function HeroSection() {
                     <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
                     Certificate of Indigency
                   </Button>
-                </a>
-                <a href="/clearances?type=residency" className="w-full block">
+                </Link>
+                <Link href="/clearances?type=residency" className="w-full block">
                   <Button
                     variant="outline"
                     className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
@@ -217,8 +172,8 @@ export function HeroSection() {
                     <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
                     Certificate of Residency
                   </Button>
-                </a>
-                <a href="/clearances?type=register" className="w-full block">
+                </Link>
+                <Link href="/clearances?type=register" className="w-full block">
                   <Button
                     variant="outline"
                     className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
@@ -227,8 +182,8 @@ export function HeroSection() {
                     <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
                     Register as Resident
                   </Button>
-                </a>
-                <a href="/clearances?type=barangay-id" className="w-full block">
+                </Link>
+                <Link href="/clearances?type=barangay-id" className="w-full block">
                   <Button
                     variant="outline"
                     className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
@@ -237,8 +192,8 @@ export function HeroSection() {
                     <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
                     Barangay ID
                   </Button>
-                </a>
-                <a href="/clearances?type=cso-accreditation" className="w-full block">
+                </Link>
+                <Link href="/clearances?type=cso-accreditation" className="w-full block">
                   <Button
                     variant="outline"
                     className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
@@ -247,7 +202,17 @@ export function HeroSection() {
                     <Award className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
                     CSO/NGOs Brgy. Accreditation
                   </Button>
-                </a>
+                </Link>
+                <Link href="/clearances?type=luntian" className="w-full block">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start bg-transparent hover-yellow border-primary/20 text-left text-sm sm:text-sm font-medium h-8 sm:h-9 px-3 py-1 sm:py-2 cursor-pointer"
+                    aria-label="Linis Ligtas Luntian Request Form"
+                  >
+                    <Leaf className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
+                    Linis Ligtas Luntian
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
                 </div>

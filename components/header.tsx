@@ -9,7 +9,7 @@ export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
-  const isClearancesPage = pathname === '/clearances'
+  const isSpecialPage = pathname === '/clearances' || pathname === '/admin'
 
   const scrollToSection = (sectionId: string) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" })
@@ -17,7 +17,7 @@ export function Header() {
   }
 
   const handleLogoClick = () => {
-    if (isClearancesPage) {
+    if (isSpecialPage) {
       router.push('/')
     } else {
       scrollToSection("hero")
@@ -58,7 +58,7 @@ export function Header() {
           </div>
 
               {/* Desktop Navigation */}
-          {!isClearancesPage && (
+          {!isSpecialPage && (
             <nav className="hidden lg:flex items-center" style={{gap: '0.0625rem'}}>
                   <button
                     onClick={() => scrollToSection("hero")}
@@ -85,7 +85,7 @@ export function Header() {
           )}
 
           {/* Mobile Menu Button */}
-          {!isClearancesPage && (
+          {!isSpecialPage && (
             <Button 
               variant="ghost" 
               size="sm" 
@@ -108,7 +108,7 @@ export function Header() {
         </div>
 
         {/* Mobile Navigation */}
-        {!isClearancesPage && isMenuOpen && (
+        {!isSpecialPage && isMenuOpen && (
               <nav className="lg:hidden border-t border-gray-200/50 animate-in slide-in-from-top-2 duration-200" style={{marginTop: 'clamp(0.75rem, 2vh, 1rem)', paddingTop: 'clamp(0.75rem, 2vh, 1rem)', paddingBottom: 'clamp(0.75rem, 2vh, 1rem)'}}>
                 <div className="flex flex-col" style={{gap: 'clamp(0.125rem, 0.5vh, 0.25rem)'}}>
                   <button

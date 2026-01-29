@@ -1,9 +1,22 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { usePathname } from "next/navigation"
 
 export function LoadingScreen() {
   const [isLoading, setIsLoading] = useState(true)
+  const pathname = usePathname()
+
+  useEffect(() => {
+    // Skip loading screen for clearances page if coming from prefetch
+    if (pathname === '/clearances' && typeof window !== 'undefined') {
+      const prefetched = sessionStorage.getItem('clearances-prefetched')
+      if (prefetched === 'true') {
+        setIsLoading(false)
+        return
+      }
+    }
+  }, [pathname])
 
   useEffect(() => {
     let isHydrated = false
