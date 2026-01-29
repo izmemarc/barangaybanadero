@@ -71,7 +71,7 @@ const officials = [
 
 export function CommunitySection() {
   return (
-    <section id="community" className="pt-12 sm:pt-16 lg:pt-20 pb-2 sm:pb-4 lg:pb-6">
+    <section id="community" className="pt-6 sm:pt-8 lg:pt-10 pb-2 sm:pb-4 lg:pb-6">
       <div className="w-full max-w-[1600px] mx-auto">
         <div className="text-center mb-8 sm:mb-10 lg:mb-12">
           <h2 className="font-black text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', marginBottom: 'clamp(0.5rem, 1vh, 0.75rem)'}}>COMMUNITY INFORMATION</h2>

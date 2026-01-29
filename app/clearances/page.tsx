@@ -1005,7 +1005,7 @@ export default function ClearancesPage() {
       <Header />
       <main className="px-4 sm:px-[5%]" style={{ 
         paddingTop: 'max(100px, min(20vh, 200px))', 
-        paddingBottom: selectedType && selectedType !== 'register' ? (isMobile ? '40px' : '60px') : (isMobile ? '60px' : '80px'),
+        paddingBottom: selectedType && selectedType !== 'register' ? (isMobile ? '20px' : '30px') : (isMobile ? '30px' : '40px'),
         minHeight: '100vh',
         overflow: 'visible',
         boxSizing: 'border-box',
@@ -1014,7 +1014,7 @@ export default function ClearancesPage() {
       }}>
         <div className="w-full max-w-[1600px] mx-auto" style={{ 
           overflow: 'visible', 
-          paddingBottom: selectedType && selectedType !== 'register' ? '20px' : '40px',
+          paddingBottom: '0px',
           maxWidth: '100%'
         }}>
           <div className="text-center mb-6 sm:mb-8 lg:mb-10">

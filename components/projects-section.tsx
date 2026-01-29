@@ -111,7 +111,7 @@ export function ProjectsSection() {
         </div>
 
           {/* Land for All Section */}
-        <div className="mb-12 sm:mb-16 lg:mb-20">
+        <div className="mb-0">
           <div className="text-center mb-6 sm:mb-8">
             <h3 className="font-black text-primary leading-none tracking-tight" style={{fontSize: 'clamp(1.75rem, 3.5vw, 2.75rem)', marginBottom: 'clamp(0.5rem, 1vh, 0.75rem)'}}>
               BARANGAY 6, BANADERO
