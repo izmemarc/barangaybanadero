@@ -119,20 +119,20 @@ export async function insertPhotoIntoDocument(
   firstName: string,
   middleName: string,
   suffix: string,
-  supabaseClient: any
+  supabaseClient: any,
+  photoPlaceholder: string = '<picture>', // Default to <picture>, but can be customized
+  photoSize: number = 90 // Default size in PT (90 PT = ~3.17 cm), can be customized
 ): Promise<void> {
   try {
     const auth = getAuthClient()
     const docs = google.docs({ version: 'v1', auth })
-
-    console.log(`[Photo] Looking for photo: ${lastName}-${firstName}-${middleName}`)
 
     // Build expected photo filename patterns
     // Normalize special characters (ñ -> N, etc.)
     const normalize = (str: string) => {
       return str.toUpperCase()
         .trim()
-        .replace(/\s+/g, ' ')
+        .replace(/\s+/g, '-') // Replace spaces with hyphens
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
         .replace(/Ñ/g, 'N')
@@ -144,6 +144,10 @@ export async function insertPhotoIntoDocument(
       .filter(v => v)
       .join('-')
     const fullBase = suffix ? `${baseName}-${clean(suffix)}` : baseName
+    
+    console.log(`[Photo] Name parts - Last: "${lastName}", First: "${firstName}", Middle: "${middleName}"`)
+    console.log(`[Photo] Normalized parts - Last: "${clean(lastName)}", First: "${clean(firstName)}", Middle: "${clean(middleName)}"`)
+    console.log(`[Photo] Looking for photo with pattern: ${fullBase}`)
 
     // Search for photo in Supabase Storage
     const bucketName = 'extracted_images'
@@ -163,7 +167,7 @@ export async function insertPhotoIntoDocument(
           requests: [{
             replaceAllText: {
               containsText: {
-                text: '<picture>',
+                text: photoPlaceholder,
                 matchCase: false
               },
               replaceText: ''
@@ -175,14 +179,30 @@ export async function insertPhotoIntoDocument(
     }
 
     // Find matching photo file - normalize both search term and filenames
+    // Check if all name parts are present in the filename (order-independent)
+    const nameParts = [clean(lastName), clean(firstName), clean(middleName)]
+      .filter(v => v && v.length > 0)
+    
+    console.log(`[Photo] Searching for files containing parts: [${nameParts.join(', ')}]`)
+    
     const matchingFile = files?.find((file: any) => {
       const fileName = normalize(file.name)
-      const searchBase = fullBase.toUpperCase()
-      // Check if filename contains the name pattern (after normalization)
-      return fileName.includes(searchBase) && 
-             (fileName.endsWith('.JPG') || fileName.endsWith('.JPEG') || 
-              fileName.endsWith('.PNG') || fileName.endsWith('.jpg') || 
-              fileName.endsWith('.jpeg') || fileName.endsWith('.png'))
+      
+      // Check if it's an image file
+      const isImage = fileName.endsWith('.JPG') || fileName.endsWith('.JPEG') || 
+                     fileName.endsWith('.PNG') || fileName.endsWith('.jpg') || 
+                     fileName.endsWith('.jpeg') || fileName.endsWith('.png')
+      
+      if (!isImage) return false
+      
+      // Check if all name parts are present in the filename (regardless of order)
+      const allPartsPresent = nameParts.every(part => fileName.includes(part))
+      
+      if (allPartsPresent) {
+        console.log(`[Photo] ✓ Match found: ${file.name} (normalized: ${fileName})`)
+      }
+      
+      return allPartsPresent
     })
 
     if (!matchingFile) {
@@ -191,15 +211,26 @@ export async function insertPhotoIntoDocument(
       await docs.documents.batchUpdate({
         documentId,
         requestBody: {
-          requests: [{
-            replaceAllText: {
-              containsText: {
-                text: '<picture>',
-                matchCase: false
-              },
-              replaceText: ''
+          requests: [
+            {
+              replaceAllText: {
+                containsText: {
+                  text: '<picture>',
+                  matchCase: false
+                },
+                replaceText: ''
+              }
+            },
+            {
+              replaceAllText: {
+                containsText: {
+                  text: '<pic>',
+                  matchCase: false
+                },
+                replaceText: ''
+              }
             }
-          }]
+          ]
         }
       })
       return
@@ -222,14 +253,15 @@ export async function insertPhotoIntoDocument(
     let placeholderStart: number | null = null
     let placeholderEnd: number | null = null
     
-    // Search for <picture> in document (including tables)
+    // Search for <picture> or <pic> in document (including tables)
     const searchInElements = (elements: any[]): boolean => {
       for (const element of elements) {
         if (element.paragraph) {
           for (const textElement of element.paragraph.elements || []) {
             const text = textElement.textRun?.content || ''
             const lowerText = text.toLowerCase()
-            if (lowerText.includes('<picture>') || lowerText.includes('< picture >')) {
+            if (lowerText.includes('<picture>') || lowerText.includes('< picture >') || 
+                lowerText.includes('<pic>') || lowerText.includes('< pic >')) {
               placeholderStart = textElement.startIndex!
               placeholderEnd = textElement.endIndex!
               console.log(`[Photo] Found placeholder at ${placeholderStart}-${placeholderEnd}, text: "${text}"`)
@@ -254,11 +286,11 @@ export async function insertPhotoIntoDocument(
     searchInElements(content)
 
     if (placeholderStart === null) {
-      console.log('[Photo] No <picture> placeholder found in document')
+      console.log('[Photo] No <picture> or <pic> placeholder found in document')
       return
     }
 
-    // Find the text element containing {{picture}} (search recursively in tables too)
+    // Find the text element containing <picture> or <pic> (search recursively in tables too)
     let textElement: any = null
     
     const findTextElement = (elements: any[]): boolean => {
@@ -267,7 +299,8 @@ export async function insertPhotoIntoDocument(
           for (const te of element.paragraph.elements || []) {
             const text = te.textRun?.content || ''
             const lowerText = text.toLowerCase()
-            if (lowerText.includes('<picture>') || lowerText.includes('< picture >')) {
+            if (lowerText.includes('<picture>') || lowerText.includes('< picture >') ||
+                lowerText.includes('<pic>') || lowerText.includes('< pic >')) {
               textElement = te
               console.log(`[Photo] Found text element with content: "${text}"`)
               return true
@@ -294,7 +327,7 @@ export async function insertPhotoIntoDocument(
       return
     }
 
-    // Find <picture> placeholder position
+    // Find <picture> or <pic> placeholder position
     const lowerContent = textElement.textRun.content.toLowerCase()
     let offset = lowerContent.indexOf('<picture>')
     let length = 9 // '<picture>'.length
@@ -305,7 +338,17 @@ export async function insertPhotoIntoDocument(
     }
     
     if (offset === -1) {
-      console.log(`[Photo] Could not find <picture> placeholder in text: "${textElement.textRun.content}"`)
+      offset = lowerContent.indexOf('<pic>')
+      length = 5 // '<pic>'.length
+    }
+    
+    if (offset === -1) {
+      offset = lowerContent.indexOf('< pic >')
+      length = 7 // '< pic >'.length
+    }
+    
+    if (offset === -1) {
+      console.log(`[Photo] Could not find <picture> or <pic> placeholder in text: "${textElement.textRun.content}"`)
       return
     }
     
@@ -335,11 +378,11 @@ export async function insertPhotoIntoDocument(
               uri: photoUrl,
               objectSize: {
                 height: {
-                  magnitude: 90,
+                  magnitude: photoSize,
                   unit: 'PT'
                 },
                 width: {
-                  magnitude: 90,
+                  magnitude: photoSize,
                   unit: 'PT'
                 }
               }

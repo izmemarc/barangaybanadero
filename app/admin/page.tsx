@@ -61,6 +61,7 @@ export default function AdminDashboard() {
   const [expandingRegistrations, setExpandingRegistrations] = useState<Set<string>>(new Set())
   const [animateEmptySubmissions, setAnimateEmptySubmissions] = useState(false)
   const [animateEmptyRegistrations, setAnimateEmptyRegistrations] = useState(false)
+  const [highlightedSubmissions, setHighlightedSubmissions] = useState<Set<string>>(new Set())
   const { toast } = useToast()
   const filterRef = useRef(filter)
   const activeTabRef = useRef(activeTab)
@@ -325,6 +326,7 @@ export default function AdminDashboard() {
 
   async function generateDocument(submissionId: string) {
     setGenerating(submissionId)
+    
     try {
       const response = await fetch('/api/admin/generate-clearance', {
         method: 'POST',
@@ -343,10 +345,20 @@ export default function AdminDashboard() {
           : s
       ))
 
-      // Open document in new tab
-      if (result.documentUrl) {
-        window.open(result.documentUrl, '_blank')
-      }
+      // Switch to approved tab
+      setFilter('approved')
+      
+      // Highlight the newly generated submission
+      setHighlightedSubmissions(prev => new Set(prev).add(submissionId))
+      
+      // Remove highlight after 3 seconds
+      setTimeout(() => {
+        setHighlightedSubmissions(prev => {
+          const next = new Set(prev)
+          next.delete(submissionId)
+          return next
+        })
+      }, 3000)
 
       toast({
         title: 'Document generated',
@@ -685,6 +697,7 @@ export default function AdminDashboard() {
                 {submissions.map((submission) => {
                   const isRemoving = removingSubmissions.has(submission.id)
                   const isNew = newSubmissions.has(submission.id)
+                  const isHighlighted = highlightedSubmissions.has(submission.id)
                   
                   return (
                     <div
@@ -711,8 +724,10 @@ export default function AdminDashboard() {
                             : 'translateY(0) scale(1)',
                           transition: isRemoving 
                             ? 'opacity 0.4s ease-out, transform 0.4s ease-out'
-                            : 'opacity 0.8s ease-in-out, transform 0.8s ease-in-out',
-                          pointerEvents: isRemoving ? 'none' : 'auto'
+                            : 'opacity 0.8s ease-in-out, transform 0.8s ease-in-out, background-color 0.3s ease-in-out',
+                          pointerEvents: isRemoving ? 'none' : 'auto',
+                          backgroundColor: isHighlighted ? 'rgb(254, 252, 232)' : 'white',
+                          border: isHighlighted ? '2px solid rgb(250, 204, 21)' : undefined
                         }}
                       >
                     <CardHeader className="pb-3">

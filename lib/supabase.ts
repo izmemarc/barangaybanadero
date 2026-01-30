@@ -21,6 +21,9 @@ export type ClearanceType =
   | 'good-moral'
   | 'indigency'
   | 'residency'
+  | 'barangay-id'
+  | 'cso-accreditation'
+  | 'luntian'
 
 export interface ClearanceSubmission {
   id?: string

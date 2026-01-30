@@ -210,7 +210,7 @@ export function HeroSection() {
                     aria-label="Linis Ligtas Luntian Request Form"
                   >
                     <Leaf className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 text-primary flex-shrink-0" />
-                    Linis Ligtas Luntian
+                    Linis Ligtas Luntian Request Form
                   </Button>
                 </Link>
               </CardContent>

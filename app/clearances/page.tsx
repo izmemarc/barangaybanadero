@@ -222,7 +222,7 @@ export default function ClearancesPage() {
 
   // Update resident info when selectedResidentId changes
   useEffect(() => {
-    if (selectedResidentId && selectedType !== 'register' && selectedType !== 'cso-accreditation' && selectedType !== 'luntian') {
+    if (selectedResidentId && selectedType !== 'register' && selectedType !== 'cso-accreditation') {
       const fetchResidentData = async () => {
         const { data: fullResident } = await supabase
           .from('residents')
@@ -235,8 +235,8 @@ export default function ClearancesPage() {
           const photoUrl = await fetchResidentPhoto(fullResident as Resident)
           setResidentPhotoUrl(photoUrl || null)
           
-          // If no photo exists, clear captured photo to allow new capture (but NOT for barangay-id)
-          if (!photoUrl && selectedType !== 'barangay-id') {
+          // If no photo exists, clear captured photo to allow new capture (but NOT for barangay-id or luntian)
+          if (!photoUrl && selectedType !== 'barangay-id' && selectedType !== 'luntian') {
             setCapturedPhoto(null)
           }
         }
@@ -571,7 +571,27 @@ export default function ClearancesPage() {
         ]
       case 'barangay-id':
         return [
-          { id: 'contact', label: 'Contact Number', type: 'tel', required: true },
+          { id: 'contact_no', label: 'Contact No.', type: 'tel', required: true },
+          { id: 'sss_no', label: 'SSS No.', type: 'text', required: false },
+          { id: 'tin_no', label: 'TIN No.', type: 'text', required: false },
+          { id: 'passport_no', label: 'Passport No.', type: 'text', required: false },
+          { id: 'other_id_no', label: 'Other ID No.', type: 'text', required: false },
+          { id: 'precinct_no', label: 'Precinct No.', type: 'text', required: false },
+          { 
+            id: 'occupation', 
+            label: 'Occupation', 
+            type: 'text', 
+            required: false 
+          },
+          { id: 'contact_person', label: 'Contact Person', type: 'text', required: false },
+          { id: 'cp_number', label: 'Contact Person No.', type: 'tel', required: false },
+          { 
+            id: 'blood_type', 
+            label: 'Blood Type', 
+            type: 'select', 
+            required: false,
+            options: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown']
+          },
         ]
       case 'business':
         return [
@@ -725,10 +745,15 @@ export default function ClearancesPage() {
           
           // Officers (simplified for form - will be a table in actual display)
           { id: 'president', label: 'President Name', type: 'text', required: true },
+          { id: 'presidentTenure', label: 'President Tenure', type: 'text', required: true },
           { id: 'vicePresident', label: 'Vice President Name', type: 'text', required: true },
+          { id: 'vicePresidentTenure', label: 'Vice President Tenure', type: 'text', required: true },
           { id: 'secretary', label: 'Secretary Name', type: 'text', required: true },
+          { id: 'secretaryTenure', label: 'Secretary Tenure', type: 'text', required: true },
           { id: 'treasurer', label: 'Treasurer Name', type: 'text', required: true },
+          { id: 'treasurerTenure', label: 'Treasurer Tenure', type: 'text', required: true },
           { id: 'auditor', label: 'Auditor Name', type: 'text', required: true },
+          { id: 'auditorTenure', label: 'Auditor Tenure', type: 'text', required: true },
           
           // Membership
           { id: 'totalMembers', label: 'Total Number of Members', type: 'number', required: true },
@@ -737,7 +762,7 @@ export default function ClearancesPage() {
           // Track Record/Areas of Advocacy
           { 
             id: 'advocacy', 
-            label: 'Track Record/Areas of Advocacy', 
+            label: 'Track Record/Areas of Advocacy (Check all applicable)', 
             type: 'select', 
             required: true,
             options: [
@@ -756,38 +781,37 @@ export default function ClearancesPage() {
           // Local Special Bodies
           { 
             id: 'specialBody', 
-            label: 'Local Special Bodies/BBIs for Representation', 
+            label: 'Local Special Bodies/BBIs for Representation (As provided under RA 7160 and DILG issuances)', 
             type: 'select', 
             required: true,
             options: [
-              'Barangay Development Council',
-              'Barangay Peace and Order Council',
-              'Barangay Disaster Risk Reduction and Management Committee',
-              'Barangay Council for the Protection of Children',
-              'Barangay Anti-Drug Abuse Council',
-              'Barangay Nutrition Committee',
-              'Other Barangay-Based Institution'
+              'Barangay Development Council (BDC)',
+              'Barangay Peace and Order Council (BPOC)',
+              'Barangay Disaster Risk Reduction and Management Committee (BDRRMC)',
+              'Barangay Council for the Protection of Children (BCPC)',
+              'Barangay Anti-Drug Abuse Council (BADAC)',
+              'Barangay Nutrition Committee (BNC)',
+              'Other Barangay-Based Institution (specify)'
             ]
           },
         ]
       case 'luntian':
         return [
-          { id: 'dateOfRequest', label: 'Date of Request', type: 'date', required: true },
           { 
             id: 'requestedItems', 
-            label: 'Requested Items', 
+            label: 'Requested items', 
             type: 'select', 
             required: true,
             options: [
               'Vegetable seeds',
-              'Gardening materials / pots',
+              'Gardening materials / water containers',
               'Organic fertilizer / compost',
               'Cleaning tools / waste segregation materials',
               'Others'
             ]
           },
-          { id: 'purposeOfRequest', label: 'Purpose of Request', type: 'textarea', required: true },
-          { id: 'contact', label: 'Contact Number', type: 'tel', required: true },
+          { id: 'purposeOfRequest', label: 'Purpose of request', type: 'textarea', required: true },
+          { id: 'contact', label: 'Contact number', type: 'tel', required: true },
         ]
       default:
         return []
@@ -849,17 +873,10 @@ export default function ClearancesPage() {
         setSelectedResidentId(null)
         setCapturedPhoto(null)
         
-        // Reset form after 3 seconds
+        // Redirect to home page after 5 seconds
         setTimeout(() => {
-          setSubmitted(false)
-          setSelectedType(null)
-          setFormData({ name: '' })
-          setNameQuery('')
-          setResidents([])
-          setShowSuggestions(false)
-          setNameWasSelected(false)
-          setSelectedResidentId(null)
-        }, 3000)
+          window.location.href = '/'
+        }, 5000)
         return
       }
 
@@ -887,12 +904,10 @@ export default function ClearancesPage() {
         setIsSubmitting(false)
         setSubmitted(true)
         
-        // Reset form after 3 seconds
+        // Redirect to home page after 5 seconds
         setTimeout(() => {
-          setSubmitted(false)
-          setSelectedType(null)
-          setFormData({ name: '' })
-        }, 3000)
+          window.location.href = '/'
+        }, 5000)
         return
       }
 
@@ -920,17 +935,10 @@ export default function ClearancesPage() {
         setIsSubmitting(false)
         setSubmitted(true)
         
-        // Reset form after 3 seconds
+        // Redirect to home page after 5 seconds
         setTimeout(() => {
-          setSubmitted(false)
-          setSelectedType(null)
-          setFormData({ name: '' })
-          setNameQuery('')
-          setResidents([])
-          setShowSuggestions(false)
-          setNameWasSelected(false)
-          setSelectedResidentId(null)
-        }, 3000)
+          window.location.href = '/'
+        }, 5000)
         return
       }
 
@@ -978,18 +986,10 @@ export default function ClearancesPage() {
       setSelectedResidentId(null)
       setCapturedPhoto(null)
       
-      // Reset form after 3 seconds
+      // Redirect to home page after 5 seconds
       setTimeout(() => {
-        setSubmitted(false)
-        setSelectedType(null)
-        setFormData({ name: '' })
-        setNameQuery('')
-        setResidents([])
-        setShowSuggestions(false)
-        setNameWasSelected(false)
-        setSelectedResidentId(null)
-        setCapturedPhoto(null)
-      }, 3000)
+        router.push('/')
+      }, 5000)
     } catch (err) {
       setIsSubmitting(false)
       setError(err instanceof Error ? err.message : 'Failed to submit form. Please try again.')
@@ -1049,7 +1049,7 @@ export default function ClearancesPage() {
               <div 
                 className="mx-auto transition-all duration-500 ease-in-out"
                 style={{ 
-                  width: selectedResident && selectedType !== 'register' && selectedType !== 'cso-accreditation' && selectedType !== 'luntian' && !submitted 
+                  width: selectedResident && selectedType !== 'register' && selectedType !== 'cso-accreditation' && !submitted 
                     ? 'calc(475px + 400px + 24px)' 
                     : '475px',
                   maxWidth: '100%',
@@ -1131,11 +1131,12 @@ export default function ClearancesPage() {
                       </div>
                     )}
 
-                    {/* Name field - required for all forms except register, cso-accreditation, and luntian */}
-                    {selectedType !== 'register' && selectedType !== 'cso-accreditation' && selectedType !== 'luntian' && (
+                    {/* Name field - required for all forms except register and cso-accreditation */}
+                    {selectedType !== 'register' && selectedType !== 'cso-accreditation' && (
                     <div className="space-y-2 relative">
                       <label htmlFor="name" className="block text-sm font-semibold text-foreground">
                         {selectedType === 'blotter' ? 'Complainant Name' : 'Name'}
+                        <span className="text-red-500 ml-1">*</span>
                       </label>
                       <input
                         ref={nameInputRef}
@@ -1300,6 +1301,7 @@ export default function ClearancesPage() {
                       <div key={field.id} className="space-y-2" style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
                         <label htmlFor={field.id} className="block text-sm font-semibold text-foreground">
                           {field.label}
+                          {field.required && <span className="text-red-500 ml-1">*</span>}
                         </label>
                         {field.type === 'textarea' ? (
                           <textarea
@@ -1328,6 +1330,7 @@ export default function ClearancesPage() {
                               <div className="mt-3 pl-6 border-l-2 border-primary/30">
                                 <label className="block text-sm font-semibold text-foreground mb-2">
                                   Select Vegetable Seeds:
+                                  <span className="text-red-500 ml-1">*</span>
                                 </label>
                                 <MultiSelectCheckboxes
                                   id="vegetableSeeds"
@@ -1337,16 +1340,22 @@ export default function ClearancesPage() {
                                   required={false}
                                 />
                                 {formData.vegetableSeeds && formData.vegetableSeeds.includes('Others') && (
-                                  <textarea
-                                    id="vegetableSeedsDetails"
-                                    required
-                                    value={formData.vegetableSeedsDetails || ''}
-                                    onChange={(e) => handleInputChange('vegetableSeedsDetails', e.target.value)}
-                                    rows={2}
-                                    className="w-full max-w-full px-4 py-2.5 border border-border rounded-md text-sm bg-background resize-vertical focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors mt-2"
-                                    style={{ boxSizing: 'border-box', wordWrap: 'break-word', overflowWrap: 'break-word' }}
-                                    placeholder="Please specify other vegetable seeds..."
-                                  />
+                                  <>
+                                    <label htmlFor="vegetableSeedsDetails" className="block text-sm font-semibold text-foreground mt-2 mb-1">
+                                      Please specify other vegetable seeds:
+                                      <span className="text-red-500 ml-1">*</span>
+                                    </label>
+                                    <textarea
+                                      id="vegetableSeedsDetails"
+                                      required
+                                      value={formData.vegetableSeedsDetails || ''}
+                                      onChange={(e) => handleInputChange('vegetableSeedsDetails', e.target.value)}
+                                      rows={2}
+                                      className="w-full max-w-full px-4 py-2.5 border border-border rounded-md text-sm bg-background resize-vertical focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                                      style={{ boxSizing: 'border-box', wordWrap: 'break-word', overflowWrap: 'break-word' }}
+                                      placeholder="Please specify other vegetable seeds..."
+                                    />
+                                  </>
                                 )}
                               </div>
                             )}
@@ -1367,16 +1376,22 @@ export default function ClearancesPage() {
                             </select>
                           )}
                           {(formData[field.id] === 'Other' || formData[field.id] === 'Others' || (formData[field.id] && formData[field.id].includes('Others'))) && (
-                            <textarea
-                              id={`${field.id}Details`}
-                              required
-                              value={formData[`${field.id}Details`] || ''}
-                              onChange={(e) => handleInputChange(`${field.id}Details`, e.target.value)}
-                              rows={3}
-                              className="w-full max-w-full px-4 py-2.5 border border-border rounded-md text-sm bg-background resize-vertical focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors mt-2"
-                              style={{ boxSizing: 'border-box', wordWrap: 'break-word', overflowWrap: 'break-word' }}
-                              placeholder="Please specify..."
-                            />
+                            <>
+                              <label htmlFor={`${field.id}Details`} className="block text-sm font-semibold text-foreground mt-2 mb-1">
+                                Please specify:
+                                <span className="text-red-500 ml-1">*</span>
+                              </label>
+                              <textarea
+                                id={`${field.id}Details`}
+                                required
+                                value={formData[`${field.id}Details`] || ''}
+                                onChange={(e) => handleInputChange(`${field.id}Details`, e.target.value)}
+                                rows={3}
+                                className="w-full max-w-full px-4 py-2.5 border border-border rounded-md text-sm bg-background resize-vertical focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                                style={{ boxSizing: 'border-box', wordWrap: 'break-word', overflowWrap: 'break-word' }}
+                                placeholder="Please specify..."
+                              />
+                            </>
                           )}
                           </>
                         ) : field.type === 'checkbox' ? (
@@ -1465,12 +1480,12 @@ export default function ClearancesPage() {
                 <div 
                   className="hidden lg:block transition-all duration-500 ease-in-out flex-shrink-0"
                   style={{
-                    width: selectedResident && selectedType !== 'register' && selectedType !== 'cso-accreditation' && selectedType !== 'luntian' && !submitted ? '400px' : '0px',
-                    opacity: selectedResident && selectedType !== 'register' && selectedType !== 'cso-accreditation' && selectedType !== 'luntian' && !submitted ? 1 : 0,
+                    width: selectedResident && selectedType !== 'register' && selectedType !== 'cso-accreditation' && !submitted ? '400px' : '0px',
+                    opacity: selectedResident && selectedType !== 'register' && selectedType !== 'cso-accreditation' && !submitted ? 1 : 0,
                     overflow: 'hidden'
                   }}
                 >
-                  {selectedResident && selectedType !== 'register' && selectedType !== 'cso-accreditation' && selectedType !== 'luntian' && !submitted && (
+                  {selectedResident && selectedType !== 'register' && selectedType !== 'cso-accreditation' && !submitted && (
                     <div className="w-[400px] h-full">
                       <Card className="bg-white/95 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/98 h-full flex flex-col">
                       <CardHeader className="pb-3">
@@ -1562,7 +1577,7 @@ export default function ClearancesPage() {
               </div>
               
               {/* Mobile: Resident info card below form */}
-              {selectedResident && selectedType !== 'register' && selectedType !== 'cso-accreditation' && selectedType !== 'luntian' && !submitted && (
+              {selectedResident && selectedType !== 'register' && selectedType !== 'cso-accreditation' && !submitted && (
                 <div className="lg:hidden mt-6 mb-8">
                   <div className="flex justify-center">
                     <Card className="bg-white/95 backdrop-blur-lg shadow-2xl w-full max-w-full flex flex-col">
