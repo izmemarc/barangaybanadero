@@ -17,7 +17,7 @@ export async function GET() {
     const oauth2Client = new google.auth.OAuth2(
       clientId,
       clientSecret,
-      'http://localhost:3001/api/oauth/callback'
+      process.env.GOOGLE_REDIRECT_URI // use env, not hardcoded
     )
 
     oauth2Client.setCredentials({

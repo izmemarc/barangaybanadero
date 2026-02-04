@@ -196,6 +196,41 @@ export async function POST(request: NextRequest) {
     // FACILITY - Uses <placeholder> format
     else if (clearanceType === 'facility') {
       const submissionTime = today.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+      
+      // Calculate amount based on hours and facility selection
+      let calculatedAmount = ''
+      const startTime = submission.form_data.startTime
+      const endTime = submission.form_data.endTime
+      const facility = submission.form_data.facility || ''
+      
+      if (startTime && endTime && facility) {
+        // Parse time strings (format: "HH:MM")
+        const [startHour, startMin] = startTime.split(':').map(Number)
+        const [endHour, endMin] = endTime.split(':').map(Number)
+        
+        // Calculate duration in minutes
+        const startMinutes = startHour * 60 + startMin
+        const endMinutes = endHour * 60 + endMin
+        const durationMinutes = endMinutes - startMinutes
+        
+        // Round up to nearest hour (any partial hour = full hour)
+        // Examples: 1:30 = 2 hours, 2:01 = 3 hours, 3:00 = 3 hours
+        const hours = Math.ceil(durationMinutes / 60)
+        
+        // Extract rate from facility selection
+        // "Basketball Court Daytime (500 php/hour)" -> 500
+        // "Basketball Court Nighttime (700 php/hour)" -> 700
+        let ratePerHour = 500 // default
+        const rateMatch = facility.match(/\((\d+)\s*php\/hour\)/)
+        if (rateMatch) {
+          ratePerHour = parseInt(rateMatch[1])
+        }
+        
+        const totalAmount = ratePerHour * hours
+        
+        calculatedAmount = `₱${totalAmount.toFixed(2)}`
+      }
+      
       replacements = {
         or: '', // Template has <or> but we're leaving it blank
         date: dateIssued,
@@ -215,7 +250,7 @@ export async function POST(request: NextRequest) {
         end: submission.form_data.endTime || '',
         number: submission.form_data.participants || '',
         equipment: submission.form_data.equipment || '',
-        amount: submission.form_data.amount || ''
+        amount: calculatedAmount
       }
     }
     // GOOD MORAL - Uses <placeholder> format (case-sensitive: <first>, <Middle>, <Last>)

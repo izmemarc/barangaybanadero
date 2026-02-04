@@ -632,14 +632,14 @@ export default function ClearancesPage() {
             label: 'Facility', 
             type: 'select', 
             required: true,
-            options: ['Basketball Court (300 php/hour)']
+            options: ['Basketball Court Day time (500 php/hour)', 'Basketball Court Night time (700 php/hour)']
           },
           { id: 'eventDate', label: 'Date', type: 'date', required: true },
           { id: 'startTime', label: 'Starting Time', type: 'time', required: true },
           { id: 'endTime', label: 'End Time', type: 'time', required: true },
           { id: 'purpose', label: 'Purpose', type: 'textarea', required: true },
           { id: 'participants', label: 'Number of participants', type: 'number', required: true },
-          { id: 'equipment', label: 'Equipment Needed', type: 'checkbox', required: false, checkboxLabel: 'Covered Court Lights (+200 php/hour)' },
+          { id: 'equipment', label: 'Equipment Needed', type: 'text', required: false },
         ]
       case 'good-moral':
         return [
@@ -1403,7 +1403,7 @@ export default function ClearancesPage() {
                               onChange={(e) => handleInputChange(field.id, e.target.checked.toString())}
                               className="w-4 h-4 border border-border rounded focus:ring-2 focus:ring-primary"
                             />
-                            <label htmlFor={field.id} className="text-sm">{'checkboxLabel' in field ? field.checkboxLabel : field.label}</label>
+                            <label htmlFor={field.id} className="text-sm">{'checkboxLabel' in field ? String(field.checkboxLabel) : field.label}</label>
                           </div>
                         ) : (
                           <input

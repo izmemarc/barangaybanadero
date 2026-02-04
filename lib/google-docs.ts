@@ -18,7 +18,7 @@ function getAuthClient() {
   const oauth2Client = new google.auth.OAuth2(
     clientId,
     clientSecret,
-    'http://localhost:3001/api/oauth/callback'
+    process.env.GOOGLE_REDIRECT_URI // use env, not hardcoded
   )
 
   oauth2Client.setCredentials({
@@ -39,6 +39,8 @@ export async function generateClearanceDocument(
 ): Promise<{ documentId: string; documentUrl: string }> {
   try {
     const auth = getAuthClient()
+    // Force token refresh before any API calls
+    await auth.getAccessToken()
     const drive = google.drive({ version: 'v3', auth })
     const docs = google.docs({ version: 'v1', auth })
 
@@ -125,6 +127,8 @@ export async function insertPhotoIntoDocument(
 ): Promise<void> {
   try {
     const auth = getAuthClient()
+    // Force token refresh before any API calls
+    await auth.getAccessToken()
     const docs = google.docs({ version: 'v1', auth })
 
     // Build expected photo filename patterns
@@ -408,13 +412,13 @@ export function generateAuthUrl() {
   const oauth2Client = new google.auth.OAuth2(
     clientId,
     clientSecret,
-    'http://localhost:3001/api/oauth/callback'
+    process.env.GOOGLE_REDIRECT_URI // use env, not hardcoded
   )
 
   const authUrl = oauth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: SCOPES,
-    prompt: 'consent'
+    access_type: 'offline',   // REQUIRED for durable refresh token
+    prompt: 'consent',        // REQUIRED to force token refresh
+    scope: SCOPES
   })
 
   return { authUrl, oauth2Client }
