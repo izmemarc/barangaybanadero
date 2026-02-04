@@ -1405,6 +1405,101 @@ export default function ClearancesPage() {
                             />
                             <label htmlFor={field.id} className="text-sm">{'checkboxLabel' in field ? String(field.checkboxLabel) : field.label}</label>
                           </div>
+                        ) : field.type === 'time' && selectedType === 'facility' ? (
+                          <div className="flex gap-2">
+                            <select
+                              required={field.required}
+                              value={(() => {
+                                const hour24 = parseInt(formData[field.id]?.split(':')[0] || '0')
+                                if (hour24 === 0) return '12'
+                                if (hour24 > 12) return (hour24 - 12).toString()
+                                return hour24.toString()
+                              })()}
+                              onChange={(e) => {
+                                const hour12 = parseInt(e.target.value)
+                                const minutes = formData[field.id]?.split(':')[1] || '00'
+                                const currentHour24 = parseInt(formData[field.id]?.split(':')[0] || '0')
+                                const isPM = currentHour24 >= 12
+                                
+                                let hour24 = hour12
+                                if (isPM) {
+                                  hour24 = hour12 === 12 ? 12 : hour12 + 12
+                                } else {
+                                  hour24 = hour12 === 12 ? 0 : hour12
+                                }
+                                
+                                handleInputChange(field.id, `${hour24.toString().padStart(2, '0')}:${minutes}`)
+                              }}
+                              className="w-20 px-3 py-2.5 pr-8 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors cursor-pointer appearance-none bg-no-repeat bg-right"
+                              style={{ 
+                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                                backgroundPosition: 'right 0.5rem center',
+                                backgroundSize: '1.5em 1.5em'
+                              }}
+                            >
+                              <option value="">Hr</option>
+                              {Array.from({ length: 12 }, (_, i) => {
+                                const hour = i + 1
+                                return <option key={hour} value={hour.toString()}>{hour}</option>
+                              })}
+                            </select>
+                            <select
+                              required={field.required}
+                              value={formData[field.id]?.split(':')[1] || ''}
+                              onChange={(e) => {
+                                const hours = formData[field.id]?.split(':')[0] || '00'
+                                const minutes = e.target.value
+                                handleInputChange(field.id, `${hours}:${minutes}`)
+                              }}
+                              className="w-20 px-3 py-2.5 pr-8 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors cursor-pointer appearance-none bg-no-repeat bg-right"
+                              style={{ 
+                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                                backgroundPosition: 'right 0.5rem center',
+                                backgroundSize: '1.5em 1.5em'
+                              }}
+                            >
+                              <option value="">Min</option>
+                              <option value="00">00</option>
+                              <option value="15">15</option>
+                              <option value="30">30</option>
+                              <option value="45">45</option>
+                            </select>
+                            <select
+                              required={field.required}
+                              value={(() => {
+                                const hour = parseInt(formData[field.id]?.split(':')[0] || '0')
+                                return hour >= 12 ? 'PM' : 'AM'
+                              })()}
+                              onChange={(e) => {
+                                const hour12 = parseInt((() => {
+                                  const hour24 = parseInt(formData[field.id]?.split(':')[0] || '0')
+                                  if (hour24 === 0) return '12'
+                                  if (hour24 > 12) return (hour24 - 12).toString()
+                                  return hour24.toString()
+                                })())
+                                const minutes = formData[field.id]?.split(':')[1] || '00'
+                                const isPM = e.target.value === 'PM'
+                                
+                                let hour24 = hour12
+                                if (isPM) {
+                                  hour24 = hour12 === 12 ? 12 : hour12 + 12
+                                } else {
+                                  hour24 = hour12 === 12 ? 0 : hour12
+                                }
+                                
+                                handleInputChange(field.id, `${hour24.toString().padStart(2, '0')}:${minutes}`)
+                              }}
+                              className="w-20 px-3 py-2.5 pr-8 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors cursor-pointer appearance-none bg-no-repeat bg-right"
+                              style={{ 
+                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                                backgroundPosition: 'right 0.5rem center',
+                                backgroundSize: '1.5em 1.5em'
+                              }}
+                            >
+                              <option value="AM">AM</option>
+                              <option value="PM">PM</option>
+                            </select>
+                          </div>
                         ) : (
                           <input
                             id={field.id}

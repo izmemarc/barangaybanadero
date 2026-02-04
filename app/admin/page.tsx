@@ -6,7 +6,7 @@ import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { FileText, Download, CheckCircle, XCircle, Clock, UserPlus } from 'lucide-react'
+import { FileText, Download, CheckCircle, XCircle, Clock, UserPlus, Building2, AlertCircle, Calendar, CreditCard, FolderOpen } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { supabase } from '@/lib/supabase'
 
@@ -50,7 +50,8 @@ export default function AdminDashboard() {
   // Filter data client-side for instant updates
   const submissions = allSubmissions.filter(s => filter === 'all' || s.status === filter)
   const registrations = allRegistrations.filter(r => filter === 'all' || r.status === filter)
-  const [activeTab, setActiveTab] = useState<'clearances' | 'registrations'>('clearances')
+  const [activeTab, setActiveTab] = useState<'clearances' | 'registrations' | 'facility' | 'blotter' | 'barangay-id' | 'projects'>('clearances')
+  const [clearanceCategory, setClearanceCategory] = useState<string>('all')
   const [generating, setGenerating] = useState<string | null>(null)
   const [removingSubmissions, setRemovingSubmissions] = useState<Set<string>>(new Set())
   const [removingRegistrations, setRemovingRegistrations] = useState<Set<string>>(new Set())
@@ -80,21 +81,52 @@ export default function AdminDashboard() {
 
   // Initial fetch
   useEffect(() => {
-    if (activeTab === 'clearances') {
-      fetchSubmissions()
-    } else {
+    if (activeTab === 'registrations') {
       fetchRegistrations()
+    } else {
+      fetchSubmissions()
     }
   }, [activeTab])
   
   // Fetch all data when filter changes (background update)
   useEffect(() => {
-    if (activeTab === 'clearances') {
-      fetchSubmissions(true)
-    } else {
+    if (activeTab === 'registrations') {
       fetchRegistrations(true)
+    } else {
+      fetchSubmissions(true)
     }
   }, [filter])
+
+  // Get filtered submissions by category
+  const getFilteredSubmissions = () => {
+    let filtered = submissions
+    
+    switch (activeTab) {
+      case 'clearances':
+        filtered = submissions.filter(s => 
+          ['barangay', 'business', 'good-moral', 'indigency', 'residency', 'cso-accreditation', 'luntian'].includes(s.clearance_type)
+        )
+        break
+      case 'facility':
+        filtered = submissions.filter(s => s.clearance_type === 'facility')
+        break
+      case 'blotter':
+        filtered = submissions.filter(s => s.clearance_type === 'blotter')
+        break
+      case 'barangay-id':
+        filtered = submissions.filter(s => s.clearance_type === 'barangay-id')
+        break
+      case 'projects':
+        filtered = submissions.filter(s => s.clearance_type === 'projects')
+        break
+      default:
+        break
+    }
+    
+    return filtered
+  }
+
+  const displaySubmissions = activeTab === 'registrations' ? [] : getFilteredSubmissions()
 
   // Real-time subscriptions
   useEffect(() => {
@@ -619,24 +651,60 @@ export default function AdminDashboard() {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-2 mb-4 sm:mb-6 border-b border-gray-200">
+          <div className="flex gap-2 mb-4 sm:mb-6 border-b border-gray-200 overflow-x-auto">
             <button
               onClick={() => { setActiveTab('clearances'); setFilter('pending'); }}
-              className={`px-4 sm:px-6 py-2 sm:py-3 font-semibold transition-colors border-b-2 text-sm sm:text-base ${
+              className={`px-3 sm:px-4 py-2 sm:py-3 font-semibold transition-colors border-b-2 text-xs sm:text-sm whitespace-nowrap ${
                 activeTab === 'clearances' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
             >
-              <FileText className="inline h-4 w-4 mr-2" />
+              <FileText className="inline h-4 w-4 mr-1 sm:mr-2" />
               Clearances
             </button>
             <button
               onClick={() => { setActiveTab('registrations'); setFilter('pending'); }}
-              className={`px-4 sm:px-6 py-2 sm:py-3 font-semibold transition-colors border-b-2 text-sm sm:text-base ${
+              className={`px-3 sm:px-4 py-2 sm:py-3 font-semibold transition-colors border-b-2 text-xs sm:text-sm whitespace-nowrap ${
                 activeTab === 'registrations' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
             >
-              <UserPlus className="inline h-4 w-4 mr-2" />
+              <UserPlus className="inline h-4 w-4 mr-1 sm:mr-2" />
               Registrations
+            </button>
+            <button
+              onClick={() => { setActiveTab('facility'); setFilter('pending'); }}
+              className={`px-3 sm:px-4 py-2 sm:py-3 font-semibold transition-colors border-b-2 text-xs sm:text-sm whitespace-nowrap ${
+                activeTab === 'facility' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Calendar className="inline h-4 w-4 mr-1 sm:mr-2" />
+              Facility Use
+            </button>
+            <button
+              onClick={() => { setActiveTab('blotter'); setFilter('pending'); }}
+              className={`px-3 sm:px-4 py-2 sm:py-3 font-semibold transition-colors border-b-2 text-xs sm:text-sm whitespace-nowrap ${
+                activeTab === 'blotter' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <AlertCircle className="inline h-4 w-4 mr-1 sm:mr-2" />
+              Blotter
+            </button>
+            <button
+              onClick={() => { setActiveTab('barangay-id'); setFilter('pending'); }}
+              className={`px-3 sm:px-4 py-2 sm:py-3 font-semibold transition-colors border-b-2 text-xs sm:text-sm whitespace-nowrap ${
+                activeTab === 'barangay-id' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <CreditCard className="inline h-4 w-4 mr-1 sm:mr-2" />
+              Barangay ID
+            </button>
+            <button
+              onClick={() => { setActiveTab('projects'); setFilter('pending'); }}
+              className={`px-3 sm:px-4 py-2 sm:py-3 font-semibold transition-colors border-b-2 text-xs sm:text-sm whitespace-nowrap ${
+                activeTab === 'projects' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <FolderOpen className="inline h-4 w-4 mr-1 sm:mr-2" />
+              Projects
             </button>
           </div>
 
@@ -675,8 +743,8 @@ export default function AdminDashboard() {
             </Card>
           )}
 
-          {activeTab === 'clearances' && (
-            submissions.length === 0 && removingSubmissions.size === 0 ? (
+          {activeTab !== 'registrations' && (
+            displaySubmissions.length === 0 && removingSubmissions.size === 0 ? (
               <div
                 onAnimationEnd={() => animateEmptySubmissions && setAnimateEmptySubmissions(false)}
                 style={{
@@ -692,9 +760,9 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
               </div>
-            ) : submissions.length > 0 ? (
+            ) : displaySubmissions.length > 0 ? (
               <div className="space-y-4">
-                {submissions.map((submission) => {
+                {displaySubmissions.map((submission) => {
                   const isRemoving = removingSubmissions.has(submission.id)
                   const isNew = newSubmissions.has(submission.id)
                   const isHighlighted = highlightedSubmissions.has(submission.id)

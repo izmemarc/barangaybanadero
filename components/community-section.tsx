@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -15,6 +16,7 @@ import {
   FileText,
   AlertCircle,
 } from "lucide-react"
+import { supabase } from "@/lib/supabase"
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Shield,
@@ -69,7 +71,90 @@ const officials = [
   { name: "Judith H. Silvestre", position: "Treasurer", image: "/officers/judith.webp" },
 ];
 
+interface FacilityBooking {
+  id: string
+  name: string
+  form_data: {
+    eventDate: string
+    startTime: string
+    endTime: string
+    facility: string
+    purpose?: string
+  }
+  created_at: string
+}
+
 export function CommunitySection() {
+  const [bookings, setBookings] = useState<FacilityBooking[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchBookings()
+    
+    // Set up real-time subscription for facility bookings
+    const channel = supabase
+      .channel('facility_bookings_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'clearance_submissions',
+          filter: 'clearance_type=eq.facility'
+        },
+        (payload) => {
+          console.log('[Facility Bookings] Change detected:', payload)
+          fetchBookings() // Refetch when there's a change
+        }
+      )
+      .subscribe()
+
+    // Check for date changes daily (at midnight) to remove past bookings
+    const checkInterval = setInterval(() => {
+      const now = new Date()
+      // Check if it's close to midnight (within 5 minutes) or start of day
+      if (now.getHours() === 0 && now.getMinutes() < 5) {
+        fetchBookings()
+      }
+    }, 5 * 60 * 1000) // Check every 5 minutes
+
+    return () => {
+      supabase.removeChannel(channel)
+      clearInterval(checkInterval)
+    }
+  }, [])
+
+  async function fetchBookings() {
+    try {
+      const response = await fetch('/api/admin/facility-bookings')
+      const result = await response.json()
+      
+      if (response.ok) {
+        setBookings(result.data || [])
+      }
+    } catch (error) {
+      console.error('Error fetching facility bookings:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function formatDate(dateString: string): string {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    })
+  }
+
+  function formatTime(timeString: string): string {
+    const [hours, minutes] = timeString.split(':')
+    const hour = parseInt(hours)
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    const displayHour = hour % 12 || 12
+    return `${displayHour}:${minutes} ${ampm}`
+  }
   return (
     <section id="community" className="pt-6 sm:pt-8 lg:pt-10 pb-2 sm:pb-4 lg:pb-6">
       <div className="w-full max-w-[1600px] mx-auto">
@@ -129,14 +214,51 @@ export function CommunitySection() {
                   Covered Court Booked Dates
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-center py-4 text-center">
-                  <div>
-                    <Calendar className="h-8 w-8 text-primary mx-auto mb-2" />
-                    <p className="text-sm">No bookings scheduled</p>
-                    <p className="text-xs mt-1">Court is available for reservation</p>
+              <CardContent className="space-y-2">
+                {loading ? (
+                  <div className="flex items-center justify-center py-4 text-center">
+                    <p className="text-sm text-muted-foreground">Loading...</p>
                   </div>
-                </div>
+                ) : bookings.length > 0 ? (
+                  <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+                    {bookings.map((booking) => (
+                      <div 
+                        key={booking.id} 
+                        className="border-l-4 border-primary pl-3 py-2"
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h4 className="font-semibold text-sm text-balance leading-tight">{booking.name}</h4>
+                        </div>
+                        <div className="text-xs text-muted-foreground space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-3 w-3 flex-shrink-0" />
+                            <span>{formatDate(booking.form_data.eventDate)}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-3 w-3 flex-shrink-0" />
+                            <span>
+                              {formatTime(booking.form_data.startTime)} - {formatTime(booking.form_data.endTime)}
+                            </span>
+                          </div>
+                          {booking.form_data.purpose && (
+                            <div className="flex items-start gap-2">
+                              <FileText className="h-3 w-3 flex-shrink-0 mt-0.5" />
+                              <span className="text-xs line-clamp-2">{booking.form_data.purpose}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center py-4 text-center">
+                    <div>
+                      <Calendar className="h-8 w-8 text-primary mx-auto mb-2" />
+                      <p className="text-sm">No bookings scheduled</p>
+                      <p className="text-xs mt-1 text-muted-foreground">Court is available for reservation</p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
