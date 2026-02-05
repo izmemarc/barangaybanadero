@@ -503,7 +503,10 @@ export async function POST(request: NextRequest) {
     let documentId: string
     let documentUrl: string
     
-    if (resident && nameParts.lastName && nameParts.firstName) {
+    // Clearance types that support photo insertion
+    const photoSupportedTypes = ['barangay', 'barangay-id', 'indigency', 'good-moral', 'residency']
+    
+    if (resident && nameParts.lastName && nameParts.firstName && photoSupportedTypes.includes(clearanceType)) {
       // Generate document first
       const result = await generateClearanceDocument(
         templateId,
